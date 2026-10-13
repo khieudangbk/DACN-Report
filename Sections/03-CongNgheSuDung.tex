@@ -1,0 +1,241 @@
+%=========================
+% CHƯƠNG 4 - CÔNG NGHỆ SỬ DỤNG
+%=========================
+
+\section{Công nghệ sử dụng}
+
+Chương này trình bày các công nghệ chính được sử dụng trong quá trình xây dựng hệ thống Trợ lý Mua sắm Đa phương tiện. Thay vì mô tả chi tiết từng thư viện riêng lẻ, các công nghệ được tổng hợp theo nhóm nhằm làm rõ phiên bản và vai trò của từng thành phần trong kiến trúc hệ thống.
+
+\subsection{Tiêu chí lựa chọn công nghệ}
+
+Các công nghệ được lựa chọn dựa trên các tiêu chí chính sau:
+
+\begin{itemize}
+    \item Phù hợp với kiến trúc tách biệt giữa Frontend, Backend, AI Service và Database.
+    \item Hỗ trợ tốt cho các bài toán AI như semantic search, multimodal search, RAG và Computer Vision.
+    \item Có hiệu năng xử lý tốt, đáp ứng các tác vụ tìm kiếm và hội thoại gần thời gian thực.
+    \item Có hệ sinh thái phát triển mạnh, tài liệu đầy đủ và dễ tích hợp.
+    \item Dễ triển khai, kiểm thử và mở rộng trong các giai đoạn phát triển tiếp theo.
+\end{itemize}
+
+%=========================
+\subsection{Bảng tổng hợp công nghệ sử dụng}
+
+\renewcommand{\arraystretch}{1.25}
+\small
+
+\begin{longtable}{|p{2.6cm}|p{3.1cm}|p{2.4cm}|p{6.3cm}|}
+\caption{Bảng tổng hợp các công nghệ sử dụng trong hệ thống} \\
+\hline
+\textbf{Nhóm công nghệ} & \textbf{Công nghệ} & \textbf{Phiên bản} & \textbf{Vai trò trong hệ thống} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Nhóm công nghệ} & \textbf{Công nghệ} & \textbf{Phiên bản} & \textbf{Vai trò trong hệ thống} \\
+\hline
+\endhead
+
+Frontend 
+& React 
+& 18.x
+& Xây dựng giao diện người dùng theo hướng component-based, hỗ trợ các màn hình tìm kiếm sản phẩm, chatbot AI, trang chi tiết sản phẩm và giao diện quản trị. \\
+\hline
+
+Frontend 
+& Redux Toolkit 
+& 2.x
+& Quản lý trạng thái toàn cục của ứng dụng như thông tin người dùng, trạng thái đăng nhập, giỏ hàng, kết quả tìm kiếm và trạng thái hội thoại AI. \\
+\hline
+
+Frontend 
+& React Router DOM 
+& 6.x
+& Quản lý điều hướng trong ứng dụng Single Page Application, hỗ trợ chuyển trang mượt mà và tổ chức route theo từng nhóm chức năng. \\
+\hline
+
+Frontend 
+& Axios 
+& 1.x
+& Gửi HTTP request từ frontend đến backend, hỗ trợ cấu hình interceptor để xử lý token xác thực và lỗi phản hồi từ API. \\
+\hline
+
+Frontend 
+& Socket.io Client 
+& 4.x
+& Hỗ trợ giao tiếp thời gian thực giữa frontend và backend, phục vụ chatbot AI streaming và cập nhật trạng thái xử lý. \\
+\hline
+
+Frontend 
+& Bootstrap, SCSS 
+& Bootstrap 5.3.x
+& Xây dựng giao diện responsive, dễ tùy chỉnh và đảm bảo tính nhất quán về mặt hiển thị trong toàn bộ ứng dụng. \\
+\hline
+
+Backend 
+& Spring Boot 
+& 4.0.6
+& Framework chính để xây dựng backend RESTful API, xử lý nghiệp vụ và điều phối dữ liệu giữa frontend, database và AI Service. \\
+\hline
+
+Backend 
+& Spring Web MVC 
+& Theo Spring Boot 4.0.6
+& Tổ chức các API theo mô hình MVC, giúp tách biệt rõ ràng giữa controller, service và repository. \\
+\hline
+
+Backend 
+& Spring Data JPA 
+& Theo Spring Boot 4.0.6
+& Thao tác với cơ sở dữ liệu quan hệ theo mô hình ORM, giảm việc viết SQL thủ công và hỗ trợ ánh xạ dữ liệu giữa entity và database. \\
+\hline
+
+Backend 
+& Spring Security 
+& Theo Spring Boot 4.0.6
+& Xây dựng lớp bảo mật cho hệ thống, hỗ trợ xác thực và phân quyền truy cập các API quan trọng. \\
+\hline
+
+Backend 
+& RestClient 
+& Theo Spring Boot 4.0.6
+& Giao tiếp giữa backend Spring Boot và AI Service thông qua HTTP API, phục vụ tìm kiếm thông minh và chatbot AI. \\
+\hline
+
+Backend 
+& Spring AOP, AspectJ 
+& Theo Spring Boot 4.0.6
+& Xử lý các tác vụ cắt ngang như đồng bộ dữ liệu sản phẩm sang hệ thống AI indexing khi dữ liệu sản phẩm thay đổi. \\
+\hline
+
+Backend 
+& Lombok 
+& Theo dependency dự án
+& Giảm mã lặp trong Java như getter, setter, constructor và builder, giúp mã nguồn ngắn gọn và dễ bảo trì hơn. \\
+\hline
+
+AI Service 
+& FastAPI 
+& $\geq$ 0.115.0
+& Framework chính để xây dựng AI Service, tiếp nhận request từ backend và xử lý các tác vụ AI như tìm kiếm ngữ nghĩa, tìm kiếm bằng ảnh và hội thoại. \\
+\hline
+
+AI Service 
+& Pydantic 
+& $\geq$ 2.7.0
+& Kiểm tra, chuẩn hóa dữ liệu đầu vào và đầu ra của AI Service, đảm bảo tính nhất quán khi giao tiếp với backend. \\
+\hline
+
+AI Service 
+& PyTorch 
+& $\geq$ 2.6.0
+& Nền tảng chạy các mô hình học sâu phục vụ embedding, xử lý ảnh và inference AI. \\
+\hline
+
+AI Service 
+& Transformers 
+& $\geq$ 4.52.0
+& Triển khai các mô hình pretrained phục vụ xử lý ngôn ngữ tự nhiên, mô hình đa phương thức và trích xuất đặc trưng. \\
+\hline
+
+AI Service 
+& Sentence-Transformers 
+& $\geq$ 5.4.0
+& Tạo vector embedding cho văn bản, phục vụ chức năng semantic search và truy xuất sản phẩm theo ngữ nghĩa. \\
+\hline
+
+AI Service 
+& SigLIP 
+& V1
+& Tạo embedding hình ảnh theo hướng đa phương thức, hỗ trợ tìm kiếm sản phẩm bằng ảnh và đối sánh giữa hình ảnh với ngữ nghĩa văn bản. \\
+\hline
+
+AI Service 
+& YOLO 
+& YOLOv26
+& Phát hiện đối tượng trong ảnh đầu vào, hỗ trợ nhận diện vùng chứa sản phẩm và cải thiện độ chính xác khi xử lý truy vấn liên quan đến hình ảnh. \\
+\hline
+
+AI Service 
+& Google Gemini 
+& 2.5
+& Xử lý truy vấn ngôn ngữ tự nhiên, hiểu ý định người dùng, viết lại truy vấn và sinh phản hồi hội thoại cho chatbot AI. \\
+\hline
+
+AI Service 
+& LangGraph 
+& $\geq$ 1.0.0
+& Xây dựng workflow AI có trạng thái, hỗ trợ điều phối các bước xử lý như hiểu truy vấn, truy xuất dữ liệu, lưu ngữ cảnh và sinh phản hồi. \\
+\hline
+
+AI Service 
+& HTTPX 
+& $\geq$ 0.28.0
+& Thực hiện HTTP request từ AI Service đến backend hoặc các dịch vụ bên ngoài. \\
+\hline
+
+AI Service 
+& Pillow 
+& $\geq$ 11.0.0
+& Tiền xử lý ảnh đầu vào như resize, crop, chuyển đổi định dạng và chuẩn hóa ảnh trước khi đưa vào mô hình AI. \\
+\hline
+
+Database 
+& MySQL 
+& 8.0+
+& Lưu trữ dữ liệu quan hệ của hệ thống như sản phẩm, danh mục, thuộc tính sản phẩm, hình ảnh, người dùng, giỏ hàng và đơn hàng. \\
+\hline
+
+Database 
+& PostgreSQL 
+& V17
+& Lưu checkpoint cho LangGraph, bao gồm trạng thái hội thoại, trạng thái workflow và dữ liệu trung gian trong quá trình AI xử lý yêu cầu. \\
+\hline
+
+Vector Database 
+& Qdrant 
+& $\geq$ 1.14.0
+& Lưu trữ vector embedding của sản phẩm và hỗ trợ tìm kiếm ngữ nghĩa dựa trên độ tương đồng vector. \\
+\hline
+
+DevOps 
+& Docker 
+& 29.5.2 
+& Đóng gói và triển khai các thành phần như database, vector database và service, giúp môi trường phát triển và kiểm thử nhất quán hơn. \\
+\hline
+
+DevOps 
+& Google Cloud Platform 
+& Nền tảng cloud
+& Hỗ trợ triển khai backend, AI Service, cơ sở dữ liệu, lưu trữ dữ liệu và tài nguyên tính toán cho hệ thống. \\
+\hline
+
+Công cụ phát triển 
+& Git, GitHub 
+& 2.43.0
+& Quản lý mã nguồn, theo dõi lịch sử thay đổi và hỗ trợ làm việc nhóm trong quá trình phát triển dự án. \\
+\hline
+
+Công cụ phát triển 
+& Maven 
+& Theo Spring Boot 4.0.6
+& Quản lý dependency, build và đóng gói backend Spring Boot. \\
+\hline
+
+Công cụ phát triển 
+& Postman 
+& v12.x
+& Kiểm thử và debug REST API trước khi tích hợp với frontend và AI Service. \\
+\hline
+
+Công cụ phát triển 
+& Visual Studio Code 
+& 1.120.0.
+& Môi trường phát triển chính cho frontend, backend và AI Service. \\
+\hline
+
+\end{longtable}
+
+\normalsize
+
+%=========================

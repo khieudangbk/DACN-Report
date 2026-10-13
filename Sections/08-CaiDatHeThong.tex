@@ -1,0 +1,488 @@
+% Sections/08-CaiDatHeThong.tex
+% Chương 8 – Cài đặt hệ thống
+%=========================
+
+\section{Cài đặt hệ thống}
+
+Chương này trình bày cách hệ thống được đóng gói và triển khai bằng Docker trên Google Cloud Platform. Nội dung tập trung vào môi trường triển khai, cấu hình tài nguyên, cách chạy các container và thứ tự khởi động các thành phần chính.
+\subsection{Chuẩn bị dữ liệu đầu vào cho database}
+
+Dữ liệu sản phẩm ban đầu của hệ thống được lấy từ bộ dữ liệu Fashion Product Images Dataset trên Kaggle. Bộ dữ liệu này cung cấp khoảng 44 nghìn sản phẩm thời trang, bao gồm ảnh sản phẩm, nhãn danh mục, mô tả và một số thuộc tính liên quan \parencite{paramaggarwalFashionProductImages}.
+
+Trong phạm vi đồ án, hệ thống không sử dụng toàn bộ dữ liệu gốc mà chỉ chọn 900 sản phẩm làm dữ liệu đầu vào để xây dựng database thử nghiệm. Các sản phẩm này được chuẩn hóa và import vào MySQL nhằm phục vụ các chức năng chính như hiển thị sản phẩm, quản lý danh mục, tìm kiếm, lọc sản phẩm và đồng bộ dữ liệu sang AI Service.
+
+Sau khi dữ liệu được import vào MySQL, database được export thành file \texttt{backup.sql}. File này tiếp tục được sử dụng làm đầu vào cho pipeline Việt hóa dữ liệu bằng Qwen3.5-9B ở bước xử lý tiếp theo.
+
+\begin{table}[H]
+\centering
+\caption{Nguồn dữ liệu đầu vào cho database thử nghiệm}
+\label{tab:database-input-dataset}
+\begin{tabularx}{\linewidth}{@{}p{0.30\linewidth}X@{}}
+\toprule
+\textbf{Thành phần} & \textbf{Mô tả} \\
+\midrule
+Nguồn dữ liệu & Fashion Product Images Dataset trên Kaggle \\
+Quy mô dữ liệu gốc & Khoảng 44 nghìn sản phẩm thời trang \\
+Dữ liệu sử dụng trong đồ án & 900 sản phẩm được chọn để xây dựng database thử nghiệm \\
+Vai trò & Là dữ liệu đầu vào cho MySQL, phục vụ kiểm thử các chức năng sản phẩm, tìm kiếm và AI Service \\
+Đầu ra sau xử lý & File \texttt{backup.sql} dùng cho pipeline Việt hóa dữ liệu \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\subsection{Cài đặt pipeline Việt hóa dữ liệu bằng Qwen3.5}
+
+Để hỗ trợ giao diện tiếng Việt, tìm kiếm tiếng Việt và dữ liệu đầu vào cho AI Service, hệ thống sử dụng pipeline Việt hóa dữ liệu sản phẩm bằng mô hình Qwen3.5-9B. Pipeline được chạy trên Kaggle Notebook với GPU Tesla T4, dữ liệu đầu vào là file backup MySQL \texttt{backup.sql}, dữ liệu đầu ra là file \texttt{vi\_updates.sql} dùng để cập nhật các trường tiếng Việt vào MySQL.
+
+Pipeline gồm ba bước chính: trích xuất dữ liệu cần dịch từ file SQL, sử dụng Qwen3.5-9B để dịch sản phẩm và danh mục, sau đó sinh file SQL cập nhật dữ liệu tiếng Việt.
+
+\begin{lstlisting}[language=Python,caption={Cấu hình đường dẫn và mô hình cho pipeline Việt hóa dữ liệu},label={lst:vi-pipeline-config}]
+PIPE = "/kaggle/input/datasets/anhdngltrn/okneokok/dacn_vi_llm_pipeline_qwen3/dacn_vi_llm_pipeline_qwen3"
+SQL = "/kaggle/input/datasets/anhdngltrn/okneokok/backup.sql"
+MODEL = "Qwen/Qwen3.5-9B"
+BATCH = 2
+\end{lstlisting}
+
+Trước khi chạy pipeline, môi trường được cài đặt các thư viện cần thiết để nạp mô hình, lượng tử hóa 4-bit và suy luận trên GPU.
+
+\begin{lstlisting}[style=terminal,caption={Cài đặt thư viện phục vụ suy luận Qwen3.5-9B},label={lst:vi-install-deps}]
+pip install -q -U git+https://github.com/huggingface/transformers.git accelerate bitsandbytes sentencepiece protobuf
+\end{lstlisting}
+
+Đầu tiên, pipeline trích xuất dữ liệu cần dịch từ file \texttt{backup.sql}. Kết quả bước này tạo ra 900 job sản phẩm và 79 job danh mục.
+
+\begin{lstlisting}[style=terminal,caption={Trích xuất job dịch từ file backup SQL},label={lst:vi-extract-jobs}]
+rm -rf /kaggle/working/translation_jobs
+
+python "$PIPE/00_extract_jobs.py" \
+  --sql "$SQL" \
+  --out-dir /kaggle/working/translation_jobs
+
+wc -l /kaggle/working/translation_jobs/product_jobs.jsonl
+wc -l /kaggle/working/translation_jobs/category_jobs.jsonl
+\end{lstlisting}
+
+Để tận dụng hai GPU Tesla T4, danh sách job sản phẩm được chia thành hai phần, mỗi phần gồm 450 job.
+
+\begin{lstlisting}[style=terminal,caption={Chia job sản phẩm thành hai shard để xử lý song song},label={lst:vi-split-shards}]
+mkdir -p /kaggle/working/shards_qwen35_full
+
+awk 'NR % 2 == 1' /kaggle/working/translation_jobs/product_jobs.jsonl \
+  > /kaggle/working/shards_qwen35_full/product_gpu0.jsonl
+
+awk 'NR % 2 == 0' /kaggle/working/translation_jobs/product_jobs.jsonl \
+  > /kaggle/working/shards_qwen35_full/product_gpu1.jsonl
+
+wc -l /kaggle/working/shards_qwen35_full/product_gpu0.jsonl
+wc -l /kaggle/working/shards_qwen35_full/product_gpu1.jsonl
+\end{lstlisting}
+
+Sau đó, hai tiến trình dịch sản phẩm được chạy song song trên hai GPU. Mô hình được nạp với lượng tử hóa 4-bit để giảm mức sử dụng bộ nhớ GPU.
+
+\begin{lstlisting}[style=terminal,caption={Dịch dữ liệu sản phẩm song song bằng Qwen3.5-9B trên hai GPU},label={lst:vi-translate-products}]
+PIPE="/kaggle/input/datasets/anhdngltrn/okneokok/dacn_vi_llm_pipeline_qwen3/dacn_vi_llm_pipeline_qwen3"
+MODEL="Qwen/Qwen3.5-9B"
+BATCH=2
+
+CUDA_VISIBLE_DEVICES=0 python "$PIPE/01_translate_llm_kaggle.py" \
+  --jobs /kaggle/working/shards_qwen35_full/product_gpu0.jsonl \
+  --output /kaggle/working/product_translations_gpu0_qwen35_full.jsonl \
+  --model "$MODEL" \
+  --batch-size "$BATCH" \
+  --quantization 4bit \
+  --max-new-tokens 2048 \
+  --trust-remote-code \
+  > /kaggle/working/gpu0_qwen35_full.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=1 python "$PIPE/01_translate_llm_kaggle.py" \
+  --jobs /kaggle/working/shards_qwen35_full/product_gpu1.jsonl \
+  --output /kaggle/working/product_translations_gpu1_qwen35_full.jsonl \
+  --model "$MODEL" \
+  --batch-size "$BATCH" \
+  --quantization 4bit \
+  --max-new-tokens 2048 \
+  --trust-remote-code \
+  > /kaggle/working/gpu1_qwen35_full.log 2>&1 &
+
+wait
+
+echo "PRODUCT RUN DONE"
+\end{lstlisting}
+
+Kết quả từ hai GPU được gộp lại và loại bỏ các bản ghi trùng lặp theo \texttt{job\_id}.
+
+\begin{lstlisting}[language=Python,caption={Gộp và loại bỏ trùng lặp kết quả dịch sản phẩm},label={lst:vi-merge-products}]
+import json
+from pathlib import Path
+
+inp = Path("/kaggle/working/product_translations_raw.jsonl")
+out = Path("/kaggle/working/product_translations.jsonl")
+
+seen = set()
+rows = []
+
+with inp.open("r", encoding="utf-8") as f:
+    for line in f:
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+            jid = obj.get("job_id")
+            if not jid or jid in seen:
+                continue
+            seen.add(jid)
+            rows.append(obj)
+        except Exception:
+            pass
+
+with out.open("w", encoding="utf-8") as f:
+    for obj in rows:
+        f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+
+print("unique product translations:", len(rows))
+\end{lstlisting}
+
+Sau lần chạy đầu, pipeline dịch được 882 trên tổng số 900 sản phẩm. Các job còn thiếu được tách riêng để chạy lại.
+
+\begin{lstlisting}[language=Python,caption={Kiểm tra các job sản phẩm chưa được dịch thành công},label={lst:vi-check-missing}]
+import json
+from pathlib import Path
+
+jobs_path = Path("/kaggle/working/translation_jobs/product_jobs.jsonl")
+done_path = Path("/kaggle/working/product_translations.jsonl")
+missing_path = Path("/kaggle/working/product_jobs_missing.jsonl")
+
+done = set()
+
+with done_path.open("r", encoding="utf-8") as f:
+    for line in f:
+        if line.strip():
+            try:
+                done.add(json.loads(line)["job_id"])
+            except Exception:
+                pass
+
+total = 0
+missing = 0
+
+with jobs_path.open("r", encoding="utf-8") as fin, missing_path.open("w", encoding="utf-8") as fout:
+    for line in fin:
+        if not line.strip():
+            continue
+        total += 1
+        obj = json.loads(line)
+        if obj["job_id"] not in done:
+            fout.write(json.dumps(obj, ensure_ascii=False) + "\n")
+            missing += 1
+
+print("total:", total)
+print("done:", len(done))
+print("missing:", missing)
+print("missing file:", missing_path)
+\end{lstlisting}
+
+Các job lỗi được chạy lại với \texttt{batch-size=1} và số lần retry lớn hơn để giảm lỗi mô hình trả về sai định dạng JSON.
+
+\begin{lstlisting}[style=terminal,caption={Chạy lại các job sản phẩm bị lỗi với batch-size nhỏ hơn},label={lst:vi-retry-missing}]
+CUDA_VISIBLE_DEVICES=0 python "$PIPE/01_translate_llm_kaggle.py" \
+  --jobs /kaggle/working/product_jobs_missing.jsonl \
+  --output /kaggle/working/product_translations_missing_retry.jsonl \
+  --model "$MODEL" \
+  --batch-size 1 \
+  --quantization 4bit \
+  --max-new-tokens 2048 \
+  --trust-remote-code \
+  --retries 5
+\end{lstlisting}
+
+Sau bước retry, số bản dịch sản phẩm duy nhất đạt 891. Đối với danh mục, pipeline dịch trực tiếp toàn bộ 79 job danh mục.
+
+\begin{lstlisting}[style=terminal,caption={Dịch dữ liệu danh mục sản phẩm bằng Qwen3.5-9B},label={lst:vi-translate-categories}]
+CUDA_VISIBLE_DEVICES=0 python "$PIPE/01_translate_llm_kaggle.py" \
+  --jobs /kaggle/working/translation_jobs/category_jobs.jsonl \
+  --output /kaggle/working/category_translations.jsonl \
+  --model "$MODEL" \
+  --batch-size 2 \
+  --quantization 4bit \
+  --max-new-tokens 1024 \
+  --trust-remote-code
+
+wc -l /kaggle/working/category_translations.jsonl
+\end{lstlisting}
+
+Cuối cùng, script \texttt{02\_make\_update\_sql.py} được dùng để sinh file SQL cập nhật dữ liệu tiếng Việt vào MySQL.
+
+\begin{lstlisting}[style=terminal,caption={Sinh file SQL cập nhật dữ liệu tiếng Việt vào MySQL},label={lst:vi-make-update-sql}]
+python "$PIPE/02_make_update_sql.py" \
+  --translations /kaggle/working/category_translations.jsonl /kaggle/working/product_translations_final.jsonl \
+  --output /kaggle/working/vi_updates.sql
+
+ls -lh /kaggle/working/vi_updates.sql
+head -n 40 /kaggle/working/vi_updates.sql
+\end{lstlisting}
+
+File \texttt{vi\_updates.sql} bổ sung các cột tiếng Việt nếu chưa tồn tại, sau đó cập nhật dữ liệu đã dịch vào các bảng tương ứng.
+
+\begin{lstlisting}[language=SQL,caption={Một phần file SQL cập nhật dữ liệu tiếng Việt},label={lst:vi-update-sql-head}]
+-- Generated by 02_make_update_sql.py
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
+
+-- Add Vietnamese columns if missing
+SET @col_exists := (
+  SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'product_display_name_vi'
+);
+
+SET @ddl := IF(
+  @col_exists = 0,
+  'ALTER TABLE `products` ADD COLUMN `product_display_name_vi` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL',
+  'SELECT 1'
+);
+
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+\end{lstlisting}
+
+Kết quả thực thi pipeline được tổng hợp trong \Cref{tab:vi-pipeline-result}.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả thực thi pipeline Việt hóa dữ liệu bằng Qwen3.5-9B}
+\label{tab:vi-pipeline-result}
+\begin{tabularx}{\linewidth}{@{}p{0.45\linewidth}p{0.18\linewidth}X@{}}
+\toprule
+\textbf{Hạng mục} & \textbf{Kết quả} & \textbf{Ghi chú} \\
+\midrule
+Job sản phẩm được trích xuất & 900 & Sinh từ file backup SQL. \\
+Job danh mục được trích xuất & 79 & Sinh từ dữ liệu danh mục. \\
+Bản dịch sản phẩm sau lần chạy đầu & 882 & Sau khi gộp kết quả từ hai GPU. \\
+Job sản phẩm còn thiếu & 18 & Được tách riêng để retry. \\
+Bản dịch sản phẩm cuối cùng & 891 & Sau khi retry với batch-size nhỏ hơn. \\
+Bản dịch danh mục & 79 & Dịch thành công toàn bộ danh mục. \\
+Dòng cập nhật sản phẩm & 871 & Sinh vào file \texttt{vi\_updates.sql}. \\
+Dòng cập nhật danh mục & 79 & Sinh vào file \texttt{vi\_updates.sql}. \\
+Dòng cập nhật thuộc tính & 2528 & Cập nhật các thuộc tính đã Việt hóa. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+Sau khi sinh file SQL, các kết quả đầu ra được đóng gói để tải về và import vào MySQL.
+
+\begin{lstlisting}[style=terminal,caption={Đóng gói kết quả đầu ra của pipeline Việt hóa dữ liệu},label={lst:vi-zip-output}]
+cd /kaggle/working
+
+zip -q dacn_vi_outputs.zip \
+  vi_updates.sql \
+  product_translations_final.jsonl \
+  category_translations.jsonl \
+  product_jobs_missing.jsonl \
+  product_translations_missing_retry.jsonl \
+  gpu0_qwen35_full.log \
+  gpu1_qwen35_full.log
+
+ls -lh /kaggle/working/dacn_vi_outputs.zip
+\end{lstlisting}
+
+File \texttt{vi\_updates.sql} được import vào MySQL để bổ sung tên sản phẩm, danh mục và thuộc tính tiếng Việt. Dữ liệu này được sử dụng cho frontend, tìm kiếm văn bản tiếng Việt và các chức năng AI liên quan đến hiểu truy vấn người dùng.
+\subsection{Cài đặt fine-tune YOLOv26}
+Để mô hình phù hợp hơn với miền dữ liệu thương mại điện tử thời trang, YOLOv26 được fine-tune trên tập dữ liệu thời trang được xây dựng dựa trên nguồn Fashionpedia. Fashionpedia là bộ dữ liệu thị giác máy tính trong lĩnh vực thời trang, cung cấp dữ liệu ảnh cùng annotation phục vụ các bài toán như phát hiện đối tượng, phân đoạn đối tượng và nhận diện thuộc tính thời trang \parencite{jia2020fashionpedia}. Trong quá trình huấn luyện, dữ liệu được chuyển đổi về định dạng YOLO và gom thành bốn nhóm nhãn chính: \textit{accessories}, \textit{bags}, \textit{clothing} và \textit{shoes}. Các nhóm nhãn này tương ứng với những loại sản phẩm phổ biến trong hệ thống, đồng thời đủ tổng quát để hỗ trợ chức năng tìm kiếm bằng hình ảnh.
+
+Nguồn dữ liệu được tham khảo từ phiên bản Fashionpedia được công bố trên Hugging Face Datasets. Bộ dữ liệu này thuộc nhóm dữ liệu ảnh cho bài toán object detection, có định dạng lưu trữ Parquet và giấy phép CC-BY-4.0 \parencite{huggingfaceFashionpedia}.
+
+
+
+Trước khi huấn luyện, môi trường cần cài đặt thư viện \texttt{ultralytics} để sử dụng API huấn luyện mô hình YOLO. Lệnh cài đặt được trình bày trong \Cref{lst:install-ultralytics}.
+
+\begin{lstlisting}[style=terminal,caption={Cài đặt thư viện Ultralytics phục vụ fine-tune YOLOv26},label={lst:install-ultralytics}]
+pip install -U ultralytics
+\end{lstlisting}
+
+Tập dữ liệu được tổ chức theo định dạng YOLO, gồm ba tập con là train, validation và test. File cấu hình dữ liệu được tạo bằng đoạn mã trong \Cref{lst:yolo-data-yaml}.
+
+\begin{lstlisting}[language=Python,caption={Tạo file cấu hình dữ liệu cho fine-tune YOLOv26},label={lst:yolo-data-yaml}]
+import os
+
+yaml_text = """
+train: /kaggle/input/datasets/anhdngltrn/dungne/fashion_dataset/train/images
+val: /kaggle/input/datasets/anhdngltrn/dungne/fashion_dataset/val/images
+test: /kaggle/input/datasets/anhdngltrn/dungne/fashion_dataset/test/images
+
+nc: 4
+names:
+  0: accessories
+  1: bags
+  2: clothing
+  3: shoes
+""".strip()
+
+with open("/kaggle/working/data.yaml", "w") as f:
+    f.write(yaml_text)
+
+print("Saved /kaggle/working/data.yaml")
+print(open("/kaggle/working/data.yaml").read())
+\end{lstlisting}
+
+Sau khi chuẩn bị file cấu hình dữ liệu, mô hình YOLOv26s được nạp từ weight ban đầu \texttt{yolo26s.pt}. Quá trình huấn luyện kiểm tra GPU khả dụng, cấu hình thiết bị huấn luyện và thực hiện fine-tune trên tập dữ liệu đã chuẩn bị. Đoạn mã huấn luyện được trình bày trong \Cref{lst:yolo-train}.
+
+\begin{lstlisting}[language=Python,caption={Fine-tune mô hình YOLOv26s trên tập dữ liệu thời trang},label={lst:yolo-train}]
+import torch
+from ultralytics import YOLO
+
+DATA_YAML = "/kaggle/working/data.yaml"
+
+print("CUDA available:", torch.cuda.is_available())
+print("GPU count:", torch.cuda.device_count())
+
+for i in range(torch.cuda.device_count()):
+    print(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+
+ngpu = torch.cuda.device_count()
+device_cfg = [0, 1] if ngpu >= 2 else 0
+batch_size = 24
+worker_size = 12
+
+model = YOLO("yolo26s.pt")
+
+results = model.train(
+    data=DATA_YAML,
+    epochs=40,
+    imgsz=640,
+    batch=batch_size,
+    device=device_cfg,
+    workers=worker_size,
+    pretrained=True,
+    patience=8,
+    project="/kaggle/working",
+    name="yolo26s_run2",
+    val=True,
+    amp=True,
+    save=True,
+    save_period=1,
+    verbose=True
+)
+\end{lstlisting}
+
+Trong cấu hình trên, mô hình được huấn luyện trong 40 epoch với kích thước ảnh đầu vào là \texttt{640}. Tham số \texttt{pretrained=True} cho phép mô hình kế thừa trọng số đã học trước đó, giúp quá trình fine-tune phù hợp hơn so với huấn luyện lại từ đầu. Tham số \texttt{patience=8} được dùng để dừng sớm khi kết quả đánh giá không cải thiện, còn \texttt{amp=True} giúp tăng tốc huấn luyện bằng mixed precision trên GPU.
+
+Sau khi huấn luyện, kết quả đánh giá mô hình được trình bày trong \Cref{tab:yolov26-finetune-result}. Do bài toán phát hiện đối tượng không sử dụng độ chính xác theo nghĩa phân loại thông thường, hệ thống đánh giá mô hình thông qua các chỉ số Precision, Recall, mAP50 và mAP50-95.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả đánh giá mô hình YOLOv26 sau khi fine-tune trên tập dữ liệu thời trang}
+\label{tab:yolov26-finetune-result}
+\begin{tabularx}{\linewidth}{@{}p{0.18\linewidth}p{0.11\linewidth}p{0.14\linewidth}p{0.13\linewidth}p{0.12\linewidth}p{0.13\linewidth}X@{}}
+\toprule
+\textbf{Lớp} & \textbf{Ảnh} & \textbf{Đối tượng} & \textbf{Precision} & \textbf{Recall} & \textbf{mAP50} & \textbf{mAP50-95} \\
+\midrule
+Tất cả & 2339 & 8226 & 0.875 & 0.760 & 0.849 & 0.685 \\
+Accessories & 932 & 1428 & 0.806 & 0.587 & 0.695 & 0.512 \\
+Bags & 367 & 384 & 0.842 & 0.694 & 0.807 & 0.604 \\
+Clothing & 2339 & 3966 & 0.926 & 0.882 & 0.947 & 0.861 \\
+Shoes & 1267 & 2448 & 0.924 & 0.880 & 0.945 & 0.763 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Kết quả cho thấy mô hình đạt Precision tổng thể là 0.875, Recall là 0.760, mAP50 đạt 0.849 và mAP50-95 đạt 0.685. Trong đó, hai nhóm \textit{clothing} và \textit{shoes} có kết quả tốt nhất với mAP50 lần lượt là 0.947 và 0.945. Điều này cho thấy mô hình nhận diện tốt các sản phẩm có hình dạng rõ ràng và số lượng mẫu tương đối lớn trong tập dữ liệu.
+
+Đối với nhóm \textit{accessories}, kết quả thấp hơn với mAP50-95 đạt 0.512. Nguyên nhân có thể đến từ việc phụ kiện thường có kích thước nhỏ, hình dạng đa dạng và dễ bị nhiễu bởi nền ảnh hoặc các vật thể khác. Tuy nhiên, với mục tiêu chính là phát hiện vùng sản phẩm để crop ảnh trước khi tạo image embedding, kết quả tổng thể vẫn đáp ứng được yêu cầu tiền xử lý ảnh cho chức năng tìm kiếm bằng hình ảnh.
+
+Bên cạnh độ chính xác phát hiện đối tượng, mô hình cũng có thời gian suy luận thấp, với thời gian inference trung bình khoảng 1.8ms trên mỗi ảnh trong môi trường đánh giá. Điều này cho thấy mô hình phù hợp để tích hợp vào AI Service nhằm hỗ trợ xử lý ảnh trong luồng image search và hybrid search.
+
+Sau khi huấn luyện, weight tốt nhất của mô hình được sử dụng trong AI Service. File weight có thể được lưu trong thư mục model của service như \Cref{lst:yolo-weight-path}.
+
+\begin{lstlisting}[style=terminal,caption={Đường dẫn lưu weight YOLOv26 sau khi fine-tune},label={lst:yolo-weight-path}]
+ai-service/models/yolov26/best.pt
+\end{lstlisting}
+
+Khi AI Service khởi động, mô hình YOLOv26 fine-tuned được load từ file weight này. Trong luồng tìm kiếm bằng hình ảnh, service nhận ảnh từ Spring Boot Backend, phát hiện vùng sản phẩm bằng YOLOv26, crop ảnh nếu phát hiện thành công, sau đó tạo image embedding và truy vấn Qdrant để tìm các sản phẩm tương đồng.
+
+Trong trường hợp YOLOv26 không phát hiện được vùng sản phẩm hoặc điểm tin cậy thấp, AI Service sử dụng ảnh gốc làm fallback để tiếp tục tạo image embedding. 
+\subsection{Môi trường triển khai}
+
+Hệ thống được triển khai trên Google Cloud Platform tại khu vực \texttt{asia-southeast1} tương ứng Singapore.
+
+Các thành phần được chạy dưới dạng Docker container gồm:
+
+\begin{itemize}
+    \item Backend Spring Boot.
+    \item FastAPI AI Service.
+    \item Frontend React.
+    \item MySQL database.
+    \item Qdrant vector database.
+\end{itemize}
+
+\subsection{Cấu hình tài nguyên}
+
+Bảng \ref{tab:resource-config} trình bày cấu hình tài nguyên dự kiến cho môi trường demo của hệ thống. Do hệ thống phục vụ kiểm thử và báo cáo đồ án, tài nguyên được lựa chọn ở mức tiết kiệm, riêng FastAPI AI Service có sử dụng GPU để hỗ trợ xử lý embedding và mô hình AI.
+
+\begin{table}[H]
+\centering
+\caption{Cấu hình tài nguyên triển khai hệ thống}
+\label{tab:resource-config}
+\begin{tabular}{|p{4cm}|p{3cm}|p{3cm}|p{4cm}|}
+\hline
+\textbf{Thành phần} & \textbf{CPU} & \textbf{RAM} & \textbf{Lưu trữ / GPU} \\ \hline
+Spring Boot Backend & 1 vCPU & 1 GB & 10 GB SSD \\ \hline
+FastAPI AI Service & 1--2 vCPU & 4 GB & 20 GB SSD, 1 GPU \\ \hline
+MySQL & 1 vCPU & 1 GB & 20 GB SSD \\ \hline
+Qdrant & 1 vCPU & 2 GB & 20 GB SSD \\ \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Đóng gói và chạy Docker}
+
+
+Các image chính gồm:
+
+\begin{itemize}
+    \item \texttt{service-api-ecommerce}: image backend Spring Boot.
+    \item \texttt{service-ai}: image FastAPI AI Service.
+    \item \texttt{mysql}: image cơ sở dữ liệu MySQL.
+    \item \texttt{qdrant}: image vector database Qdrant.
+\end{itemize}
+
+Quy trình triển khai Docker gồm:
+
+\begin{enumerate}
+    \item Build image cho backend, frontend và service AI.
+    \item Tạo volume cho MySQL và Qdrant để lưu dữ liệu lâu dài.
+    \item Khởi động các container với tài nguyên tương ứng.
+    \item Cấu hình network để các container có thể giao tiếp nội bộ.
+    \item Kiểm tra trạng thái hoạt động của từng container.
+\end{enumerate}
+
+\subsection{Thứ tự khởi động hệ thống}
+
+Các thành phần cần được khởi động theo thứ tự phù hợp để đảm bảo service phụ thuộc đã sẵn sàng trước khi service phía trên bắt đầu xử lý request.
+
+Thứ tự khởi động 
+
+\begin{enumerate}
+    \item Khởi động MySQL database.
+    \item Khởi động Qdrant vector database.
+    \item Khởi động FastAPI AI Service.
+    \item Khởi động Spring Boot Backend.
+\end{enumerate}
+
+Trong đó, MySQL cần được khởi động trước backend vì backend cần kết nối database để xử lý nghiệp vụ. Qdrant cần được khởi động trước service AI vì service AI cần lưu trữ và truy vấn vector. Backend được khởi động sau service AI để có thể gọi các API tìm kiếm thông minh khi cần. Frontend được khởi động sau cùng vì frontend phụ thuộc vào backend API.
+
+\subsection{Kiểm tra sau triển khai}
+
+Sau khi các container đã chạy, cần kiểm tra trạng thái của từng thành phần:
+
+\begin{itemize}
+    \item Frontend có thể truy cập từ trình duyệt.
+    \item Backend trả phản hồi từ các API public.
+    \item MySQL lưu và đọc dữ liệu bình thường.
+    \item Qdrant sẵn sàng nhận truy vấn vector.
+    \item Service AI phản hồi health check.
+    \item Backend có thể gọi Service AI và nhận kết quả.
+\end{itemize}
+
+Sau bước kiểm tra, hệ thống sẵn sàng phục vụ các chức năng chính như xem sản phẩm, tìm kiếm sản phẩm, đặt hàng, thanh toán, tìm kiếm thông minh và sử dụng trợ lý ảo.

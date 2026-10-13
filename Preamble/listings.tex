@@ -1,0 +1,74 @@
+%=========================
+% Preamble/listings.tex
+% Cấu hình hiển thị mã nguồn, phù hợp báo cáo Công nghệ phần mềm
+% Không dùng minted để tránh yêu cầu shell-escape.
+%=========================
+
+\usepackage{listings}
+
+\renewcommand{\lstlistingname}{Mã nguồn}
+\renewcommand{\lstlistlistingname}{Danh mục mã nguồn}
+
+\lstdefinestyle{pretty}{
+  backgroundcolor=\color{CodeBg},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{CodeKeyword}\bfseries,
+  commentstyle=\color{CodeComment}\itshape,
+  stringstyle=\color{CodeString},
+  numbers=left,
+  numberstyle=\tiny\color{CodeComment},
+  stepnumber=1,
+  numbersep=8pt,
+  breaklines=true,
+  breakatwhitespace=false,
+  frame=single,
+  rulecolor=\color{BorderGray},
+  showstringspaces=false,
+  tabsize=2,
+  columns=fullflexible,
+  keepspaces=true,
+  captionpos=b
+}
+
+\lstdefinestyle{terminal}{
+  backgroundcolor=\color{black!92},
+  basicstyle=\ttfamily\small\color{white},
+  numbers=none,
+  frame=single,
+  rulecolor=\color{black!70},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  columns=fullflexible
+}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={const,let,var,function,return,async,await,if,else,for,while,try,catch,throw,new,class,extends,import,from,export,default},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]",
+  morestring=[b]`
+}
+
+\lstdefinelanguage{JSON}{
+  morestring=[b]",
+  stringstyle=\color{CodeString},
+  literate=
+   *{0}{{{0}}}{1} {1}{{{1}}}{1} {2}{{{2}}}{1} {3}{{{3}}}{1} {4}{{{4}}}{1}
+    {5}{{{5}}}{1} {6}{{{6}}}{1} {7}{{{7}}}{1} {8}{{{8}}}{1} {9}{{{9}}}{1}
+    {:}{{{\color{CodeKeyword}{:}}}}{1} {,}{{{\color{CodeKeyword}{,}}}}{1}
+    {\{}{{{\color{CodeKeyword}{\{}}}}{1} {\}}{{{\color{CodeKeyword}{\}}}}}{1}
+    {[}{{{\color{CodeKeyword}{[}}}}{1} {]}{{{\color{CodeKeyword}{]}}}}{1}
+}
+
+\lstdefinelanguage{Dockerfile}{
+  keywords={FROM,RUN,COPY,ADD,WORKDIR,CMD,ENTRYPOINT,ENV,EXPOSE,ARG,VOLUME,USER,LABEL},
+  sensitive=true,
+  comment=[l]{\#},
+  morestring=[b]"
+}
+
+\lstset{style=pretty}
+

@@ -1,0 +1,2649 @@
+% Sections/06-PhanTichHeThong.tex
+\section{Phân tích hệ thống}
+
+Chương này trình bày lược đồ use-case, đặc tả use-case chi tiết và các luồng hoạt động được cung cấp trong tài liệu nguồn của AIHub và Wispace Speaking. Phần sơ đồ luồng dữ liệu chưa có nội dung thay thế trong tài liệu nguồn nên được giữ lại từ báo cáo hiện tại.
+
+
+\subsection{Hệ thống Wispace Speaking}
+
+\subsubsection{Lược đồ Use-case tổng quan}
+Toàn bộ hệ thống Wispace Speaking bao gồm 17 use-case chính, phục vụ 4 tác nhân người dùng (Khách, Học viên, Moderator, Admin) và 1 tác nhân hệ thống là Scoring Model (mô hình AI chấm Speaking do Wispace tự huấn luyện), được phân chia thành 4 phân hệ chức năng cốt lõi như minh họa tại Hình~\ref{wispace:fig:wispace_usecase_overview}:
+\begin{enumerate}
+    \item \textbf{Phân hệ Cổng API Gateway \& Developer Portal:} Bao gồm các chức năng Đăng nhập/Xác thực, Quản lý khóa API, Tra cứu hạn mức và sử dụng cURL Sandbox.
+    \item \textbf{Phân hệ AI \& Academic Lab:} Bao gồm Sinh bài tập IELTS Micro-Exercise công khai, Truy vấn dẫn chứng lỗi học viên, Sinh mẫu thẩm định học thuật, Đánh giá/Chấp thuận mẫu và Từ chối mẫu thu thập dữ liệu SFT/DPO.
+    \item \textbf{Phân hệ Quản trị \& Điều hành:} Bao gồm Quản lý thành viên tổ chức, Cấu hình gói và hạn mức, Quản lý danh mục đặc tả Universal Specs, Kiểm tra trạng thái hệ thống và Xem nhật ký kiểm toán.
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{Images/Usecase/Wispace/wispace_usecase.jpg}
+    \caption{Sơ đồ Use-case tổng quan hệ thống Wispace}
+    \label{wispace:fig:wispace_usecase_overview}
+\end{figure}
+\newpage
+
+\subsubsection{Đặc tả các Use-case chi tiết}
+\setcounter{paragraph}{0}
+\renewcommand{\theparagraph}{\alph{paragraph}}
+
+Các use-case dưới đây mô tả chi tiết những luồng nghiệp vụ cốt lõi của mô-đun Wispace Speaking, bao gồm quản lý tài khoản, quản lý kho đề, luyện tập, thi thử và theo dõi tiến bộ. Mỗi use-case xác định tác nhân, điều kiện thực hiện, luồng chính, luồng thay thế và các trường hợp ngoại lệ.
+
+\providecommand{\wispaceusecasefigure}[3]{%
+    \begin{figure}[H]
+        \centering
+        \IfFileExists{#1}{%
+            \includegraphics[width=0.9\textwidth]{#1}%
+        }{%
+            \fbox{\begin{minipage}[c][4.8cm][c]{0.82\textwidth}
+                \centering
+                \textit{Chưa có ảnh minh họa.}\\[0.4em]
+                Tải ảnh lên theo đường dẫn:\\
+                \url{#1}
+            \end{minipage}}%
+        }
+        \caption{#2}
+        \label{wispace:#3}
+    \end{figure}
+}
+
+\paragraph{Use-case 1: Đăng ký tài khoản}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc01_register.jpg}{Sơ đồ Use-case 1: Đăng ký tài khoản}{fig:wispace_uc01_register}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Đăng ký tài khoản}\label{wispace:tab:wispace_uc01_register}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Đăng ký tài khoản (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Đăng ký tài khoản \\ \hline
+\textbf{Tác nhân} & Khách; Dịch vụ Email; Google OAuth \\ \hline
+\textbf{Mô tả} & Khách tạo tài khoản học viên bằng email hoặc Google để sử dụng hệ thống. \\ \hline
+\textbf{Kích hoạt} & Khách nhấn nút "Đăng ký" trên trang chủ hoặc trang đăng nhập. \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Hệ thống hoạt động bình thường.\newline \textbullet{}\ Khách chưa đăng nhập; email chưa tồn tại trong hệ thống. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Tài khoản ở trạng thái Active, được cấp gói dùng thử.\newline \textbullet{}\ Khách được đăng nhập và chuyển tới trang onboarding. \\ \hline
+\textbf{Luồng chính} & 1. Khách nhấn "Đăng ký".\newline 2. Hệ thống hiển thị form đăng ký.\newline 3. Khách nhập email, mật khẩu, xác nhận mật khẩu, nhấn "Đăng ký".\newline 4. Hệ thống kiểm tra dữ liệu, tạo tài khoản chờ xác thực và gửi OTP 6 số qua Dịch vụ Email.\newline 5. Khách nhập OTP.\newline 6. Hệ thống xác thực OTP, kích hoạt tài khoản và cấp gói dùng thử.\newline 7. Hệ thống đăng nhập và chuyển Khách tới trang onboarding. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 2:} Tại bước 3 --- đăng ký bằng Google\newline 3.1. Khách nhấn "Tiếp tục với Google".\newline 3.2. Google OAuth xác thực và trả về email.\newline 3.3. Hệ thống tạo tài khoản Active, bỏ qua bước 4--6 và sang bước 7. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 4 --- email đã tồn tại: hệ thống báo lỗi, gợi ý đăng nhập hoặc quên mật khẩu.\newline \textbf{Exception 2:} Tại bước 4 --- mật khẩu dưới 8 ký tự hoặc không khớp: báo lỗi tại trường, giữ dữ liệu đã nhập.\newline \textbf{Exception 3:} Tại bước 6 --- OTP sai: cho nhập lại; sai 5 lần thì khóa 15 phút.\newline \textbf{Exception 4:} Tại bước 6 --- OTP quá 15 phút: Khách nhấn "Gửi lại OTP" (cách nhau tối thiểu 60 giây). \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 2: Đăng nhập}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc02_login.jpg}{Sơ đồ Use-case 2: Đăng nhập}{fig:wispace_uc02_login}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Đăng nhập}\label{wispace:tab:wispace_uc02_login}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Đăng nhập (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Đăng nhập \\ \hline
+\textbf{Tác nhân} & Học viên, Moderator, Admin; Máy chủ xác thực; Google OAuth \\ \hline
+\textbf{Mô tả} & Người dùng đăng nhập để sử dụng các chức năng theo vai trò. \\ \hline
+\textbf{Kích hoạt} & Người dùng nhấn nút "Đăng nhập". \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Hệ thống hoạt động bình thường.\newline \textbullet{}\ Người dùng truy cập trang đăng nhập và đã có tài khoản. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Người dùng đăng nhập thành công, nhận access token và refresh token.\newline \textbullet{}\ Người dùng được chuyển tới trang chủ theo vai trò. \\ \hline
+\textbf{Luồng chính} & 1. Người dùng nhấn "Đăng nhập".\newline 2. Hệ thống hiển thị form đăng nhập.\newline 3. Người dùng nhập email, mật khẩu và nhấn "Đăng nhập".\newline 4. Máy chủ xác thực kiểm tra thông tin và trạng thái tài khoản.\newline 5. Hệ thống cấp token và chuyển trang: Học viên $\rightarrow$ Dashboard Speaking; Moderator $\rightarrow$ Quản lý đề; Admin $\rightarrow$ Trang quản trị.\newline 6. Nếu học viên có bài thi đang dở (dưới 30 phút), hệ thống hỏi "Tiếp tục bài thi" hoặc "Nộp phần đã làm". \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 3 --- quên mật khẩu\newline 3.1. Người dùng nhấn "Quên mật khẩu".\newline 3.2. Hệ thống yêu cầu nhập email.\newline 3.3. Người dùng nhập email.\newline 3.4. Hệ thống gửi OTP đến email.\newline 3.5. Người dùng nhập OTP và mật khẩu mới.\newline 3.6. Hệ thống cập nhật mật khẩu, thu hồi mọi phiên cũ, quay lại bước 1.\newline \textbf{Alternative 2:} Tại bước 3 --- đăng nhập bằng Google\newline 3.1. Người dùng nhấn "Đăng nhập bằng Google".\newline 3.2. Google OAuth xác thực và trả về email.\newline 3.3. Hệ thống sang bước 5; email chưa có tài khoản thì tự tạo tài khoản học viên. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 4 --- sai email hoặc mật khẩu: thông báo chung "Email hoặc mật khẩu không đúng"; sai 5 lần thì khóa 15 phút.\newline \textbf{Exception 2:} Tại bước 4 --- tài khoản bị khóa: thông báo lý do và cách liên hệ hỗ trợ.\newline \textbf{Exception 3:} Tại bước 4 --- tài khoản chưa xác thực OTP: gửi lại OTP và chuyển sang bước 5 của use-case Đăng ký.\newline \textbf{Exception 4:} Tại Alternative 1 --- email không tồn tại: vẫn báo "đã gửi mã" để không lộ thông tin tài khoản. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 3: Đăng xuất}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc03_logout.jpg}{Sơ đồ Use-case 3: Đăng xuất}{fig:wispace_uc03_logout}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Đăng xuất}\label{wispace:tab:wispace_uc03_logout}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Đăng xuất (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Đăng xuất \\ \hline
+\textbf{Tác nhân} & Học viên, Moderator, Admin \\ \hline
+\textbf{Mô tả} & Người dùng kết thúc phiên đăng nhập trên thiết bị hiện tại hoặc trên mọi thiết bị. \\ \hline
+\textbf{Kích hoạt} & Người dùng nhấn "Đăng xuất" trong menu tài khoản. \\ \hline
+\textbf{Tiền điều kiện} & Người dùng đã đăng nhập. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Refresh token bị thu hồi; dữ liệu phiên trên trình duyệt bị xóa.\newline \textbullet{}\ Người dùng ở trang đăng nhập. \\ \hline
+\textbf{Luồng chính} & 1. Người dùng nhấn "Đăng xuất".\newline 2. Hệ thống kiểm tra người dùng có đang thi hoặc đang ghi âm không.\newline 3. Hệ thống thu hồi refresh token (đưa vào danh sách chặn).\newline 4. Trình duyệt xóa token và dữ liệu tạm.\newline 5. Hệ thống chuyển về trang đăng nhập. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 1 --- đăng xuất mọi thiết bị\newline 1.1. Người dùng vào Cài đặt và nhấn "Đăng xuất mọi thiết bị".\newline 1.2. Hệ thống yêu cầu xác nhận bằng mật khẩu.\newline 1.3. Hệ thống đổi Security Stamp; mọi token cũ bị từ chối ở lần gọi tiếp theo; sang bước 4.\newline \textbf{Alternative 2:} Tại bước 2 --- đang trong phòng thi\newline 2.1. Hệ thống hiển thị hộp thoại: "Nộp phần đã làm và đăng xuất" / "Huỷ bài thi" / "Quay lại".\newline 2.2. Chọn nộp: hệ thống lưu bài, đưa vào hàng chấm và sang bước 3.\newline 2.3. Chọn quay lại: kết thúc use-case, tiếp tục thi. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 3 --- mất mạng: trình duyệt vẫn xóa token cục bộ; refresh token tự hết hạn.\newline \textbf{Exception 2:} Tại bước 2 --- còn audio chưa upload: cảnh báo và chờ upload xong mới đăng xuất. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 4: Quản lý hồ sơ cá nhân}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc04_profile.jpg}{Sơ đồ Use-case 4: Quản lý hồ sơ cá nhân}{fig:wispace_uc04_profile}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Quản lý hồ sơ cá nhân}\label{wispace:tab:wispace_uc04_profile}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Quản lý hồ sơ cá nhân (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Quản lý hồ sơ cá nhân \\ \hline
+\textbf{Tác nhân} & Học viên \\ \hline
+\textbf{Mô tả} & Học viên xem và cập nhật thông tin cá nhân, thiết bị ghi âm, gói đang dùng và quyền riêng tư. \\ \hline
+\textbf{Kích hoạt} & Học viên nhấn avatar rồi chọn "Hồ sơ". \\ \hline
+\textbf{Tiền điều kiện} & Học viên đã đăng nhập. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Thông tin hồ sơ được lưu.\newline \textbullet{}\ Band mục tiêu và ngày thi được dùng để cá nhân hoá gợi ý luyện tập. \\ \hline
+\textbf{Luồng chính} & 1. Học viên nhấn "Hồ sơ".\newline 2. Hệ thống hiển thị 4 tab: Thông tin, Thiết bị, Gói \& quota, Quyền riêng tư.\newline 3. Học viên sửa tên, avatar, band mục tiêu (5.0--9.0), ngày thi dự kiến, giọng giám khảo (Anh-Anh / Anh-Mỹ / Úc) và nhấn "Lưu".\newline 4. Hệ thống kiểm tra dữ liệu và lưu.\newline 5. Hệ thống thông báo cập nhật thành công. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 2 --- kiểm tra micro\newline 2.1. Học viên chọn tab Thiết bị, chọn micro và ghi thử 5 giây.\newline 2.2. Hệ thống phát lại và hiển thị mức âm lượng, độ ồn.\newline \textbf{Alternative 2:} Tại bước 2 --- đổi mật khẩu\newline 2.1. Học viên nhập mật khẩu cũ và mật khẩu mới.\newline 2.2. Hệ thống cập nhật và thu hồi phiên trên các thiết bị khác.\newline \textbf{Alternative 3:} Tại bước 2 --- xem gói \& quota\newline 2.1. Hệ thống hiển thị gói hiện tại, ngày hết hạn, số phút chấm và lượt thi còn lại hôm nay.\newline 2.2. Học viên nhấn "Nâng cấp" để chuyển sang use-case Mua gói.\newline \textbf{Alternative 4:} Tại bước 2 --- xóa audio / xóa tài khoản\newline 2.1. Học viên chọn tab Quyền riêng tư, nhấn xóa và xác nhận bằng mật khẩu hoặc OTP.\newline 2.2. Hệ thống xóa audio ngay; với xóa tài khoản, chuyển sang trạng thái Chờ xóa 30 ngày và đăng xuất mọi thiết bị. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 4 --- ảnh avatar lớn hơn 2 MB hoặc sai định dạng: báo lỗi, không lưu ảnh.\newline \textbf{Exception 2:} Tại Alternative 1 --- trình duyệt chặn micro: hướng dẫn cấp quyền theo từng trình duyệt.\newline \textbf{Exception 3:} Tại Alternative 2 --- mật khẩu cũ sai: báo lỗi, không đổi mật khẩu. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 5: Quản lý người dùng}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc05_user_management.jpg}{Sơ đồ Use-case 5: Quản lý người dùng}{fig:wispace_uc05_user_management}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Quản lý người dùng}\label{wispace:tab:wispace_uc05_user_management}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Quản lý người dùng (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Quản lý người dùng \\ \hline
+\textbf{Tác nhân} & Admin; Dịch vụ Email \\ \hline
+\textbf{Mô tả} & Admin tìm kiếm, xem chi tiết và cập nhật trạng thái, vai trò, quota của người dùng. \\ \hline
+\textbf{Kích hoạt} & Admin mở menu "Quản lý người dùng" trong trang quản trị. \\ \hline
+\textbf{Tiền điều kiện} & Admin đã đăng nhập với vai trò Admin. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Thay đổi có hiệu lực ngay.\newline \textbullet{}\ Mỗi thao tác được ghi nhật ký (người làm, thời điểm, trước/sau, lý do).\newline \textbullet{}\ Người dùng nhận email thông báo. \\ \hline
+\textbf{Luồng chính} & 1. Admin mở "Quản lý người dùng".\newline 2. Hệ thống hiển thị danh sách phân trang 20 dòng và bộ lọc.\newline 3. Admin nhập email/tên và lọc theo vai trò, gói, trạng thái, ngày đăng ký.\newline 4. Hệ thống trả kết quả.\newline 5. Admin chọn một người dùng.\newline 6. Hệ thống hiển thị chi tiết: thông tin, gói, lịch sử thanh toán, quota đã dùng 30 ngày, số bài, band trung bình.\newline 7. Admin chọn thao tác (Khóa / mở khóa, Đổi vai trò, Cộng quota), nhập lý do và xác nhận.\newline 8. Hệ thống áp dụng thay đổi, ghi nhật ký và gửi email thông báo qua Dịch vụ Email. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 7 --- khóa tài khoản\newline 7.1. Hệ thống đổi Security Stamp, người dùng bị đăng xuất ngay.\newline 7.2. Bài thi đang làm (nếu có) được lưu ở trạng thái Đã huỷ.\newline \textbf{Alternative 2:} Tại bước 7 --- cộng quota thủ công\newline 7.1. Admin nhập số phút chấm hoặc số lượt thi và hạn dùng.\newline 7.2. Hệ thống tạo bản ghi điều chỉnh quota.\newline \textbf{Alternative 3:} Tại bước 4 --- xuất danh sách\newline 4.1. Admin nhấn "Xuất CSV"; hệ thống tải file theo bộ lọc hiện tại. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 4 --- không có kết quả: hiển thị "Không tìm thấy người dùng".\newline \textbf{Exception 2:} Tại bước 6 --- xem audio của người dùng: chỉ mở khi nhập mã ticket hỗ trợ; hệ thống ghi nhật ký.\newline \textbf{Exception 3:} Tại bước 7 --- không nhập lý do: không cho xác nhận.\newline \textbf{Exception 4:} Tại bước 7 --- Admin khóa hoặc hạ vai trò chính mình: hệ thống từ chối. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 6: Xem và tìm kiếm đề thi}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc06_browse_tests.jpg}{Sơ đồ Use-case 6: Xem và tìm kiếm đề thi}{fig:wispace_uc06_browse_tests}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Xem và tìm kiếm đề thi}\label{wispace:tab:wispace_uc06_browse_tests}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Xem và tìm kiếm đề thi (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Xem và tìm kiếm đề thi \\ \hline
+\textbf{Tác nhân} & Học viên, Khách \\ \hline
+\textbf{Mô tả} & Người dùng duyệt kho đề Speaking theo nguồn, lọc, tìm kiếm và mở chi tiết đề để luyện tập hoặc thi thử. \\ \hline
+\textbf{Kích hoạt} & Người dùng nhấn menu "Đề thi Speaking". \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Hệ thống hoạt động bình thường.\newline \textbullet{}\ Kho đề có dữ liệu. \\ \hline
+\textbf{Hậu điều kiện} & Người dùng thấy danh sách hoặc chi tiết đề; học viên có thể chuyển sang Luyện tập hoặc Thi thử. \\ \hline
+\textbf{Luồng chính} & 1. Người dùng nhấn "Đề thi Speaking".\newline 2. Hệ thống hiển thị các tab nguồn (Cambridge, Forecast, Đề của tôi, Cộng đồng), mặc định Forecast quý hiện tại, 24 thẻ mỗi trang.\newline 3. Người dùng chọn tab, lọc theo Part, chủ đề, trạng thái hoặc nhập từ khoá.\newline 4. Hệ thống trả về các đề phù hợp.\newline 5. Người dùng nhấn vào một thẻ đề.\newline 6. Hệ thống hiển thị chi tiết: câu hỏi từng Part, số lượt luyện, band cao nhất của học viên, nút "Luyện tập" và "Thi thử". \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 3 --- chọn tab Cambridge\newline 3.1. Hệ thống hiển thị lưới quyển Cambridge IELTS 1--20.\newline 3.2. Người dùng chọn quyển; hệ thống hiển thị Test 1--4 của quyển đó, sang bước 5.\newline \textbf{Alternative 2:} Tại bước 6 --- đánh dấu yêu thích\newline 6.1. Học viên nhấn biểu tượng ngôi sao; hệ thống lưu đề vào danh sách Yêu thích.\newline \textbf{Alternative 3:} Tại bước 6 --- báo cáo đề sai\newline 6.1. Học viên chọn lý do (sai nội dung, trùng, không phù hợp) và gửi.\newline 6.2. Hệ thống đưa báo cáo vào hàng chờ của Moderator. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 4 --- không có kết quả: gợi ý bỏ bớt bộ lọc hoặc "Thêm đề này".\newline \textbf{Exception 2:} Tại bước 6 --- Khách nhấn Luyện tập / Thi thử: chuyển sang use-case Đăng nhập.\newline \textbf{Exception 3:} Tại bước 6 --- đề thuộc gói trả phí, học viên dùng gói miễn phí: hiển thị màn hình nâng cấp gói.\newline \textbf{Exception 4:} Tại bước 3 --- tab Đề của tôi trống: hiển thị nút "Thêm đề đầu tiên". \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 7: Thêm đề thi}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc07_add_test.jpg}{Sơ đồ Use-case 7: Thêm đề thi}{fig:wispace_uc07_add_test}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Thêm đề thi}\label{wispace:tab:wispace_uc07_add_test}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Thêm đề thi (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Thêm đề thi \\ \hline
+\textbf{Tác nhân} & Học viên; AI hỗ trợ \\ \hline
+\textbf{Mô tả} & Học viên tự thêm đề Speaking (Part 1, Part 2, Part 3 hoặc cả bộ) để luyện tập và có thể đề xuất công khai. \\ \hline
+\textbf{Kích hoạt} & Học viên nhấn "+ Thêm đề" trên trang đề thi. \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Học viên đã đăng nhập.\newline \textbullet{}\ Chưa vượt giới hạn số đề (gói miễn phí 10 đề, gói trả phí 200 đề). \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Đề được lưu ở chế độ Riêng tư, nguồn "Học viên tạo".\newline \textbullet{}\ Đề hiển thị trong tab Đề của tôi và luyện được ngay. \\ \hline
+\textbf{Luồng chính} & 1. Học viên nhấn "+ Thêm đề".\newline 2. Hệ thống hiển thị form chọn loại đề: Part 1, Part 2 (kèm Part 3), Full test.\newline 3. Học viên nhập nội dung (Part 1: chủ đề + 3--6 câu; Part 2: cue card + 3--4 gợi ý; Part 3: 4--6 câu thảo luận), gắn chủ đề, nguồn tham khảo và nhấn "Lưu".\newline 4. Hệ thống kiểm tra hợp lệ: mỗi câu tối đa 300 ký tự, bằng tiếng Anh, lọc từ ngữ không phù hợp, loại bỏ mã HTML.\newline 5. Hệ thống kiểm tra trùng lặp với kho đề.\newline 6. Hệ thống lưu đề và hiển thị nút "Luyện ngay" và "Đề xuất công khai". \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 3 --- AI gợi ý câu Part 3\newline 3.1. Học viên nhập cue card Part 2 và nhấn "Gợi ý Part 3".\newline 3.2. AI hỗ trợ sinh 5 câu Part 3 liên quan.\newline 3.3. Học viên giữ hoặc bỏ từng câu, quay lại bước 3.\newline \textbf{Alternative 2:} Tại bước 5 --- đề gần giống đề có sẵn (từ 90\%)\newline 5.1. Hệ thống hiển thị đề có sẵn.\newline 5.2. Học viên chọn "Dùng đề có sẵn" (kết thúc) hoặc "Vẫn lưu" (sang bước 6).\newline \textbf{Alternative 3:} Tại bước 6 --- đề xuất công khai\newline 6.1. Học viên nhấn "Đề xuất công khai".\newline 6.2. Hệ thống chuyển đề sang trạng thái Chờ duyệt và đưa vào hàng chờ Moderator (use-case 5.8). \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 1 --- vượt giới hạn số đề: thông báo và gợi ý nâng cấp gói.\newline \textbf{Exception 2:} Tại bước 4 --- dữ liệu không hợp lệ: báo lỗi đúng trường, giữ dữ liệu đã nhập.\newline \textbf{Exception 3:} Tại Alternative 1 --- AI lỗi hoặc quá 30 giây: báo lỗi, học viên tự nhập Part 3. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 8: Quản lý và duyệt kho đề}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc08_moderate_tests.jpg}{Sơ đồ Use-case 8: Quản lý và duyệt kho đề}{fig:wispace_uc08_moderate_tests}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Quản lý và duyệt kho đề}\label{wispace:tab:wispace_uc08_moderate_tests}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Quản lý và duyệt kho đề (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Quản lý và duyệt kho đề \\ \hline
+\textbf{Tác nhân} & Moderator; Dịch vụ TTS \\ \hline
+\textbf{Mô tả} & Moderator duy trì kho đề Cambridge / Forecast, duyệt đề do học viên đề xuất và xử lý báo cáo đề. \\ \hline
+\textbf{Kích hoạt} & Moderator mở trang "Quản lý đề". \\ \hline
+\textbf{Tiền điều kiện} & Người dùng đã đăng nhập với vai trò Moderator hoặc Admin. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Kho đề được cập nhật; đề mới có sẵn audio câu hỏi.\newline \textbullet{}\ Tác giả đề cộng đồng nhận thông báo kết quả duyệt. \\ \hline
+\textbf{Luồng chính} & 1. Moderator mở "Quản lý đề".\newline 2. Hệ thống hiển thị cây Quyển $\rightarrow$ Test $\rightarrow$ Part $\rightarrow$ Câu hỏi và hàng chờ duyệt.\newline 3. Moderator nhấn "Thêm đề", chọn Quyển/Test, nhập câu hỏi từng Part và nhấn "Lưu".\newline 4. Hệ thống kiểm tra hợp lệ và lưu đề.\newline 5. Hệ thống gửi câu hỏi tới Dịch vụ TTS để sinh audio 3 giọng (Anh-Anh, Anh-Mỹ, Úc) và lưu lại để dùng chung.\newline 6. Hệ thống hiển thị đề trên trang đề thi. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 3 --- nhập file\newline 3.1. Moderator tải lên file CSV/JSON theo mẫu.\newline 3.2. Hệ thống kiểm tra từng dòng; có lỗi thì báo dòng lỗi và không nhập phần nào; hợp lệ thì sang bước 5.\newline \textbf{Alternative 2:} Tại bước 3 --- tạo bộ Forecast quý\newline 3.1. Moderator chọn các đề Part 1/2/3 và đặt thời gian hiệu lực (ví dụ 01/09--31/12/2026).\newline 3.2. Hệ thống lưu bộ Forecast và sang bước 6.\newline \textbf{Alternative 3:} Tại bước 2 --- duyệt đề cộng đồng\newline 2.1. Moderator mở một đề chờ duyệt; hệ thống hiển thị kèm các đề tương tự.\newline 2.2. Moderator chọn Duyệt (có thể sửa chính tả, gắn tag), Từ chối (bắt buộc ghi lý do) hoặc Gộp trùng.\newline 2.3. Hệ thống cập nhật trạng thái đề và thông báo cho tác giả.\newline \textbf{Alternative 4:} Tại bước 2 --- xử lý báo cáo đề\newline 2.1. Moderator mở báo cáo và chọn Gỡ đề, Sửa đề hoặc Bỏ qua.\newline 2.2. Tác giả bị gỡ từ 3 đề trong 30 ngày thì bị tạm khóa quyền đề xuất 30 ngày và Admin nhận thông báo. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 4 --- thiếu câu hỏi bắt buộc: báo lỗi, không lưu.\newline \textbf{Exception 2:} Tại bước 5 --- Dịch vụ TTS lỗi: đề vẫn được lưu, đánh dấu "Thiếu audio" và tự sinh lại sau.\newline \textbf{Exception 3:} Tại bước 3 --- ẩn đề đã có bài làm: đề không còn trong danh sách nhưng lịch sử bài của học viên vẫn xem được. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 9: Luyện tập theo Part}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc09_part_practice.jpg}{Sơ đồ Use-case 9: Luyện tập theo Part}{fig:wispace_uc09_part_practice}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Luyện tập theo Part}\label{wispace:tab:wispace_uc09_part_practice}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Luyện tập theo Part (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Luyện tập theo Part \\ \hline
+\textbf{Tác nhân} & Học viên; Scoring Model (AI chấm tự train) \\ \hline
+\textbf{Mô tả} & Học viên trả lời từng câu Part 1/3 hoặc một cue card Part 2 bằng giọng nói và nhận đánh giá ngay sau mỗi câu. \\ \hline
+\textbf{Kích hoạt} & Học viên nhấn "Luyện tập" trên trang chi tiết đề. \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Học viên đã đăng nhập và đã cấp quyền micro.\newline \textbullet{}\ Còn quota phút chấm trong ngày. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Bài làm, audio, transcript và kết quả được lưu.\newline \textbullet{}\ Quota bị trừ theo số giây audio; sự kiện luyện tập được gửi tới hệ thống thống kê. \\ \hline
+\textbf{Luồng chính} & 1. Học viên nhấn "Luyện tập".\newline 2. Hệ thống kiểm tra quota và tạo phiên luyện tập.\newline 3. Hệ thống hiển thị câu hỏi (chữ và nút nghe).\newline 4. Học viên nhấn ghi âm (hoặc phím Space) và trả lời; hệ thống ghi và tải audio lên theo từng đoạn.\newline 5. Học viên nhấn dừng, nghe lại và nhấn "Nộp".\newline 6. Hệ thống gửi audio tới Scoring Model; model trả transcript, lỗi phát âm từng từ và band 4 tiêu chí.\newline 7. Hệ thống hiển thị trạng thái "Đang phân tích" $\rightarrow$ "Đang chấm" $\rightarrow$ kết quả (use-case 5.10).\newline 8. Học viên chuyển sang câu tiếp theo. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 3 --- nghe câu hỏi\newline 3.1. Học viên nhấn biểu tượng loa; hệ thống phát audio câu hỏi; có thể ẩn chữ để luyện nghe.\newline \textbf{Alternative 2:} Tại bước 3 --- câu hỏi Part 2\newline 3.1. Hệ thống hiển thị cue card, giấy nháp và đếm 60 giây chuẩn bị.\newline 3.2. Hết 60 giây (hoặc nhấn "Bắt đầu nói sớm"), hệ thống tự ghi âm tối đa 120 giây, sang bước 5.\newline \textbf{Alternative 3:} Tại bước 5 --- ghi lại\newline 5.1. Học viên nhấn "Ghi lại"; bản cũ bị thay, không trừ quota; quay lại bước 4. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 2 --- hết quota: hiển thị số phút đã dùng, giờ reset và nút nâng cấp; vẫn cho ghi âm tự nghe nhưng không chấm.\newline \textbf{Exception 2:} Tại bước 4 --- micro bị chặn: hướng dẫn cấp quyền; nói quá 3 phút (Part 1/3) thì tự dừng.\newline \textbf{Exception 3:} Tại bước 5 --- audio dưới 3 giây hoặc im lặng hơn 80\%: không cho nộp, báo "Không nghe rõ câu trả lời".\newline \textbf{Exception 4:} Tại bước 6 --- phần lớn nói tiếng Việt: không chấm, hoàn quota.\newline \textbf{Exception 5:} Tại bước 6 --- AI lỗi hoặc quá 60 giây: tự thử lại 3 lần; vẫn lỗi thì đánh dấu Thất bại, hoàn quota và cho nhấn "Chấm lại". \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 10: Xem kết quả và luyện lại}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc10_results_retry.jpg}{Sơ đồ Use-case 10: Xem kết quả và luyện lại}{fig:wispace_uc10_results_retry}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Xem kết quả và luyện lại}\label{wispace:tab:wispace_uc10_results_retry}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Xem kết quả và luyện lại (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Xem kết quả và luyện lại \\ \hline
+\textbf{Tác nhân} & Học viên \\ \hline
+\textbf{Mô tả} & Học viên xem đánh giá chi tiết một câu trả lời và luyện lại để cải thiện. \\ \hline
+\textbf{Kích hoạt} & Hệ thống chấm xong một câu (từ use-case 5.9), hoặc học viên mở một bài trong Lịch sử. \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Học viên đã đăng nhập.\newline \textbullet{}\ Câu trả lời đã được chấm thành công. \\ \hline
+\textbf{Hậu điều kiện} & Học viên thấy kết quả; nếu luyện lại, lượt mới được lưu và so sánh với lượt trước. \\ \hline
+\textbf{Luồng chính} & 1. Học viên mở trang kết quả.\newline 2. Hệ thống hiển thị band tổng và 4 thẻ tiêu chí (FC, LR, GRA, P): điểm, lý do, điểm mạnh, điểm cần cải thiện.\newline 3. Hệ thống hiển thị transcript tô màu lỗi ngữ pháp, từ vựng, phát âm và chỉ số trôi chảy (số từ/phút, số lần ngập ngừng, từ đệm).\newline 4. Học viên đọc nhận xét và gợi ý bước tiếp theo. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 3 --- nghe lại từ phát âm sai\newline 3.1. Học viên nhấn vào từ được tô.\newline 3.2. Hệ thống phát đoạn audio của học viên, sau đó phát âm chuẩn kèm phiên âm IPA.\newline \textbf{Alternative 2:} Tại bước 4 --- xem câu trả lời mẫu\newline 4.1. Hệ thống hiển thị câu trả lời band 7.0+ viết lại từ ý của học viên và danh sách từ vựng nâng cấp.\newline \textbf{Alternative 3:} Tại bước 4 --- luyện lại câu này\newline 4.1. Học viên nhấn "Luyện lại câu này"; hệ thống chuyển sang use-case 5.9 với cùng câu hỏi.\newline 4.2. Chấm xong, hệ thống hiển thị so sánh lần trước và lần này theo 4 tiêu chí.\newline \textbf{Alternative 4:} Tại bước 4 --- thêm lỗi vào Roadmap\newline 4.1. Lỗi lặp lại từ 3 lần trong 14 ngày, hệ thống gợi ý "Thêm vào Roadmap".\newline 4.2. Học viên đồng ý; lỗi được thêm thành một chương luyện tập. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 1 --- bài đang chấm: hiển thị trạng thái chờ và tự cập nhật khi xong.\newline \textbf{Exception 2:} Tại bước 1 --- chấm thất bại: hiển thị lý do và nút "Chấm lại" (không trừ quota).\newline \textbf{Exception 3:} Tại Alternative 1 --- audio đã bị xóa theo chính sách 180 ngày: chỉ hiển thị transcript và phát âm chuẩn.\newline \textbf{Exception 4:} Tại Alternative 3 --- hết quota: xử lý như Exception 1 của use-case 5.9. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 11: Thi thử như thật}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc11_mock_test.jpg}{Sơ đồ Use-case 11: Thi thử như thật}{fig:wispace_uc11_mock_test}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Thi thử như thật}\label{wispace:tab:wispace_uc11_mock_test}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Thi thử như thật (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Thi thử như thật \\ \hline
+\textbf{Tác nhân} & Học viên; Giám khảo AI; Scoring Model (AI chấm tự train) \\ \hline
+\textbf{Mô tả} & Học viên làm bài thi Speaking đủ 3 Part (11--14 phút) với giám khảo AI hỏi bằng giọng nói, mô phỏng điều kiện thi thật. \\ \hline
+\textbf{Kích hoạt} & Học viên nhấn "Thi thử" trên đề Full test hoặc nhấn "Thi ngẫu nhiên". \\ \hline
+\textbf{Tiền điều kiện} & \textbullet{}\ Học viên đã đăng nhập, còn lượt thi thử hôm nay.\newline \textbullet{}\ Không có phiên thi khác đang mở; thiết bị có micro. \\ \hline
+\textbf{Hậu điều kiện} & \textbullet{}\ Mọi câu trả lời được lưu; bài chuyển sang Đã nộp và vào hàng chấm; trừ 1 lượt thi.\newline \textbullet{}\ Học viên nhận thông báo khi có báo cáo. \\ \hline
+\textbf{Luồng chính} & 1. Học viên chọn đề và nhấn "Thi thử".\newline 2. Hệ thống hiển thị quy chế (không nghe lại, không ghi lại, không tạm dừng; khuyến nghị tai nghe) và xin đồng ý xử lý giọng nói ở lần đầu.\newline 3. Hệ thống kiểm tra thiết bị: chỉnh loa, đọc câu mẫu 5 giây để đo âm lượng và độ ồn, đo mạng.\newline 4. Học viên nhấn "Bắt đầu thi"; hệ thống tạo phiên thi, trừ 1 lượt và tải trước audio câu hỏi.\newline 5. Part 1 (4--5 phút): giám khảo AI đọc từng câu; hệ thống tự ghi âm khi giám khảo nói xong và chuyển câu khi học viên im lặng từ 3 giây hoặc hết 45 giây.\newline 6. Part 2: hệ thống hiển thị cue card và giấy nháp, đếm 60 giây chuẩn bị; giám khảo mời bắt đầu; ghi âm tối đa 120 giây rồi ngắt.\newline 7. Part 3 (4--5 phút): giám khảo hỏi 4--6 câu thảo luận liên quan đến Part 2.\newline 8. Giám khảo kết thúc; hệ thống kiểm tra mọi audio đã tải lên, chuyển bài sang Đã nộp và đưa vào hàng chấm.\newline 9. Scoring Model chấm từng câu và cả bài; hệ thống tạo báo cáo và thông báo qua ứng dụng và email. \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 1 --- thi ngẫu nhiên\newline 1.1. Hệ thống ghép Part 1 + Part 2 + Part 3 cùng chủ đề từ kho đề, sang bước 2.\newline \textbf{Alternative 2:} Tại bước 5--7 --- xin nhắc lại câu hỏi\newline 5.1. Học viên nhấn "Xin nhắc lại câu hỏi" hoặc nói "Sorry, could you repeat?".\newline 5.2. Giám khảo đọc lại 1 lần, không trừ thời gian.\newline \textbf{Alternative 3:} Tại bước 6 --- nói dưới 60 giây rồi im lặng từ 5 giây\newline 6.1. Giám khảo hỏi gợi mở "Can you tell me more?" như thi thật.\newline \textbf{Alternative 4:} Tại bước 5--7 --- kết thúc sớm\newline 5.1. Học viên nhấn "Kết thúc" và xác nhận.\newline 5.2. Hệ thống nộp phần đã làm, sang bước 8; báo cáo chỉ có band từng Part. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 3 --- không có micro hoặc không cấp quyền: không cho vào thi.\newline \textbf{Exception 2:} Tại bước 3 --- ồn nền cao hoặc mic nhỏ: cảnh báo, cho "Vẫn tiếp tục" và đánh dấu chất lượng âm thanh thấp.\newline \textbf{Exception 3:} Tại bước 4 --- hết lượt thi: hiển thị màn hình nâng cấp, gợi ý luyện từng Part.\newline \textbf{Exception 4:} Tại bước 5--7 --- mất mạng: tiếp tục ghi vào bộ nhớ trình duyệt, tải bù khi có mạng lại.\newline \textbf{Exception 5:} Tại bước 5--7 --- tải lại trang hoặc đóng tab: cảnh báo rời trang; quay lại trong 30 phút thì tiếp tục từ câu chưa trả lời, quá 30 phút thì tự nộp phần đã làm.\newline \textbf{Exception 6:} Tại bước 9 --- chấm lỗi sau 3 lần thử: bài ở trạng thái Thất bại, hoàn lượt thi và báo Admin. \\ \hline
+\end{longtable}
+\endgroup
+
+\newpage
+\paragraph{Use-case 12: Xem lịch sử và tiến bộ}
+
+\wispaceusecasefigure{Images/Usecase/Wispace/usecase_uc12_progress_history.jpg}{Sơ đồ Use-case 12: Xem lịch sử và tiến bộ}{fig:wispace_uc12_progress_history}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{3.2cm}|p{12.0cm}|}
+\caption{Đặc tả use-case Xem lịch sử và tiến bộ}\label{wispace:tab:wispace_uc12_progress_history}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endfirsthead
+\multicolumn{2}{c}{\textit{Đặc tả use-case Xem lịch sử và tiến bộ (tiếp theo)}}\\
+\hline
+\textbf{Thuộc tính} & \textbf{Nội dung} \\ \hline
+\endhead
+\hline
+\endfoot
+\textbf{Tên use-case} & Xem lịch sử và tiến bộ \\ \hline
+\textbf{Tác nhân} & Học viên \\ \hline
+\textbf{Mô tả} & Học viên xem lại các bài đã làm và theo dõi band theo thời gian để biết mình tiến bộ ở tiêu chí nào. \\ \hline
+\textbf{Kích hoạt} & Học viên nhấn menu "Lịch sử \& tiến bộ". \\ \hline
+\textbf{Tiền điều kiện} & Học viên đã đăng nhập. \\ \hline
+\textbf{Hậu điều kiện} & Học viên thấy danh sách bài, biểu đồ band và top lỗi; có thể mở lại báo cáo bất kỳ. \\ \hline
+\textbf{Luồng chính} & 1. Học viên nhấn "Lịch sử \& tiến bộ".\newline 2. Hệ thống hiển thị biểu đồ band tổng và 4 tiêu chí theo thời gian (mặc định 30 ngày).\newline 3. Hệ thống hiển thị top 5 lỗi lặp lại (từ phát âm sai, cấu trúc ngữ pháp, từ đệm).\newline 4. Hệ thống hiển thị danh sách bài đã làm (luyện tập và thi thử), mới nhất trước, 20 bài mỗi trang.\newline 5. Học viên nhấn vào một bài.\newline 6. Hệ thống mở báo cáo bài (use-case 5.10 với bài luyện tập, báo cáo thi thử với bài thi). \\ \hline
+\textbf{Alternative flow} & \textbf{Alternative 1:} Tại bước 4 --- lọc bài\newline 4.1. Học viên chọn Part, nguồn đề, loại bài, khoảng ngày.\newline 4.2. Hệ thống cập nhật danh sách và biểu đồ theo bộ lọc.\newline \textbf{Alternative 2:} Tại bước 6 --- chia sẻ kết quả\newline 6.1. Học viên nhấn "Chia sẻ".\newline 6.2. Hệ thống tạo link công khai chỉ chứa điểm và nhận xét (không kèm audio); học viên có thể thu hồi link. \\ \hline
+\textbf{Exception} & \textbf{Exception 1:} Tại bước 2 --- chưa có bài nào: hiển thị hướng dẫn và nút "Luyện câu đầu tiên".\newline \textbf{Exception 2:} Tại bước 2 --- dưới 3 bài: ẩn biểu đồ xu hướng, chỉ hiển thị điểm từng bài.\newline \textbf{Exception 3:} Tại bước 6 --- bài đang chấm hoặc chấm lỗi: hiển thị trạng thái tương ứng (như Exception 1--2 của use-case 5.10). \\ \hline
+\end{longtable}
+\endgroup
+\titleformat{\paragraph}[hang]
+    {\normalfont\normalsize\bfseries}
+    {\theparagraph}{1em}{}
+\newpage
+
+\subsubsection{Luồng hoạt động của hệ thống}
+
+\label{wispace:subsubsec:operational_flows}
+
+\setcounter{paragraph}{0}
+
+Phần này mô hình hóa luồng tương tác của 12 use-case Wispace Speaking bằng sơ đồ tuần tự. Mỗi sơ đồ thể hiện tác nhân, các thành phần xử lý, thông điệp đánh số, nhánh thay thế (alt), xử lý tùy chọn (opt) và vòng lặp (loop). Tên bộ điều khiển, dịch vụ và kho dữ liệu biểu diễn trách nhiệm ở mức phân tích, chưa ràng buộc tên lớp hay endpoint của bản cài đặt.
+
+Các luồng luyện tập và thi thử sử dụng hàng đợi chấm bất đồng bộ; việc lưu bài, giữ quota, ghi nhận kết quả hoặc hoàn quota khi thất bại phải bảo đảm nhất quán và không thực hiện lặp khi thử lại.
+
+\paragraph{Luồng hoạt động: Đăng ký tài khoản (Use-case 1)}
+
+\textbf{1. Mục đích:} Tạo tài khoản học viên đã xác thực, cấp gói dùng thử và chuyển vào onboarding.
+
+\textbf{2. Thành phần liên quan:} Khách; Wispace Web/App; AuthController; RegistrationService; PostgreSQL; Email / Google OAuth.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Khách nhập thông tin đăng ký hoặc chọn đăng ký bằng Google.
+
+\item Bộ điều khiển kiểm tra định dạng email, mật khẩu và thông tin xác nhận; dịch vụ đăng ký kiểm tra email trùng.
+
+\item Với email, hệ thống lưu tài khoản chờ xác thực, tạo OTP 6 số và gửi qua dịch vụ Email.
+
+\item Khách nhập OTP; hệ thống kiểm tra thời hạn, số lần nhập sai và tính hợp lệ của mã.
+
+\item Với Google, hệ thống xác minh danh tính do Google OAuth trả về và bỏ qua bước OTP.
+
+\item Hệ thống kích hoạt tài khoản, cấp gói dùng thử và token đăng nhập; giao diện mở onboarding.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Email đã tồn tại hoặc mật khẩu dưới 8 ký tự/không khớp thì báo lỗi. OTP hết hạn sau 15 phút; gửi lại cách nhau ít nhất 60 giây. Sai OTP 5 lần thì khóa xác thực 15 phút.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc01_register.png}
+
+\caption{Sơ đồ tuần tự Use-case 1: Đăng ký tài khoản}
+
+\label{wispace:fig:seq_uc1}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Đăng nhập (Use-case 2)}
+
+\textbf{1. Mục đích:} Xác thực người dùng và cấp token truy cập theo vai trò.
+
+\textbf{2. Thành phần liên quan:} Người dùng; Wispace Web/App; AuthController; AuthenticationService; UserRepository; PostgreSQL.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Người dùng nhập email và mật khẩu trên giao diện đăng nhập.
+
+\item AuthController kiểm tra dữ liệu trước khi chuyển cho dịch vụ xác thực.
+
+\item Dịch vụ truy vấn tài khoản qua UserRepository, đối chiếu mật khẩu và kiểm tra trạng thái.
+
+\item Nếu hợp lệ, hệ thống cấp access token và refresh token, ghi nhận phiên đăng nhập.
+
+\item Giao diện chuyển học viên tới Dashboard Speaking, Moderator tới quản lý đề và Admin tới trang quản trị.
+
+\item Nếu học viên có phiên thi dở dưới 30 phút, hệ thống đề nghị tiếp tục hoặc nộp phần đã làm.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Sai thông tin đăng nhập 5 lần thì khóa 15 phút; tài khoản bị khóa hiển thị hướng dẫn hỗ trợ; chưa xác thực thì chuyển sang OTP. Google OAuth là cách đăng nhập thay thế. Quên mật khẩu dùng OTP, cập nhật mật khẩu và thu hồi mọi phiên cũ; email không tồn tại vẫn nhận thông báo chung.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc02_login.png}
+
+\caption{Sơ đồ tuần tự Use-case 2: Đăng nhập}
+
+\label{wispace:fig:seq_uc2}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Đăng xuất (Use-case 3)}
+
+\textbf{1. Mục đích:} Thu hồi refresh token và xóa dữ liệu phiên trên trình duyệt.
+
+\textbf{2. Thành phần liên quan:} Người dùng; Wispace Web/App; AuthController; SessionService; PostgreSQL.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Người dùng chọn đăng xuất; giao diện kiểm tra trạng thái ghi âm, tải audio và phiên thi đang mở.
+
+\item Nếu còn audio chưa tải, hệ thống cảnh báo và chờ tải xong. Nếu đang thi, người dùng có thể nộp phần đã làm, hủy bài hoặc quay lại.
+
+\item Khi tiếp tục đăng xuất, AuthController yêu cầu SessionService thu hồi refresh token.
+
+\item Dịch vụ cập nhật trạng thái phiên trong cơ sở dữ liệu và trả kết quả.
+
+\item Trình duyệt xóa token, dữ liệu tạm và mở trang đăng nhập.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Mất mạng vẫn xóa token cục bộ; refresh token trên máy chủ tự hết hạn. Đăng xuất mọi thiết bị yêu cầu xác nhận mật khẩu và thay Security Stamp để từ chối các token cũ.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc03_logout.png}
+
+\caption{Sơ đồ tuần tự Use-case 3: Đăng xuất}
+
+\label{wispace:fig:seq_uc3}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Quản lý hồ sơ cá nhân (Use-case 4)}
+
+\textbf{1. Mục đích:} Cập nhật hồ sơ và thông tin phục vụ cá nhân hóa luyện tập.
+
+\textbf{2. Thành phần liên quan:} Học viên; Wispace Web/App; ProfileController; ProfileService; PostgreSQL; Object Storage.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Học viên mở Hồ sơ; hệ thống tải thông tin cá nhân, mục tiêu, thiết bị, gói và thiết lập riêng tư.
+
+\item Học viên chỉnh tên, avatar, band mục tiêu, ngày thi và giọng giám khảo rồi lưu.
+
+\item ProfileController kiểm tra quyền truy cập hồ sơ của chính học viên và dữ liệu cập nhật.
+
+\item Ảnh hợp lệ được lưu vào Object Storage; thông tin hồ sơ được lưu vào PostgreSQL.
+
+\item Hệ thống trả hồ sơ mới và thông báo thành công; mục tiêu được dùng cho gợi ý luyện tập.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Avatar trên 2 MB hoặc sai định dạng bị từ chối; band mục tiêu trong khoảng 5.0–9.0. Các tab khác hỗ trợ thử micro 5 giây, đổi mật khẩu và thu hồi phiên khác, xem quota hoặc nâng cấp gói. Xóa audio/tài khoản cần mật khẩu hoặc OTP; tài khoản chờ xóa 30 ngày.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc04_profile.png}
+
+\caption{Sơ đồ tuần tự Use-case 4: Quản lý hồ sơ cá nhân}
+
+\label{wispace:fig:seq_uc4}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Quản lý người dùng (Use-case 5)}
+
+\textbf{1. Mục đích:} Cho phép Admin quản lý tài khoản, vai trò và quota với nhật ký kiểm toán.
+
+\textbf{2. Thành phần liên quan:} Admin; Admin Web; UserAdminController; UserAdminService; PostgreSQL; Dịch vụ Email.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Admin tìm kiếm và lọc người dùng; hệ thống trả danh sách phân trang 20 dòng.
+
+\item Admin chọn tài khoản để xem hồ sơ, gói, thanh toán, quota và kết quả luyện tập.
+
+\item Admin chọn khóa/mở khóa, đổi vai trò hoặc cộng quota, nhập lý do và xác nhận.
+
+\item Dịch vụ kiểm tra quyền Admin, lý do và điều kiện thao tác; không cho Admin khóa hoặc hạ vai trò chính mình.
+
+\item Hệ thống lưu thay đổi và nhật ký gồm người thực hiện, thời điểm, giá trị trước/sau và lý do trong cùng giao dịch.
+
+\item Nếu khóa tài khoản, hệ thống đổi Security Stamp và hủy bài thi đang làm; sau đó gửi email thông báo.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Thiếu lý do hoặc tự khóa/hạ vai trò bị từ chối. Không tìm thấy người dùng thì trả danh sách rỗng. Xem audio cần mã ticket hỗ trợ và phải ghi nhật ký. Cộng quota tạo bản ghi điều chỉnh với thời hạn; xuất CSV dùng bộ lọc hiện tại.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc05_user_management.png}
+
+\caption{Sơ đồ tuần tự Use-case 5: Quản lý người dùng}
+
+\label{wispace:fig:seq_uc5}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Xem và tìm kiếm đề thi (Use-case 6)}
+
+\textbf{1. Mục đích:} Tra cứu kho đề theo nguồn, Part, chủ đề và từ khóa trong phạm vi được phép.
+
+\textbf{2. Thành phần liên quan:} Khách / Học viên; Wispace Web/App; TestController; TestCatalogService; TestRepository; PostgreSQL.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Người dùng mở kho đề, chọn nguồn Cambridge, Forecast, Đề của tôi hoặc Cộng đồng và nhập bộ lọc.
+
+\item TestController chuyển bộ lọc cùng ngữ cảnh người dùng cho TestCatalogService.
+
+\item Dịch vụ giới hạn đề riêng tư theo chủ sở hữu và lọc đề cộng đồng đã được duyệt.
+
+\item Repository truy vấn danh sách 24 thẻ mỗi trang; giao diện hiển thị kết quả hoặc hướng dẫn bỏ bớt bộ lọc.
+
+\item Khi mở chi tiết, hệ thống trả câu hỏi, thông tin luyện tập được phép xem và kiểm tra điều kiện vào luyện tập/thi thử.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Khách chọn luyện tập hoặc thi thử phải đăng nhập. Đề trả phí yêu cầu gói phù hợp. Tab Đề của tôi trống thì gợi ý thêm đề. Học viên có thể đánh dấu yêu thích hoặc gửi báo cáo đề sai cho Moderator.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc06_browse_tests.png}
+
+\caption{Sơ đồ tuần tự Use-case 6: Xem và tìm kiếm đề thi}
+
+\label{wispace:fig:seq_uc6}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Thêm đề thi (Use-case 7)}
+
+\textbf{1. Mục đích:} Lưu đề cá nhân hợp lệ và cho phép gửi đề xuất công khai.
+
+\textbf{2. Thành phần liên quan:} Học viên; Wispace Web/App; TestController; CreateTestService; PostgreSQL; AI hỗ trợ.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Học viên chọn loại đề và nhập câu hỏi, cue card, chủ đề cùng nguồn tham khảo.
+
+\item Hệ thống kiểm tra quyền, giới hạn số đề theo gói, tiếng Anh, độ dài tối đa 300 ký tự mỗi câu và loại bỏ HTML.
+
+\item Nếu yêu cầu, AI gợi ý 5 câu Part 3; học viên quyết định giữ hoặc bỏ trước khi lưu.
+
+\item Hệ thống kiểm tra trùng lặp; với mức tương tự từ 90\%, học viên chọn dùng đề có sẵn hoặc vẫn lưu.
+
+\item Đề mới được lưu riêng tư, thuộc học viên; giao diện hiển thị Luyện ngay và Đề xuất công khai.
+
+\item Khi đề xuất công khai, hệ thống chuyển trạng thái Chờ duyệt để Moderator xử lý.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Vượt giới hạn 10 đề miễn phí/200 đề trả phí thì yêu cầu nâng cấp. Dữ liệu sai không được lưu và vẫn giữ nội dung form. AI lỗi hoặc quá 30 giây thì học viên nhập Part 3 thủ công.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc07_add_test.png}
+
+\caption{Sơ đồ tuần tự Use-case 7: Thêm đề thi}
+
+\label{wispace:fig:seq_uc7}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Quản lý và duyệt kho đề (Use-case 8)}
+
+\textbf{1. Mục đích:} Duy trì kho đề, duyệt đề cộng đồng và sinh audio câu hỏi dùng chung.
+
+\textbf{2. Thành phần liên quan:} Moderator / Admin; Moderation Web; ModerationController; TestModerationService; PostgreSQL; Dịch vụ TTS.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Moderator mở cây đề và hàng chờ; hệ thống kiểm tra quyền Moderator hoặc Admin.
+
+\item Moderator thêm/sửa đề hoặc nhập CSV/JSON; hệ thống kiểm tra đầy đủ các câu hỏi và mọi dòng nhập.
+
+\item Nếu hợp lệ, hệ thống lưu đề rồi yêu cầu TTS tạo audio cho ba giọng Anh-Anh, Anh-Mỹ và Úc.
+
+\item Audio hoàn thành được liên kết với câu hỏi; nếu TTS lỗi, đề vẫn được lưu và đánh dấu Thiếu audio để sinh lại.
+
+\item Với đề cộng đồng, Moderator duyệt, từ chối kèm lý do hoặc gộp trùng; hệ thống cập nhật trạng thái và thông báo tác giả.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} CSV/JSON có dòng lỗi thì không nhập phần nào. Thiếu câu bắt buộc không được lưu. Ẩn đề đã có bài làm vẫn giữ lịch sử học viên. Xử lý báo cáo có thể gỡ, sửa hoặc bỏ qua; tác giả bị gỡ từ 3 đề trong 30 ngày bị khóa đề xuất 30 ngày và Admin nhận thông báo.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc08_moderate_tests.png}
+
+\caption{Sơ đồ tuần tự Use-case 8: Quản lý và duyệt kho đề}
+
+\label{wispace:fig:seq_uc8}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Luyện tập theo Part (Use-case 9)}
+
+\textbf{1. Mục đích:} Ghi âm câu trả lời và chấm Speaking bất đồng bộ theo quota của học viên.
+
+\textbf{2. Thành phần liên quan:} Học viên; Speaking Web; PracticeController; PracticeService; DB / Object Storage; Hàng đợi chấm; Scoring Model.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Học viên chọn câu hỏi; hệ thống kiểm tra quyền sử dụng và quota còn lại.
+
+\item Giao diện xin quyền micro, ghi âm và cho nghe lại/ghi lại; với Part 2 có 60 giây chuẩn bị và tối đa 120 giây nói.
+
+\item Khi nộp, hệ thống kiểm tra audio tối thiểu 3 giây và tỷ lệ im lặng không quá 80\%.
+
+\item Hệ thống lưu audio, tạo lượt trả lời và giữ quota trong thao tác nhất quán; đưa yêu cầu vào hàng đợi chấm.
+
+\item Tiến trình chấm gọi Scoring Model, nhận transcript, lỗi, chỉ số trôi chảy, band bốn tiêu chí và phiên bản mô hình.
+
+\item Chấm thành công thì lưu kết quả và ghi nhận quota; chấm thất bại sau giới hạn thử lại hoặc audio chủ yếu tiếng Việt thì hoàn quota.
+
+\item Giao diện theo dõi trạng thái, mở báo cáo khi hoàn tất hoặc hiển thị lý do và nút Chấm lại khi lỗi.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Hết quota vẫn cho ghi âm tự nghe nhưng không chấm. Micro bị chặn thì hướng dẫn cấp quyền. Part 1/3 tự dừng sau 3 phút. Ghi lại chưa nộp không trừ quota; AI lỗi/quá 60 giây thử lại 3 lần, sau đó đánh dấu Thất bại và hoàn quota.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc09_part_practice.png}
+
+\caption{Sơ đồ tuần tự Use-case 9: Luyện tập theo Part}
+
+\label{wispace:fig:seq_uc9}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Xem kết quả và luyện lại (Use-case 10)}
+
+\textbf{1. Mục đích:} Hiển thị đánh giá chi tiết, hỗ trợ luyện lại và bổ sung lỗi vào Roadmap.
+
+\textbf{2. Thành phần liên quan:} Học viên; Speaking Web; ResultController; ResultService; PostgreSQL; Audio / Phát âm chuẩn.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Học viên mở báo cáo; hệ thống kiểm tra quyền sở hữu và trạng thái lượt trả lời.
+
+\item Nếu đã chấm, hệ thống đọc band tổng/bốn tiêu chí, transcript, lỗi và chỉ số trôi chảy.
+
+\item Giao diện hiển thị điểm, lý do, điểm mạnh, điểm cần cải thiện và gợi ý tiếp theo.
+
+\item Khi chọn từ lỗi, hệ thống cung cấp đoạn audio học viên và phát âm chuẩn kèm IPA; audio đã hết hạn thì chỉ dùng transcript và phát âm chuẩn.
+
+\item Luyện lại mở cùng câu hỏi, kiểm tra quota qua Use-case 9 và so sánh kết quả hai lượt sau khi chấm.
+
+\item Với lỗi lặp từ 3 lần trong 14 ngày, hệ thống gợi ý thêm vào Roadmap và lưu khi học viên đồng ý.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Bài đang chấm hiển thị trạng thái chờ và tự cập nhật. Bài thất bại cho Chấm lại không trừ quota. Audio xóa sau 180 ngày không làm mất transcript/điểm. Có thể xem câu trả lời mẫu band 7.0+ và từ vựng nâng cấp.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc10_results_retry.png}
+
+\caption{Sơ đồ tuần tự Use-case 10: Xem kết quả và luyện lại}
+
+\label{wispace:fig:seq_uc10}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Thi thử như thật (Use-case 11)}
+
+\textbf{1. Mục đích:} Tổ chức phiên thi Speaking đủ ba Part và tạo báo cáo chấm toàn bài.
+
+\textbf{2. Thành phần liên quan:} Học viên; Phòng thi Web; MockTestController; MockTestService; DB / Object Storage; Giám khảo AI / TTS; Hàng đợi / Scoring Model.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Học viên chọn đề hoặc đề ngẫu nhiên, đọc quy chế và đồng ý xử lý giọng nói khi cần.
+
+\item Giao diện kiểm tra micro, âm lượng, độ ồn và kết nối mạng; dịch vụ kiểm tra lượt thi và phiên thi đang mở.
+
+\item Bắt đầu thi tạo phiên và trừ đúng một lượt; hệ thống tải trước audio câu hỏi.
+
+\item Giám khảo đọc câu hỏi và giao diện tự ghi âm: Part 1 khoảng 4–5 phút; Part 2 chuẩn bị 60 giây và nói tối đa 120 giây; Part 3 khoảng 4–5 phút.
+
+\item Các audio được lưu liên tục; kết thúc thi kiểm tra tải đủ audio rồi chuyển bài sang Đã nộp và vào hàng chấm.
+
+\item Scoring Model chấm từng câu và cả bài; hệ thống lưu báo cáo, thông báo trong ứng dụng và qua email.
+
+\item Nếu chấm lỗi sau 3 lần thử, bài chuyển Thất bại, hoàn lượt thi và báo Admin; kết thúc sớm chỉ có band từng Part.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Không có micro/quyền micro thì không vào thi. Mất mạng tiếp tục ghi cục bộ và tải bù. Quay lại dưới 30 phút thì tiếp tục câu chưa trả lời; quá 30 phút tự nộp phần đã làm. Có thể nhắc lại mỗi câu một lần; Part 2 nói dưới 60 giây rồi im lặng 5 giây thì giám khảo gợi mở.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc11_mock_test.png}
+
+\caption{Sơ đồ tuần tự Use-case 11: Thi thử như thật}
+
+\label{wispace:fig:seq_uc11}
+
+\end{figure}
+
+
+
+\paragraph{Luồng hoạt động: Xem lịch sử và tiến bộ (Use-case 12)}
+
+\textbf{1. Mục đích:} Tổng hợp kết quả luyện tập, thi thử và các lỗi lặp để theo dõi tiến bộ.
+
+\textbf{2. Thành phần liên quan:} Học viên; Speaking Web; ProgressController; ProgressService; ResultRepository; PostgreSQL.
+
+\textbf{3. Luồng tương tác chi tiết:}
+
+\begin{enumerate}
+
+\item Học viên mở Lịch sử và tiến bộ; giao diện gửi khoảng thời gian mặc định 30 ngày hoặc bộ lọc đã chọn.
+
+\item Dịch vụ kiểm tra quyền và truy vấn bài của chính học viên theo Part, nguồn, loại bài và thời gian.
+
+\item Hệ thống tổng hợp band tổng/bốn tiêu chí, top 5 lỗi lặp và danh sách bài phân trang 20 bài.
+
+\item Giao diện hiển thị biểu đồ; dưới 3 bài thì chỉ hiển thị điểm từng bài, chưa có bài thì gợi ý luyện câu đầu tiên.
+
+\item Học viên mở một bài để xem báo cáo tương ứng; bài đang chấm hoặc thất bại hiển thị trạng thái.
+
+\item Nếu chia sẻ, hệ thống tạo liên kết công khai chỉ chứa điểm và nhận xét, không kèm audio; học viên có thể thu hồi.
+
+\end{enumerate}
+
+\textbf{4. Luồng thay thế và ngoại lệ:} Bộ lọc cập nhật đồng thời danh sách và biểu đồ. Chỉ tính xu hướng từ các bài có kết quả hợp lệ; trạng thái đang chấm/thất bại không được coi là band 0. Liên kết chia sẻ không cấp quyền truy cập audio.
+
+
+
+\begin{figure}[H]
+
+\centering
+
+\includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/Wispace/sequence_uc12_progress_history.png}
+
+\caption{Sơ đồ tuần tự Use-case 12: Xem lịch sử và tiến bộ}
+
+\label{wispace:fig:seq_uc12}
+
+\end{figure}
+
+
+
+% Nội dung DFD hiện tại được giữ nguyên do chưa có phần thay thế.
+\subsection{Hệ thống AIHub}
+
+\subsubsection{Lược đồ Use-case tổng quan}
+Toàn bộ hệ thống AIHub bao gồm 20 use-case chính, được phân chia thành 3 phân vùng chức năng cốt lõi như minh họa tại Hình~\ref{aihub:fig:aihub_usecase_overview}:
+\begin{enumerate}
+    \item \textbf{Phân hệ Cổng API Gateway \& Developer Portal:} Bao gồm các chức năng Đăng nhập/Xác thực, Quản lý khóa API, Tra cứu hạn mức và sử dụng cURL Sandbox.
+    \item \textbf{Phân hệ AI \& Academic Lab:} Bao gồm Sinh bài tập IELTS Micro-Exercise công khai, Truy vấn dẫn chứng lỗi học viên, Sinh mẫu thẩm định học thuật, Đánh giá/Chấp thuận mẫu và Từ chối mẫu thu thập dữ liệu SFT/DPO.
+    \item \textbf{Phân hệ Quản trị \& Điều hành:} Bao gồm Quản lý thành viên tổ chức, Cấu hình gói và hạn mức, Quản lý danh mục đặc tả Universal Specs, Kiểm tra trạng thái hệ thống và Xem nhật ký kiểm toán.
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{Images/Usecase/AIHub/aihub_usecase.png}
+    \caption{Sơ đồ Use-case tổng quan hệ thống AIHub Platform}
+    \label{aihub:fig:aihub_usecase_overview}
+\end{figure}
+\newpage
+
+\subsubsection{Đặc tả các Use-case chi tiết}
+\setcounter{paragraph}{0}                      % Đặt lại bộ đếm về 0
+\renewcommand{\theparagraph}{\alph{paragraph}}  % Chuyển số thành chữ cái thường a, b, c...
+
+Các sơ đồ chi tiết dưới đây tương ứng với 20 bảng đặc tả của AIHub. Quan hệ \textit{include} biểu diễn chức năng bắt buộc; quan hệ \textit{extend} biểu diễn chức năng bổ sung tại điều kiện ghi trên sơ đồ. Mỗi bảng mô tả tác nhân, điều kiện trước và sau, luồng chính, luồng thay thế và ngoại lệ.
+
+% Ảnh chi tiết AIHub theo cùng bố cục và màu sắc với Wispace.
+% #1: mã use-case; #2: tên; #3: tên ảnh trong Images/Usecase/AIHub.
+\providecommand{\aihubusecasefigure}[3]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Usecase/AIHub/#3}
+    \caption{Sơ đồ Use-case #1: #2}
+    \label{aihub:fig:uc_detail_#1}
+  \end{figure}
+}
+
+% =========================================================================
+% NHÓM 1: LẬP TRÌNH VIÊN / ĐỐI TÁC TÍCH HỢP
+% =========================================================================
+
+\paragraph{Use-case 1: Đăng nhập và Xác thực Portal (Developer Portal Authentication)}
+
+\aihubusecasefigure{1}{Đăng nhập và xác thực Portal}{usecase_uc01_portal_auth.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Đăng nhập và Xác thực Portal}
+\label{aihub:tab:uc_dev_auth}\\
+\hline
+\textbf{Usecase name} & \textbf{Đăng nhập và Xác thực Portal} \\ \hline
+\textbf{Actor} & Lập trình viên / Đối tác tích hợp, Máy chủ xác thực (Session Service) \\ \hline
+\textbf{Description} & Lập trình viên thực hiện đăng nhập vào Cổng điều khiển lập trình viên (Developer Portal) để quản lý khóa API, tra cứu quota và sử dụng công cụ sandbox. \\ \hline
+\textbf{Trigger} & Lập trình viên nhấn nút ``Đăng nhập'' trên giao diện Web Portal. \\ \hline
+\textbf{Precondition} & Hệ thống hoạt động bình thường; lập trình viên đã có tài khoản được kích hoạt trong bảng \texttt{users}. \\ \hline
+\textbf{Postcondition} & Phiên làm việc được thiết lập qua Session Cookie an toàn; lập trình viên được chuyển tới Bảng điều khiển nhà phát triển. \\ \hline
+\textbf{Normal flow} & 
+1. Lập trình viên truy cập trang đăng nhập của Developer Portal.\\
+& 2. Nhập địa chỉ email và mật khẩu tài khoản, nhấn ``Đăng nhập''.\\
+& 3. Tầng điều khiển kiểm tra hợp lệ định dạng dữ liệu đầu vào bằng Zod schema.\\
+& 4. Máy chủ xác thực kiểm tra thông tin trong cơ sở dữ liệu PostgreSQL, đối chiếu mật khẩu băm thông qua thuật toán Bcrypt.\\
+& 5. Hệ thống xác nhận vai trò \textit{DEVELOPER} và tổ chức liên kết.\\
+& 6. Khởi tạo phiên làm việc bảo mật (HTTP-only Secure Cookie), cấp quyền truy cập các endpoint quản trị.\\
+& 7. Hệ thống chuyển hướng lập trình viên đến Dashboard trung tâm. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Đăng xuất khỏi hệ thống (Logout)}\\
+& 1.1. Lập trình viên chọn menu tài khoản và nhấn ``Đăng xuất''.\\
+& 1.2. Hệ thống thu hồi phiên làm việc, xóa cookie bảo mật trên trình duyệt và điều hướng về trang đăng nhập. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Sai email hoặc mật khẩu}\\
+& Tại bước 4: Hệ thống hiển thị thông báo ``Thông tin đăng nhập không hợp lệ''. Nhập sai quá 5 lần liên tiếp sẽ tạm khóa tài khoản 15 phút.\\
+& \textbf{Exception 2: Tài khoản bị khóa}\\
+& Tại bước 5: Trả về thông báo tài khoản đang bị vô hiệu hóa kèm chỉ dẫn liên hệ Quản trị viên. \\ \hline
+\end{longtable}
+\endgroup
+\paragraph{Use-case 2: Quản lý khóa API (Manage API Credentials)}
+
+\aihubusecasefigure{2}{Quản lý khóa API}{usecase_uc02_api_credentials.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Quản lý khóa API}
+\label{aihub:tab:uc_manage_credentials}\\
+\hline
+\textbf{Usecase name} & \textbf{Quản lý khóa API} \\ \hline
+\textbf{Actor} & Lập trình viên, Quản trị viên tổ chức \\ \hline
+\textbf{Description} & Tạo mới, liệt kê danh sách, tái tạo (rotate) và vô hiệu hóa (revoke) cặp mã định danh \textit{ClientId} và bí mật \textit{SecretKey} phục vụ xác thực máy-với-máy qua API Gateway. \\ \hline
+\textbf{Trigger} & Người dùng truy cập phân hệ ``API Credentials'' trên Developer Portal và chọn thao tác. \\ \hline
+\textbf{Precondition} & Người dùng đã đăng nhập với vai trò hợp lệ trong tổ chức. \\ \hline
+\textbf{Postcondition} & Cặp mã chứng thực được cập nhật trong bảng \texttt{credentials}; khóa bí mật mới chỉ được hiển thị duy nhất 1 lần. \\ \hline
+\textbf{Normal flow} & 
+1. Lập trình viên chọn chức năng ``Tạo khóa API mới'' hoặc ``Tái tạo khóa (Rotate Key)''.\\
+& 2. Hệ thống sinh chuỗi định danh \textit{clientId} có tiền tố môi trường (\texttt{aihub\_live\_...} hoặc \texttt{aihub\_test\_...}) và chuỗi khóa bí mật ngẫu nhiên \textit{secretKey}.\\
+& 3. Tính toán mã băm an toàn \textit{secretKeyHash} bằng thuật toán Bcrypt.\\
+& 4. Lưu bản ghi vào bảng \texttt{credentials} gắn liền với định danh của tổ chức.\\
+& 5. Hiển thị hộp thoại chứa chuỗi \textit{secretKey} thô để lập trình viên sao chép, cảnh báo khóa sẽ không thể khôi phục sau khi đóng cửa sổ.\\
+& 6. Lập trình viên xác nhận đã lưu trữ an toàn; hệ thống đóng giao diện cấp phát. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Thu hồi hoặc vô hiệu hóa khóa (Revoke Key)}\\
+& Lập trình viên chọn một khóa đang hoạt động và nhấn ``Xóa khóa''. Hệ thống đánh dấu vô hiệu hóa; mọi yêu cầu sử dụng khóa này sẽ bị Gateway từ chối ngay lập tức. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Vượt quá số lượng khóa cho phép của gói cước}\\
+& Tại bước 1: Nếu tổ chức thuộc gói Free Sandbox và đã đạt giới hạn 2 khóa, hệ thống từ chối tạo mới và yêu cầu nâng cấp gói cước. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 3: Kiểm thử cURL Sandbox (Run Spec cURL Sandbox)}
+
+\aihubusecasefigure{3}{Kiểm thử cURL Sandbox}{usecase_uc03_curl_sandbox.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Kiểm thử cURL Sandbox}
+\label{aihub:tab:uc_run_spec_curl}\\
+\hline
+\textbf{Usecase name} & \textbf{Kiểm thử cURL Sandbox} \\ \hline
+\textbf{Actor} & Lập trình viên / Đối tác tích hợp \\ \hline
+\textbf{Description} & Cho phép kiểm thử tương tác trực tiếp các đặc tả dịch vụ AI (IELTS, Pháp lý, OCR Hóa đơn, Tóm tắt Y tế) với payload tùy biến trực tiếp trên giao diện Portal. \\ \hline
+\textbf{Trigger} & Lập trình viên nhấn nút ``Run cURL / Execute'' tại trang chi tiết đặc tả API. \\ \hline
+\textbf{Precondition} & Lập trình viên đã mở trang Universal AI Spec Catalog; đặc tả dịch vụ đã được tải. \\ \hline
+\textbf{Postcondition} & Nhận kết quả phản hồi JSON, thời gian xử lý (latency), số token tiêu thụ và trạng thái kiểm định tính hợp lệ của lược đồ. \\ \hline
+\textbf{Normal flow} & 
+1. Lập trình viên chọn một dịch vụ AI trong danh mục Universal Specs (ví dụ: \texttt{ielts\_micro\_exercise}).\\
+& 2. Hệ thống hiển thị tài liệu đặc tả, tham số yêu cầu và khung biên soạn JSON mẫu.\\
+& 3. Lập trình viên điều chỉnh tham số đầu vào và nhấn nút ``Execute cURL''.\\
+& 4. Yêu cầu được gửi đến endpoint nội bộ \texttt{/portal/specs/run-curl}.\\
+& 5. \texttt{RunSpecCurlUseCase} tiếp nhận và điều phối thực thi:\\
+& \quad a. Dịch vụ nội bộ (\texttt{ielts\_micro\_exercise}): Chuyển tiếp thực thi ca sử dụng nghiệp vụ thật.\\
+& \quad b. Dịch vụ đối tác liên miền: Kích hoạt mô phỏng giả lập có đối soát lược đồ, tạo độ trễ thực tế 300--800ms.\\
+& 6. Hệ thống đối chiếu kết quả phản hồi với \textit{responseSchemaJson}.\\
+& 7. Hiển thị kết quả lên giao diện gồm mã HTTP, thân phản hồi JSON, thời gian thực thi (ms) và kết quả kiểm định lược đồ. \\ \hline
+\textbf{Alternative flow} & Không có. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Dữ liệu JSON gửi đi sai cú pháp}\\
+& Tại bước 3: Giao diện cảnh báo lỗi cú pháp JSON và khóa nút gửi yêu cầu.\\
+& \textbf{Exception 2: Cấu trúc phản hồi không khớp lược đồ chuẩn}\\
+& Tại bước 6: Hệ thống hiển thị cờ cảnh báo \texttt{validation.valid = false} kèm danh sách chi tiết các trường bị thiếu hoặc sai kiểu dữ liệu. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 4: Gọi API sinh bài tập vi mô (Create Micro-Exercise)}
+
+\aihubusecasefigure{4}{Gọi API sinh bài tập vi mô}{usecase_uc04_create_micro_exercise.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Gọi API sinh bài tập vi mô}
+\label{aihub:tab:uc_create_exercise}\\
+\hline
+\textbf{Usecase name} & \textbf{Gọi API sinh bài tập vi mô} \\ \hline
+\textbf{Actor} & Ứng dụng WISPACE / Lập trình viên, Composite LLM Adapter \\ \hline
+\textbf{Description} & Tự động sinh bộ bài tập ngữ pháp/từ vựng IELTS mục tiêu bám sát theo bộ 28 mã lỗi sư phạm, tích hợp dẫn chứng bài viết thực tế và tiêu chí chấm điểm tự động. \\ \hline
+\textbf{Trigger} & Ứng dụng khách gửi yêu cầu POST đến endpoint \texttt{/create-micro-exercise} hoặc \texttt{/ai/v1/create-micro-exercise}. \\ \hline
+\textbf{Precondition} & Header yêu cầu chứa mã \textit{x-client-id} và \textit{x-secret-key} hợp lệ; tổ chức còn hạn ngạch gọi API trong tháng. \\ \hline
+\textbf{Postcondition} & Bài tập được khởi tạo hoàn chỉnh với câu hỏi, đáp án, giải thích chi tiết và rubric chấm điểm; số liệu được ghi vào \texttt{usage\_logs}. \\ \hline
+\textbf{Normal flow} & 
+1. Gateway tiếp nhận yêu cầu, middleware xác thực kiểm tra cặp khóa \textit{x-client-id} / \textit{x-secret-key} và kiểm tra trần RPM.\\
+& 2. Tầng điều khiển kiểm tra hợp lệ payload bằng lược đồ Zod \texttt{CreateMicroExerciseSchema}.\\
+& 3. Đối chiếu \textit{error\_code} với bảng phân loại chuẩn 28 mã lỗi IELTS.\\
+& 4. Ca sử dụng truy vấn ngân hàng dẫn chứng để lấy câu văn lỗi thực tế của học viên tương ứng với chủ đề và mã lỗi.\\
+& 5. Gửi yêu cầu sinh bài tập đến nhà cung cấp mô hình chính (\texttt{ExternalAIExerciseAdapter} tại \texttt{api-ai.wispace.app}).\\
+& 6. Chuẩn hóa dữ liệu trả về thành cấu trúc bài tập hoàn chỉnh (\textit{GeneratedExerciseResponse}) gồm hướng dẫn, danh sách câu hỏi và tiêu chí chấm điểm.\\
+& 7. Trả về mã phản hồi HTTP 200 OK kèm thông số metadata (thời gian xử lý, số token tiêu thụ, nhà cung cấp). \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Sinh dạng bài tự luận ngắn (Short Writing)}\\
+& Tại bước 6: Hệ thống tự động đính kèm tiêu chí chấm điểm chi tiết \textit{ai\_grading\_rubric} trên thang điểm 1--10 và câu trả lời mẫu chuẩn Band 8.0+. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Mã lỗi không thuộc bộ phân loại 28 lỗi IELTS}\\
+& Tại bước 3: Ném lỗi miền \texttt{InvalidErrorCodeError}, trả về mã HTTP 400 Bad Request.\\
+& \textbf{Exception 2: Dịch vụ AI chính gặp sự cố kết nối hoặc quá thời gian chờ}\\
+& Tại bước 5: Kích hoạt chuỗi dự phòng (Fallback Chain): tự động chuyển sang Google Gemini $\rightarrow$ OpenAI GPT-4o $\rightarrow$ Động cơ Ngoại tuyến (Deterministic Engine). \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 5: Tra cứu hạn mức và Nhật ký sử dụng (View Quota Consumption \& Usage Logs)}
+
+\aihubusecasefigure{5}{Tra cứu hạn mức và nhật ký sử dụng}{usecase_uc05_quota_usage_logs.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Tra cứu hạn mức và Nhật ký sử dụng}
+\label{aihub:tab:uc_view_usage_logs}\\
+\hline
+\textbf{Usecase name} & \textbf{Tra cứu hạn mức và Nhật ký sử dụng} \\ \hline
+\textbf{Actor} & Lập trình viên, Quản trị viên tổ chức \\ \hline
+\textbf{Description} & Cung cấp số liệu thống kê thời gian thực về lưu lượng gọi API, tỷ lệ định ngạch tháng đã tiêu thụ và nhật ký giao dịch chi tiết phục vụ kiểm toán và chẩn đoán lỗi. \\ \hline
+\textbf{Trigger} & Người dùng mở mục ``Usage \& Analytics'' trên Developer Portal. \\ \hline
+\textbf{Precondition} & Người dùng đã đăng nhập và thuộc một tổ chức có mã khóa truy cập. \\ \hline
+\textbf{Postcondition} & Bảng chỉ số tiêu thụ, biểu đồ trực quan và nhật ký giao dịch được hiển thị đầy đủ. \\ \hline
+\textbf{Normal flow} & 
+1. Người dùng mở trang Thống kê và Nhật ký sử dụng.\\
+& 2. Hệ thống truy vấn thông tin gói thuê bao của tổ chức từ bảng \texttt{plans}, tính toán số lượng yêu cầu đã gọi trong tháng đối chiếu với \textit{monthlyQuota}.\\
+& 3. Hiển thị thanh tiến trình định ngạch (\% đã dùng, số yêu cầu còn lại) và trần tần suất RPM tối đa.\\
+& 4. Tải dữ liệu tổng hợp từ bảng \texttt{usage\_logs} và vẽ các biểu đồ phân tích: lưu lượng yêu cầu theo ngày, phân bố mã trạng thái HTTP, độ trễ trung bình và số lượng token LLM tiêu thụ.\\
+& 5. Hiển thị bảng nhật ký chi tiết các giao dịch gần nhất gồm: thời điểm, endpoint, phương thức, thời lượng (ms), số token, địa chỉ IP và mã trạng thái trả về. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Lọc nhật ký theo tiêu chí nâng cao}\\
+& Người dùng lọc danh sách giao dịch theo khoảng ngày, theo mã khóa \textit{clientId} cụ thể, hoặc chỉ hiển thị các yêu cầu gặp lỗi (mã $4xx$, $5xx$). \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Định ngạch chạm ngưỡng cảnh báo ($\ge 80\%$ hoặc $100\%$)}\\
+& Tại bước 3: Hệ thống hiển thị thanh thông báo màu đỏ cảnh báo tổ chức sắp hoặc đã dùng hết định ngạch gọi API trong tháng, đề xuất nâng cấp gói cước. \\ \hline
+\end{longtable}
+\endgroup
+
+% =========================================================================
+% NHÓM 2: CHUYÊN VIÊN HỌC THUẬT (ACADEMIC LAB)
+% =========================================================================
+
+\paragraph{Use-case 6: Truy vấn ngân hàng lỗi thực tế (Query Essay References)}
+
+\aihubusecasefigure{6}{Truy vấn ngân hàng lỗi thực tế}{usecase_uc06_essay_references.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Truy vấn ngân hàng lỗi thực tế}
+\label{aihub:tab:uc_query_references}\\
+\hline
+\textbf{Usecase name} & \textbf{Truy vấn ngân hàng lỗi thực tế} \\ \hline
+\textbf{Actor} & Chuyên viên học thuật, WISPACE Reference API / DB Adapter \\ \hline
+\textbf{Description} & Tra cứu các câu văn lỗi thực tế của học viên từ ngân hàng bài thi IELTS kèm theo nhận xét của giáo viên để cung cấp ngữ cảnh sinh bài tập vi mô chính xác. \\ \hline
+\textbf{Trigger} & Chuyên viên nhấn ``Tìm kiếm dẫn chứng'' hoặc ca sử dụng sinh bài tập tự động kích hoạt truy vấn ngữ cảnh. \\ \hline
+\textbf{Precondition} & Chuyên viên đã đăng nhập vào Academic Lab Workbench; kho dẫn chứng khả dụng. \\ \hline
+\textbf{Postcondition} & Danh sách các trích dẫn lỗi bài thi kèm đề bài và nhận xét chuyên môn được trả về. \\ \hline
+\textbf{Normal flow} & 
+1. Chuyên viên chọn các tiêu chí tìm kiếm: \textit{taskId} (Task 1 hoặc 2), \textit{criterion} (TR, CC, LR, GRA), \textit{errorCode} (trong 28 mã lỗi IELTS), \textit{topic} và số lượng dẫn chứng cần lấy.\\
+& 2. \texttt{QueryEssayReferencesUseCase} kiểm tra tính hợp lệ của các tham số.\\
+& 3. Kích hoạt Adapter chính (\texttt{ExternalWispaceReferenceAdapter}) để gọi sang API WISPACE.\\
+& 4. Nhận dữ liệu dẫn chứng gồm: đề bài (\textit{prompt}), loại câu hỏi, câu văn trích dẫn lỗi của học sinh (\textit{quote}), link ảnh biểu đồ (nếu là Task 1) và nhận xét của giáo viên (\textit{explanation}).\\
+& 5. Chuẩn hóa cấu trúc dữ liệu theo định dạng miền nghiệp vụ và hiển thị lên danh sách dẫn chứng trên giao diện. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Kết nối API ngoài gián đoạn, kích hoạt kho dẫn chứng nội bộ}\\
+& Tại bước 3: Nếu gọi API WISPACE thất bại hoặc quá thời gian chờ, hệ thống tự động chuyển sang \texttt{WispaceReferenceAdapter} để truy vấn trực tiếp từ bảng cơ sở dữ liệu cục bộ \texttt{wispace\_essay\_references} và tiếp tục bước 5. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Không tìm thấy dẫn chứng phù hợp}\\
+& Tại bước 4: Trả về danh sách rỗng kèm thông báo đề xuất mở rộng phạm vi tìm kiếm hoặc chuyển sang chế độ sinh bài tập không dùng dẫn chứng thực tế. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 7: Khởi tạo mẫu bài tập học thuật (Generate Academic Sample)}
+
+\aihubusecasefigure{7}{Khởi tạo mẫu bài tập học thuật}{usecase_uc07_generate_academic_sample.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Khởi tạo mẫu bài tập học thuật}
+\label{aihub:tab:uc_academic_generate}\\
+\hline
+\textbf{Usecase name} & \textbf{Khởi tạo mẫu bài tập học thuật} \\ \hline
+\textbf{Actor} & Chuyên viên học thuật, Composite LLM Adapter \\ \hline
+\textbf{Description} & Chuyên viên học thuật chỉ định các tham số sư phạm chi tiết để hệ thống sinh mẫu bài tập thử nghiệm, hiển thị bản thiết kế thô của AI phục vụ công tác thẩm định. \\ \hline
+\textbf{Trigger} & Chuyên viên nhấn nút ``Khởi tạo mẫu bài tập'' trên giao diện Academic Lab Workbench. \\ \hline
+\textbf{Precondition} & Chuyên viên đã đăng nhập hệ thống với quyền \textit{ACADEMIC\_SPECIALIST}. \\ \hline
+\textbf{Postcondition} & Bản ghi mẫu học thuật được tạo ở trạng thái DRAFT; dữ liệu AI thô được lưu trữ nguyên vẹn trong trường \textit{rawAiOutput}. \\ \hline
+\textbf{Normal flow} & 
+1. Chuyên viên chọn Task (Task 1 hoặc 2), tiêu chí đánh giá, mã lỗi IELTS, dạng câu hỏi và nhập các chỉ dẫn sư phạm chuyên sâu (\textit{detailedInstruction}).\\
+& 2. Chuyên viên nhấn nút ``Sinh mẫu thử nghiệm''.\\
+& 3. Hệ thống kiểm tra hợp lệ và chuyển tiếp yêu cầu đến \texttt{GenerateAcademicSampleUseCase}.\\
+& 4. Ca sử dụng truy vấn dẫn chứng thực tế liên quan và gửi gói tin sang mô hình LLM.\\
+& 5. Mô hình sinh cấu trúc bài tập; hệ thống lưu trữ kết quả vào trường \textit{rawAiOutput} (kiểu JSONB) của bảng \texttt{academic\_samples} ở trạng thái ban đầu là DRAFT.\\
+& 6. Hệ thống hiển thị song song hai khung nhìn trên giao diện: khung hiển thị nội dung AI thô và khung hiệu đính cho phép chỉnh sửa nội dung. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Sử dụng dẫn chứng tùy biến do chuyên viên nhập}\\
+& Tại bước 1: Chuyên viên tự nhập trực tiếp câu trích dẫn và phân tích lỗi của học sinh thay vì lấy tự động từ ngân hàng dữ liệu. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Lỗi mô hình AI không tạo được nội dung hợp lệ}\\
+& Tại bước 5: Hệ thống hiển thị thông báo lỗi chi tiết, giữ nguyên các tham số cấu hình trên form và đề xuất chuyên viên thử lại. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 8: Kiểm định, hiệu đính và chấm điểm bài tập (Review, Edit \& Score Sample)}
+
+\aihubusecasefigure{8}{Kiểm định, hiệu đính và chấm điểm}{usecase_uc08_review_score_sample.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Kiểm định, hiệu đính và chấm điểm bài tập}
+\label{aihub:tab:uc_academic_review_score}\\
+\hline
+\textbf{Usecase name} & \textbf{Kiểm định, hiệu đính và chấm điểm bài tập} \\ \hline
+\textbf{Actor} & Chuyên viên học thuật \\ \hline
+\textbf{Description} & Chuyên viên kiểm định chất lượng nội dung bài tập do AI tạo ra, trực tiếp chỉnh sửa các sai sót sư phạm để hoàn thiện bản hiệu đính và cho điểm chất lượng trên thang 1--10. \\ \hline
+\textbf{Trigger} & Chuyên viên thao tác trên khung soạn thảo hiệu đính của màn hình Academic Lab. \\ \hline
+\textbf{Precondition} & Mẫu bài tập đang mở ở trạng thái DRAFT; đã có dữ liệu \textit{rawAiOutput}. \\ \hline
+\textbf{Postcondition} & Bản hiệu đính hoàn chỉnh được lưu tạm trong trường \textit{finalOutput} kèm điểm số chất lượng (1--10). \\ \hline
+\textbf{Normal flow} & 
+1. Chuyên viên đọc và kiểm tra nội dung câu hỏi, phương án trả lời, giải thích ngữ pháp và gợi ý do AI sinh ra tại khung \textit{rawAiOutput}.\\
+& 2. Chuyên viên trực tiếp chỉnh sửa văn bản tại khung hiệu đính (\textit{finalOutput}) nhằm chuẩn hóa câu từ, loại bỏ tính nhập nhằng của các phương án nhiễu hoặc sửa lỗi sai kiến thức.\\
+& 3. Đánh giá chất lượng của bản gốc AI dựa trên chuẩn rubric sư phạm và nhập điểm số từ 1 đến 10 vào ô đánh giá chất lượng (\textit{score}).\\
+& 4. Chuyên viên nhập họ tên định danh người thẩm định (\textit{reviewedBy}).\\
+& 5. Hệ thống tự động lưu bản nháp định kỳ (Auto-save) vào trường \textit{finalOutput} của cơ sở dữ liệu. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Bản sinh AI đã đạt độ hoàn hảo, không cần chỉnh sửa}\\
+& Tại bước 2: Chuyên viên nhấn nút ``Sao chép nguyên bản'', hệ thống tự động đồng bộ toàn bộ nội dung từ \textit{rawAiOutput} sang \textit{finalOutput}. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Điểm số nhập vào không hợp lệ}\\
+& Tại bước 3: Nếu điểm số nằm ngoài dải giá trị từ 1 đến 10 hoặc không phải là số nguyên, hệ thống báo đỏ ô nhập liệu và ngăn thao tác phê duyệt. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 9: Chấp thuận mẫu và xoay vòng lỗi (Accept Sample \& Error Rotation)}
+
+\aihubusecasefigure{9}{Chấp thuận mẫu và xoay vòng lỗi}{usecase_uc09_accept_sample.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Chấp thuận mẫu và xoay vòng lỗi}
+\label{aihub:tab:uc_academic_accept}\\
+\hline
+\textbf{Usecase name} & \textbf{Chấp thuận mẫu và xoay vòng lỗi} \\ \hline
+\textbf{Actor} & Chuyên viên học thuật, Cơ sở dữ liệu PostgreSQL \\ \hline
+\textbf{Description} & Xác nhận phê duyệt mẫu bài tập đạt chuẩn, lưu trữ đồng thời bản gốc AI và bản hoàn thiện của con người vào tập dữ liệu chuẩn vàng, tự động tính toán mã lỗi/chủ đề xoay vòng tiếp theo. \\ \hline
+\textbf{Trigger} & Chuyên viên nhấn nút ``Chấp thuận mẫu (Accept)'' trên giao diện làm việc. \\ \hline
+\textbf{Precondition} & Mẫu bài tập đang ở trạng thái DRAFT; khung \textit{finalOutput} không để trống và điểm số đã được nhập hợp lệ. \\ \hline
+\textbf{Postcondition} & Mẫu chuyển sang trạng thái ACCEPTED; cặp dữ liệu chuẩn vàng được bảo toàn; giao diện chuyển sang cấu hình bài tập tiếp theo. \\ \hline
+\textbf{Normal flow} & 
+1. Chuyên viên nhấn nút ``Chấp thuận mẫu (Accept)''.\\
+& 2. Giao diện gửi gói tin POST tới endpoint \texttt{/portal/academic/samples/accept}.\\
+& 3. \texttt{AcceptSampleUseCase} tiếp nhận payload, cập nhật bản ghi trong bảng \texttt{academic\_samples}:
+\begin{itemize}
+    \item Lưu trữ toàn vẹn nội dung con người hiệu đính vào cột \textit{finalOutput}.
+    \item Cập nhật điểm chất lượng, thông tin người thẩm định và chuyển trạng thái sang \texttt{ACCEPTED}.
+    \item Cập nhật các chỉ mục hỗ trợ truy vấn huấn luyện sau này.
+\end{itemize}\\
+& 4. Thuật toán xoay vòng sư phạm tự động phân tích lịch sử kiểm định và tính toán mã lỗi, chủ đề kế tiếp theo ma trận phân bổ 28 mã lỗi IELTS.\\
+& 5. Hệ thống hiển thị thông báo thành công và tự động điền các tham số mới lên form khởi tạo để chuyên viên bắt đầu chu trình tiếp theo. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Đánh dấu mẫu yêu thích đặc biệt}\\
+& Tại bước 1: Chuyên viên tích chọn ``Mẫu chuẩn mực (Favorite)'', hệ thống gán cờ \textit{isFavorite = true} để ưu tiên trích xuất tập dữ liệu huấn luyện mẫu mực. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Xung đột phiên chỉnh sửa dữ liệu}\\
+& Tại bước 3: Nếu bản ghi đã bị sửa đổi bởi một chuyên viên khác trước đó, hệ thống cảnh báo xung đột và tải lại trạng thái dữ liệu mới nhất. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 10: Từ chối mẫu và thu thập dữ liệu tinh chỉnh (Reject Sample \& Fine-Tuning Curation)}
+
+\aihubusecasefigure{10}{Từ chối mẫu và thu thập dữ liệu}{usecase_uc10_reject_sample.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Từ chối mẫu và thu thập dữ liệu tinh chỉnh}
+\label{aihub:tab:uc_academic_reject}\\
+\hline
+\textbf{Usecase name} & \textbf{Từ chối mẫu và thu thập dữ liệu tinh chỉnh} \\ \hline
+\textbf{Actor} & Chuyên viên học thuật, Kỹ sư AI \\ \hline
+\textbf{Description} & Chuyên viên bác bỏ mẫu bài tập do AI tạo ra vì vi phạm tiêu chuẩn sư phạm hoặc sai sót kiến thức, ghi nhận phản hồi định lượng phục vụ huấn luyện sở thích (DPO/RLHF). \\ \hline
+\textbf{Trigger} & Chuyên viên nhấn nút ``Từ chối mẫu (Reject)'' trên giao diện làm việc. \\ \hline
+\textbf{Precondition} & Mẫu bài tập đang mở ở trạng thái DRAFT. \\ \hline
+\textbf{Postcondition} & Bản ghi chuyển sang trạng thái REJECTED kèm lý do chi tiết; mẫu được gắn nhãn đưa vào tập dữ liệu mẫu âm. \\ \hline
+\textbf{Normal flow} & 
+1. Chuyên viên nhận thấy mẫu AI sinh ra không đạt chuẩn (câu hỏi đa nghĩa, đáp án nhiễu sai ngữ pháp, giải thích sai lệch thang điểm IELTS).\\
+& 2. Chuyên viên nhấn nút ``Từ chối mẫu (Reject)''.\\
+& 3. Hộp thoại yêu cầu nhập lý do từ chối xuất hiện trên màn hình.\\
+& 4. Chuyên viên nhập nhận xét sư phạm chi tiết giải thích rõ nguyên nhân từ chối và nhấn xác nhận.\\
+& 5. \texttt{RejectSampleUseCase} cập nhật trạng thái bản ghi thành \texttt{REJECTED} và lưu nội dung giải trình vào trường \textit{rejectReason}.\\
+& 6. Mẫu bài tập được tự động đưa vào danh mục mẫu âm (Negative Samples) phục vụ Kỹ sư AI tinh chỉnh mô hình.\\
+& 7. Hệ thống đưa ra tùy chọn cho phép tạo lại mẫu mới với ngữ cảnh tránh các lỗi sai vừa gặp. \\ \hline
+\textbf{Alternative flow} & Không có. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Để trống lý do từ chối}\\
+& Tại bước 4: Hệ thống yêu cầu bắt buộc phải nhập tối thiểu 10 ký tự mô tả nguyên nhân bác bỏ nhằm đảm bảo chất lượng dữ liệu phản hồi cho mô hình AI. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 11: Quản lý kho dữ liệu mẫu học thuật (Manage \& Inventory Academic Samples)}
+
+\aihubusecasefigure{11}{Quản lý kho mẫu học thuật}{usecase_uc11_academic_inventory.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Quản lý kho dữ liệu mẫu học thuật}
+\label{aihub:tab:uc_academic_inventory}\\
+\hline
+\textbf{Usecase name} & \textbf{Quản lý kho dữ liệu mẫu học thuật} \\ \hline
+\textbf{Actor} & Chuyên viên học thuật, Kỹ sư AI \\ \hline
+\textbf{Description} & Tra cứu, duyệt danh sách, lọc và kiểm tra chi tiết toàn bộ các mẫu bài tập đã sinh và thẩm định trong cơ sở dữ liệu. \\ \hline
+\textbf{Trigger} & Người dùng mở tab ``Kho mẫu bài tập (Inventory)'' trên Bàn làm việc Academic Lab. \\ \hline
+\textbf{Precondition} & Người dùng đã đăng nhập với vai trò \textit{ACADEMIC\_SPECIALIST} hoặc \textit{AI\_ENGINEER}. \\ \hline
+\textbf{Postcondition} & Danh sách các mẫu bài tập phân trang được hiển thị đầy đủ kèm trạng thái phê duyệt và điểm số. \\ \hline
+\textbf{Normal flow} & 
+1. Người dùng mở trang danh mục kho mẫu bài tập.\\
+& 2. Hệ thống tải danh sách phân trang (20 mẫu/trang) từ cơ sở dữ liệu PostgreSQL, sắp xếp theo thời gian tạo mới nhất.\\
+& 3. Người dùng áp dụng các bộ lọc chuyên sâu:
+\begin{itemize}
+    \item Trạng thái mẫu: \texttt{ALL}, \texttt{DRAFT}, \texttt{ACCEPTED}, \texttt{REJECTED}.
+    \item Tiêu chuẩn bài thi: Task (1, 2), Tiêu chí (TR, CC, LR, GRA) hoặc theo từng mã trong 28 mã lỗi.
+    \item Điểm số chất lượng: Lọc theo khoảng điểm thẩm định (ví dụ: điểm $\ge 8$).
+    \item Người thẩm định (\textit{reviewedBy}) hoặc mục yêu thích (\textit{isFavorite}).
+\end{itemize}\\
+& 4. Hệ thống thực thi truy vấn tối ưu qua các chỉ mục tổng hợp (\textit{idx\_academic\_samples\_task\_crit}) và hiển thị kết quả.\\
+& 5. Người dùng nhấn chọn một mẫu cụ thể để xem màn hình đối chiếu chi tiết giữa dữ liệu AI thô (\textit{rawAiOutput}) và bản con người hiệu đính (\textit{finalOutput}). \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Đánh dấu nhanh mẫu chuẩn mực}\\
+& Tại bước 5: Chuyên viên nhấn biểu tượng ngôi sao để chuyển đổi trạng thái yêu thích (\textit{isFavorite}) của mẫu bài tập. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Không có bản ghi phù hợp bộ lọc}\\
+& Tại bước 4: Hệ thống hiển thị thông báo ``Không tìm thấy mẫu bài tập phù hợp'' kèm nút đặt lại toàn bộ bộ lọc. \\ \hline
+\end{longtable}
+\endgroup
+
+% =========================================================================
+% NHÓM 3: KỸ SƯ AI
+% =========================================================================
+
+\paragraph{Use-case 12: Cấu hình mẫu Prompt (Configure Prompt Templates)}
+
+\aihubusecasefigure{12}{Cấu hình mẫu Prompt}{usecase_uc12_prompt_templates.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Cấu hình mẫu Prompt}
+\label{aihub:tab:uc_config_prompt}\\
+\hline
+\textbf{Usecase name} & \textbf{Cấu hình mẫu Prompt} \\ \hline
+\textbf{Actor} & Kỹ sư AI \\ \hline
+\textbf{Description} & Quản lý nội dung hướng dẫn hệ thống (System Prompts), cấu trúc biến ngữ cảnh và ràng buộc định dạng JSON đầu ra cho từng loại mã lỗi và dạng câu hỏi bài tập. \\ \hline
+\textbf{Trigger} & Kỹ sư AI mở menu ``Prompt Management'' trên giao diện cấu hình kỹ thuật. \\ \hline
+\textbf{Precondition} & Tài khoản có vai trò \textit{AI\_ENGINEER} hoặc \textit{ADMIN}. \\ \hline
+\textbf{Postcondition} & Mẫu prompt mới được lưu và có hiệu lực tức thì cho các lượt sinh bài tiếp theo. \\ \hline
+\textbf{Normal flow} & 
+1. Kỹ sư AI chọn nhóm bài tập cần cấu hình (theo Task, tiêu chí chấm và mã lỗi IELTS).\\
+& 2. Giao diện hiển thị trình soạn thảo cấu hình prompt gồm:
+\begin{itemize}
+    \item System Prompt quy định vai trò chuyên gia sư phạm của mô hình.
+    \item Các vị trí biến nội suy động (\texttt{\{\{error\_code\}\}}, \texttt{\{\{topic\}\}}, \texttt{\{\{student\_quote\}\}}).
+    \item Khung định nghĩa ràng buộc JSON Schema bắt buộc tuân thủ.
+    \item Tập mẫu chuẩn mực (Few-shot Examples).
+\end{itemize}\\
+& 3. Kỹ sư AI chỉnh sửa nội dung hướng dẫn và nhấn nút ``Kiểm tra \& Lưu cấu hình''.\\
+& 4. Hệ thống kiểm tra tính hợp lệ cú pháp JSON Schema và kiểm tra sự hiện diện của các biến nội suy bắt buộc.\\
+& 5. Lưu trữ cấu hình phiên bản mới vào cơ sở dữ liệu và đồng bộ vào bộ nhớ đệm runtime. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Thử nghiệm Prompt với dữ liệu giả lập (Dry Run)}\\
+& Tại bước 3: Kỹ sư nhấn ``Chạy thử nghiệm Prompt'', hệ thống gửi lệnh tới mô hình với dữ liệu mẫu và hiển thị kết quả JSON trả về để đánh giá chất lượng trước khi lưu. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Cú pháp JSON Schema bị lỗi}\\
+& Tại bước 4: Hệ thống bắt lỗi biên dịch schema, từ chối lưu và bôi đỏ vị trí sai cú pháp. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 13: Cấu hình chuỗi mô hình dự phòng (Configure Model Fallback Chain)}
+
+\aihubusecasefigure{13}{Cấu hình chuỗi mô hình dự phòng}{usecase_uc13_model_fallback.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Cấu hình chuỗi mô hình dự phòng}
+\label{aihub:tab:uc_config_fallback}\\
+\hline
+\textbf{Usecase name} & \textbf{Cấu hình chuỗi mô hình dự phòng} \\ \hline
+\textbf{Actor} & Kỹ sư AI, Hệ thống AI Gateway \\ \hline
+\textbf{Description} & Thiết lập thứ tự ưu tiên các nhà cung cấp mô hình AI (WISPACE Proxy $\rightarrow$ Google Gemini $\rightarrow$ OpenAI $\rightarrow$ Deterministic Engine) và ngưỡng thời gian chờ (Timeout) cho từng cấp. \\ \hline
+\textbf{Trigger} & Kỹ sư AI truy cập phân hệ ``Model Routing \& Fallback''. \\ \hline
+\textbf{Precondition} & Tài khoản có quyền \textit{AI\_ENGINEER}. \\ \hline
+\textbf{Postcondition} & Quy tắc định tuyến dự phòng đa tầng được cập nhật vào \texttt{CompositeLLMAdapter}. \\ \hline
+\textbf{Normal flow} & 
+1. Kỹ sư AI mở bảng điều khiển cấu hình chuỗi dự phòng.\\
+& 2. Hệ thống hiển thị danh sách các nhà cung cấp AI khả dụng và thứ tự ưu tiên hiện tại.\\
+& 3. Kỹ sư AI điều chỉnh thứ tự ưu tiên bằng thao tác kéo thả:
+\begin{itemize}
+    \item Cấp 1 (Ưu tiên cao nhất): External AI Exercise Adapter (\texttt{api-ai.wispace.app}).
+    \item Cấp 2: Google Gemini Adapter (Gemini 1.5 Flash / Pro).
+    \item Cấp 3: OpenAI Adapter (GPT-4o / GPT-4o-mini).
+    \item Cấp 4 (Dự phòng cuối): Deterministic Offline Engine.
+\end{itemize}\\
+& 4. Thiết lập thời gian chờ tối đa (Timeout) và số lần thử lại (Retry count) cho từng cấp.\\
+& 5. Kỹ sư AI nhấn nút ``Cập nhật chuỗi dự phòng''.\\
+& 6. Hệ thống kiểm tra kết nối tới các endpoint và lưu cấu hình hoạt động mới. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Tạm ngắt kết nối một nhà cung cấp}\\
+& Kỹ sư AI tắt nút kích hoạt của một mô hình đang gặp sự cố; hệ thống tự động bỏ qua cấp đó trong chuỗi dự phòng. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Không có nhà cung cấp nào được kích hoạt}\\
+& Tại bước 5: Hệ thống cảnh báo bắt buộc phải duy trì ít nhất một nhà cung cấp đám mây và động cơ ngoại tuyến Deterministic Engine. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 14: Trích xuất tập dữ liệu tinh chỉnh SFT/DPO (Export Curated Datasets for Model Fine-Tuning)}
+
+\aihubusecasefigure{14}{Trích xuất tập dữ liệu SFT/DPO}{usecase_uc14_export_datasets.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Trích xuất tập dữ liệu tinh chỉnh SFT/DPO}
+\label{aihub:tab:uc_export_datasets}\\
+\hline
+\textbf{Usecase name} & \textbf{Trích xuất tập dữ liệu tinh chỉnh SFT/DPO} \\ \hline
+\textbf{Actor} & Kỹ sư AI, PostgreSQL Database \\ \hline
+\textbf{Description} & Trích xuất các cặp dữ liệu bài tập đã qua thẩm định học thuật thành định dạng chuẩn (JSONL) phục vụ quá trình tinh chỉnh mô hình có giám sát (SFT) và tối ưu hóa sở thích (DPO/RLHF). \\ \hline
+\textbf{Trigger} & Kỹ sư AI nhấn nút ``Trích xuất Dataset huấn luyện'' trên cổng quản trị. \\ \hline
+\textbf{Precondition} & Người dùng có quyền \textit{AI\_ENGINEER}; kho mẫu bài tập có dữ liệu đã thẩm định. \\ \hline
+\textbf{Postcondition} & Tập tin dữ liệu huấn luyện định dạng JSONL được nén và sẵn sàng tải xuống. \\ \hline
+\textbf{Normal flow} & 
+1. Kỹ sư AI truy cập phân hệ ``Dataset Export''.\\
+& 2. Lựa chọn định dạng xuất dữ liệu:
+\begin{itemize}
+    \item \textit{Supervised Fine-Tuning (SFT)}: Xuất các mẫu trạng thái \texttt{ACCEPTED} có điểm chất lượng $\ge 8.0$, ánh xạ prompt đầu vào và kết quả chuẩn mực của con người (\textit{finalOutput}).
+    \item \textit{Direct Preference Optimization (DPO)}: Xuất các bộ ba dữ liệu gồm prompt đầu vào, phương án được chọn (\textit{finalOutput}) và phương án bị từ chối (\textit{rawAiOutput} hoặc mẫu \texttt{REJECTED}).
+\end{itemize}\\
+& 3. Chọn bộ lọc phạm vi: theo khoảng thời gian thẩm định, theo Task hoặc theo tiêu chí chấm thi.\\
+& 4. Kỹ sư nhấn nút ``Đóng gói Dataset''.\\
+& 5. Hệ thống thực thi tiến trình nền trích xuất dữ liệu, làm sạch các trường định danh cá nhân, định dạng dữ liệu theo cấu trúc chuẩn và tạo tệp nén.\\
+& 6. Hiển thị bảng tổng hợp số lượng mẫu và cung cấp đường dẫn tải trực tiếp tệp \texttt{.jsonl.gz}. \\ \hline
+\textbf{Alternative flow} & Không có. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Số lượng mẫu hợp lệ quá ít ($< 50$ mẫu)}\\
+& Tại bước 5: Hệ thống cảnh báo kích thước tập dữ liệu chưa đủ độ tin cậy để tinh chỉnh mô hình, đề xuất tiếp tục thẩm định thêm mẫu. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 15: Theo dõi và phân tích lỗi mô hình (Monitor \& Analyze Model Errors)}
+
+\aihubusecasefigure{15}{Theo dõi và phân tích lỗi mô hình}{usecase_uc15_model_error_analysis.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Theo dõi và phân tích lỗi mô hình}
+\label{aihub:tab:uc_analyze_model_errors}\\
+\hline
+\textbf{Usecase name} & \textbf{Theo dõi và phân tích lỗi mô hình} \\ \hline
+\textbf{Actor} & Kỹ sư AI \\ \hline
+\textbf{Description} & Thống kê và phân tích tần suất các mẫu bài tập bị chuyên viên từ chối, nhận diện hiện tượng suy thoái chất lượng sinh nội dung hoặc lỗi vi phạm cấu trúc lược đồ đầu ra. \\ \hline
+\textbf{Trigger} & Kỹ sư AI mở mục ``Model Performance Analytics'' trên trang điều hành. \\ \hline
+\textbf{Precondition} & Tài khoản có quyền \textit{AI\_ENGINEER}. \\ \hline
+\textbf{Postcondition} & Báo cáo phân tích chất lượng sinh bài tập và danh sách các lỗi điển hình được trực quan hóa. \\ \hline
+\textbf{Normal flow} & 
+1. Kỹ sư AI truy cập phân hệ Phân tích hiệu năng mô hình.\\
+& 2. Hệ thống tổng hợp dữ liệu từ bảng \texttt{academic\_samples}, tính toán tỷ lệ chấp thuận (Acceptance Rate) và tỷ lệ từ chối (Rejection Rate).\\
+& 3. Hiển thị biểu đồ phân bố lý do từ chối (\textit{rejectReason}) theo từng nhóm lỗi:\\
+& \quad a. Lỗi sai lệch thang điểm IELTS Band.\\
+& \quad b. Lỗi phương án trắc nghiệm gây nhập nhằng, đa nghĩa.\\
+& \quad c. Lỗi vi phạm định dạng cấu trúc JSON.\\
+& 4. Hiển thị ma trận đối soát tỷ lệ lỗi trên 28 mã lỗi IELTS để xác định các mã lỗi có tỷ lệ sinh bài thất bại cao nhất.\\
+& 5. Kỹ sư AI chọn một nhóm lỗi để xem chi tiết các trường hợp điển hình, từ đó có căn cứ điều chỉnh System Prompt hoặc bổ sung dữ liệu huấn luyện. \\ \hline
+\textbf{Alternative flow} & Không có. \\ \hline
+\textbf{Exception} & Không có. \\ \hline
+\end{longtable}
+\endgroup
+
+% =========================================================================
+% NHÓM 4: QUẢN TRỊ VIÊN (TỔ CHỨC & NỀN TẢNG)
+% =========================================================================
+
+\paragraph{Use-case 16: Quản lý thành viên tổ chức (Manage Organization Memberships \& Roles)}
+
+\aihubusecasefigure{16}{Quản lý thành viên tổ chức}{usecase_uc16_organization_members.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Quản lý thành viên tổ chức}
+\label{aihub:tab:uc_manage_org_members}\\
+\hline
+\textbf{Usecase name} & \textbf{Quản lý thành viên tổ chức} \\ \hline
+\textbf{Actor} & Quản trị viên tổ chức (Organization Administrator) \\ \hline
+\textbf{Description} & Quản lý nhân sự trong tổ chức doanh nghiệp, mời thành viên mới, phân bổ vai trò (OWNER, ADMIN, MEMBER) và cấp quyền quản trị khóa API Gateway. \\ \hline
+\textbf{Trigger} & Quản trị viên mở menu ``Team \& Members'' trên Developer Portal. \\ \hline
+\textbf{Precondition} & Người dùng có vai trò \textit{OWNER} hoặc \textit{ADMIN} trong bảng \texttt{org\_members}. \\ \hline
+\textbf{Postcondition} & Danh sách thành viên được cập nhật; phân quyền mới có hiệu lực ngay lập tức. \\ \hline
+\textbf{Normal flow} & 
+1. Quản trị viên truy cập mục Quản lý thành viên tổ chức.\\
+& 2. Hệ thống hiển thị danh sách các thành viên hiện tại kèm theo vai trò và ngày tham gia.\\
+& 3. Quản trị viên nhấn nút ``Mời thành viên mới''.\\
+& 4. Nhập địa chỉ email của nhân sự và chọn vai trò phân định (\textit{ADMIN} hoặc \textit{MEMBER}).\\
+& 5. Hệ thống kiểm tra tài khoản, tạo bản ghi liên kết và gửi thư mời xác thực qua email.\\
+& 6. Khi người dùng chấp nhận lời mời, trạng thái thành viên chuyển thành Active.\\
+& 7. Quản trị viên có thể thay đổi vai trò hoặc xóa thành viên khỏi tổ chức. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Chuyển giao quyền sở hữu tổ chức (Transfer Ownership)}\\
+& Chủ sở hữu hiện tại (\textit{OWNER}) chọn chuyển quyền cho một tài khoản \textit{ADMIN} khác và nhập mật khẩu xác nhận. Hệ thống hoán đổi vai trò và ghi nhật ký kiểm toán. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Email được mời đã là thành viên của tổ chức}\\
+& Tại bước 5: Báo lỗi ``Người dùng đã tồn tại trong tổ chức này'', không gửi thêm lời mời.\\
+& \textbf{Exception 2: Chủ sở hữu tự xóa chính mình khỏi tổ chức}\\
+& Tại bước 7: Hệ thống ngăn chặn hành vi xóa tài khoản \textit{OWNER} duy nhất nếu chưa thực hiện chuyển giao quyền sở hữu. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 17: Quản trị gói cước và Hạn mức (Configure Subscription Plans \& Limits)}
+
+\aihubusecasefigure{17}{Quản trị gói cước và hạn mức}{usecase_uc17_plans_quota.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Quản trị gói cước và Hạn mức}
+\label{aihub:tab:uc_config_plans}\\
+\hline
+\textbf{Usecase name} & \textbf{Quản trị gói cước và Hạn mức} \\ \hline
+\textbf{Actor} & Quản trị viên nền tảng (Platform Administrator) \\ \hline
+\textbf{Description} & Thiết lập, cập nhật các gói thuê bao API (Free Sandbox, Pro Developer, Enterprise), quy định định ngạch gọi hàng tháng (\textit{monthlyQuota}) và trần tần suất yêu cầu trên phút (\textit{rateLimitRpm}). \\ \hline
+\textbf{Trigger} & Quản trị viên nền tảng mở mục ``Quản lý gói cước \& Quota'' trên trang Admin. \\ \hline
+\textbf{Precondition} & Tài khoản có quyền \textit{ADMIN} nền tảng toàn cầu. \\ \hline
+\textbf{Postcondition} & Bảng cấu hình \texttt{plans} và \texttt{plan\_limits} được cập nhật; middleware kiểm soát lưu lượng tự động áp dụng quy định mới. \\ \hline
+\textbf{Normal flow} & 
+1. Quản trị viên mở trang Quản lý gói cước.\\
+& 2. Hệ thống hiển thị danh sách các gói dịch vụ hiện hành cùng các tham số giới hạn.\\
+& 3. Quản trị viên chọn một gói cước cần điều chỉnh hoặc nhấn ``Thêm gói mới''.\\
+& 4. Cấu hình các thông số hạn ngạch:
+\begin{itemize}
+    \item Tên định danh gói (ví dụ: \texttt{pro\_developer}).
+    \item Hạn mức số yêu cầu hàng tháng (\textit{monthlyQuota}: 50.000 req/tháng).
+    \item Giới hạn tần suất trần (\textit{rateLimitRpm}: 300 req/phút).
+    \item Giá thuê bao định kỳ (VNĐ/tháng).
+    \item Danh sách các mã dịch vụ AI được phép gọi.
+\end{itemize}\\
+& 5. Quản trị viên nhấn nút ``Lưu thay đổi''.\\
+& 6. Hệ thống cập nhật bảng dữ liệu \texttt{plans} trong PostgreSQL và đồng bộ bộ nhớ đệm kiểm soát hạn mức của Gateway. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Thiết lập hạn ngạch tùy biến cho tổ chức đặc biệt (Custom Quota Override)}\\
+& Quản trị viên chỉ định trực tiếp mã tổ chức và thiết lập mức định ngạch riêng biệt (ví dụ: 5.000.000 req/tháng và 2.000 RPM) mà không làm thay đổi gói cước chung. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Nhập giá trị định ngạch hoặc tần suất âm}\\
+& Tại bước 5: Hệ thống báo lỗi dữ liệu không hợp lệ tại trường nhập liệu, ngăn chặn thao tác ghi nhận. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 18: Giám sát trạng thái toàn hệ thống (System Health Probe \& Diagnostics)}
+
+\aihubusecasefigure{18}{Giám sát trạng thái hệ thống}{usecase_uc18_system_health.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Giám sát trạng thái toàn hệ thống}
+\label{aihub:tab:uc_health_probe}\\
+\hline
+\textbf{Usecase name} & \textbf{Giám sát trạng thái toàn hệ thống} \\ \hline
+\textbf{Actor} & Quản trị viên nền tảng, Hệ thống giám sát tự động (Prometheus / Uptime Monitor) \\ \hline
+\textbf{Description} & Kiểm tra trạng thái hoạt động thực tế của tiến trình Express, tính thông suốt của kết nối cơ sở dữ liệu PostgreSQL và tính sẵn sàng của các nhà cung cấp AI bên ngoài qua endpoint \texttt{/health}. \\ \hline
+\textbf{Trigger} & Công cụ giám sát tự động gửi yêu cầu thăm dò định kỳ (mỗi 30 giây) hoặc quản trị viên mở bảng điều khiển sức khỏe hệ thống. \\ \hline
+\textbf{Precondition} & Cổng Gateway đang lắng nghe trên cổng mạng quy định. \\ \hline
+\textbf{Postcondition} & Trả về báo cáo trạng thái chi tiết, độ trễ từng phân hệ và mã HTTP 200 (nếu bình thường) hoặc 503 (nếu có sự cố nghiêm trọng). \\ \hline
+\textbf{Normal flow} & 
+1. Hệ thống tiếp nhận yêu cầu HTTP GET gửi tới endpoint \texttt{/health} (endpoint này được cấu hình miễn trừ khỏi bộ lọc giới hạn tần suất rate limit).\\
+& 2. Bộ điều khiển kích hoạt kiểm tra song song các thành phần hạ tầng:
+\begin{itemize}
+    \item Kết nối tới cơ sở dữ liệu PostgreSQL thông qua truy vấn thăm dò nhẹ (\texttt{SELECT 1}).
+    \item Thăm dò cổng kết nối tới WISPACE AI Micro-Engine (\texttt{api-ai.wispace.app}).
+    \item Kiểm tra tính khả dụng của kết nối mạng ra các API đám mây (Google Gemini, OpenAI).
+    \item Đo lường mức độ sử dụng RAM (RSS, Heap Used) và thời gian hoạt động liên tục (\textit{uptime}) của tiến trình Node.js.
+\end{itemize}\\
+& 3. Đánh giá trạng thái chung: Nếu toàn bộ các thành phần đáp ứng bình thường, thiết lập \textit{status = ``healthy''}.\\
+& 4. Tổng hợp gói dữ liệu phản hồi kèm dấu thời gian ISO và trả về mã HTTP 200 OK. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Một trong các nhà cung cấp AI bên ngoài gặp sự cố}\\
+& Tại bước 3: Nếu dịch vụ chính bị lỗi nhưng các kênh LLM dự phòng hoặc động cơ ngoại tuyến vẫn sẵn sàng, hệ thống gán \textit{status = ``degraded''} nhưng vẫn trả về HTTP 200 OK kèm cờ cảnh báo thành phần bị suy giảm. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Mất kết nối cơ sở dữ liệu PostgreSQL}\\
+& Tại bước 3: Hệ thống chuyển trạng thái sang \textit{status = ``unhealthy''} và trả về mã lỗi HTTP 503 Service Unavailable để bộ cân bằng tải tự động chuyển hướng lưu lượng mạng. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 19: Quản lý danh mục Universal Specs (Manage Universal AI Specs Catalog)}
+
+\aihubusecasefigure{19}{Quản lý danh mục Universal Specs}{usecase_uc19_universal_specs.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Quản lý danh mục Universal Specs}
+\label{aihub:tab:uc_manage_universal_specs}\\
+\hline
+\textbf{Usecase name} & \textbf{Quản lý danh mục Universal Specs} \\ \hline
+\textbf{Actor} & Quản trị viên nền tảng (Platform Administrator) \\ \hline
+\textbf{Description} & Quản lý vòng đời đặc tả các dịch vụ AI đa miền (IELTS, Pháp lý, Hóa đơn OCR, Tóm tắt Y tế), cập nhật lược đồ JSON Schema yêu cầu/phản hồi để đồng bộ tài liệu và công cụ cURL Sandbox. \\ \hline
+\textbf{Trigger} & Quản trị viên mở phân hệ ``Universal Specs Management'' trên trang quản trị. \\ \hline
+\textbf{Precondition} & Tài khoản có quyền \textit{ADMIN} nền tảng. \\ \hline
+\textbf{Postcondition} & Dữ liệu đặc tả trong \texttt{UNIVERSAL\_SPECS\_DATABASE} được làm mới; cURL Sandbox lập tức áp dụng lược đồ kiểm thử mới. \\ \hline
+\textbf{Normal flow} & 
+1. Quản trị viên mở danh mục đặc tả dịch vụ Universal Specs.\\
+& 2. Hệ thống hiển thị danh sách 5 dịch vụ AI đã đăng ký:
+\begin{itemize}
+    \item \texttt{ielts\_micro\_exercise}: IELTS Writing Micro-Exercise Generator.
+    \item \texttt{ielts\_essay\_scoring}: Automated Essay Band Scoring.
+    \item \texttt{legal\_contract\_risk\_analyzer}: Contract Risk \& Redlining.
+    \item \texttt{fintech\_invoice\_ocr\_audit}: Invoice OCR \& Fraud Audit.
+    \item \texttt{healthcare\_medical\_summarizer}: Clinical Encounter Summarizer.
+\end{itemize}\\
+& 3. Quản trị viên chọn một dịch vụ cần bảo trì và xem thông số kỹ thuật.\\
+& 4. Chỉnh sửa tài liệu mô tả, endpoint tiếp nhận, tham số bắt buộc và cấu trúc \textit{responseSchemaJson}.\\
+& 5. Quản trị viên nhấn nút ``Xác thực \& Xuất bản (Publish Spec)''.\\
+& 6. Hệ thống thực hiện kiểm định cú pháp JSON Schema draft-07, lưu trữ phiên bản mới và cập nhật cổng tài liệu mở cho lập trình viên. \\ \hline
+\textbf{Alternative flow} & 
+\textbf{Alternative 1: Tạm ngưng cung cấp dịch vụ trên Sandbox}\\
+& Quản trị viên chuyển trạng thái dịch vụ sang \textit{Deprecated} hoặc \textit{Inactive}; hệ thống ẩn dịch vụ khỏi cURL Sandbox và trả về thông báo bảo trì khi có yêu cầu gọi thử. \\ \hline
+\textbf{Exception} & 
+\textbf{Exception 1: Cấu trúc JSON Schema phản hồi bị lỗi cú pháp}\\
+& Tại bước 5: Hệ thống từ chối lưu, đánh dấu đỏ dòng lỗi cú pháp JSON và hiển thị cảnh báo chi tiết. \\ \hline
+\end{longtable}
+\endgroup
+
+\paragraph{Use-case 20: Kiểm toán hệ thống và truy vết giao dịch (System Audit Logs \& Tracing)}
+
+\aihubusecasefigure{20}{Kiểm toán và truy vết giao dịch}{usecase_uc20_audit_logs.jpg}
+\begingroup
+\small
+\begin{longtable}{|p{3.2cm}|p{\dimexpr\linewidth-3.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
+\caption{Đặc tả use-case Kiểm toán hệ thống và truy vết giao dịch}
+\label{aihub:tab:uc_system_audit_logs}\\
+\hline
+\textbf{Usecase name} & \textbf{Kiểm toán hệ thống và truy vết giao dịch} \\ \hline
+\textbf{Actor} & Quản trị viên nền tảng \\ \hline
+\textbf{Description} & Tra cứu tập trung nhật ký truy vết mọi giao dịch phát sinh qua Gateway nhằm phục vụ mục đích an ninh thông tin, giải quyết tranh chấp hạn mức và tính cước doanh nghiệp. \\ \hline
+\textbf{Trigger} & Quản trị viên truy cập mục ``Audit Logs'' trên cổng quản trị. \\ \hline
+\textbf{Precondition} & Người dùng có vai trò \textit{ADMIN} nền tảng. \\ \hline
+\textbf{Postcondition} & Lịch sử toàn bộ các giao dịch API và thao tác quản trị được hiển thị kèm cơ chế lọc sâu. \\ \hline
+\textbf{Normal flow} & 
+1. Quản trị viên mở trang Kiểm toán hệ thống.\\
+& 2. Hệ thống tải danh sách nhật ký giao dịch toàn cục từ bảng \texttt{usage\_logs}, hỗ trợ phân trang kích thước lớn.\\
+& 3. Quản trị viên áp dụng các bộ lọc điều tra:
+\begin{itemize}
+    \item Theo mã định danh tổ chức hoặc mã khóa \textit{clientId}.
+    \item Theo mã dịch vụ AI (\textit{serviceId}) hoặc endpoint tiếp nhận.
+    \item Theo dải mã phản hồi HTTP (như lọc các mã lỗi 401, 403, 429, 500).
+    \item Theo khoảng thời gian giao dịch hoặc địa chỉ IP nguồn.
+\end{itemize}\\
+& 4. Quản trị viên nhấn vào một giao dịch cụ thể để xem chi tiết vết thực thi (Trace Details): thời gian xử lý qua Gateway, số token tiêu thụ, nhà cung cấp LLM phục vụ yêu cầu đó.\\
+& 5. Quản trị viên có thể xuất báo cáo kiểm toán ra tệp tin CSV phục vụ lưu trữ định kỳ. \\ \hline
+\textbf{Alternative flow} & Không có. \\ \hline
+\textbf{Exception} & Không có. \\ \hline
+\end{longtable}
+\endgroup
+\newpage
+
+\subsubsection{Luồng hoạt động của hệ thống}
+\label{aihub:subsubsec:aihub_operational_flows}
+
+
+% =========================================================================
+% NHÓM 1: LẬP TRÌNH VIÊN / ĐỐI TÁC TÍCH HỢP (USE-CASE 1 - 5)
+% =========================================================================
+
+\paragraph{Luồng hoạt động: Đăng nhập và Xác thực Portal (Use-case 1)}
+
+\textbf{1. Mục đích:} Xác thực danh tính lập trình viên/người dùng portal, cấp phát phiên làm việc an toàn có phân quyền (RBAC) để truy cập giao diện Developer Portal.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Lập trình viên / Người dùng Portal.
+    \item \textit{Giao diện (Frontend):} Developer Portal SPA.
+    \item \textit{Bộ điều khiển (Inbound Controller):} \texttt{PortalAuthController}.
+    \item \textit{Tầng ứng dụng (Use Case):} \texttt{LoginUserUseCase}.
+    \item \textit{Hạ tầng dữ liệu (Repository):} \texttt{UserRepository}, Cơ sở dữ liệu PostgreSQL.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Lập trình viên nhập địa chỉ email và mật khẩu tại trang đăng nhập của Developer Portal.
+    \item Giao diện đóng gói yêu cầu và gửi HTTP POST tới endpoint \texttt{/auth/login}.
+    \item \texttt{PortalAuthController} kích hoạt bộ tiền kiểm Zod schema để kiểm tra định dạng email và độ dài mật khẩu.
+    \item Bộ điều khiển chuyển tiếp DTO thông tin đăng nhập đến \texttt{LoginUserUseCase}.
+    \item Ca sử dụng truy vấn người dùng qua \texttt{UserRepository} với email tương ứng từ cơ sở dữ liệu PostgreSQL.
+    \item Hệ thống đối chiếu mật khẩu nhập vào với mã băm \textit{passwordHash} lưu trong bảng \texttt{users} bằng hàm \texttt{bcrypt.compare()}.
+    \item Nếu khớp, hệ thống truy vấn vai trò (\textit{DEVELOPER}) và tổ chức trực thuộc của người dùng trong bảng \texttt{org\_members}.
+    \item Khởi tạo phiên làm việc bảo mật (Session ID) và thiết lập HTTP-Only Secure Cookie gửi về trình duyệt kèm thông tin tóm tắt của người dùng.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc01_portal_auth.png}
+    \caption{Sơ đồ tuần tự Use-case 1: Đăng nhập và Xác thực Portal}
+    \label{aihub:fig:seq_uc1_dev_auth}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc1.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc1.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc1.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 1: Đăng nhập và Xác thực Portal}
+    \label{aihub:fig:act_uc1_dev_auth}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Quản lý khóa API (Use-case 2)}
+
+\textbf{1. Mục đích:} Khởi tạo, hiển thị một lần duy nhất, xoay vòng và vô hiệu hóa cặp khóa chứng thực máy-với-máy (\textit{clientId} và \textit{secretKey}) của tổ chức.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Lập trình viên / Quản trị viên tổ chức.
+    \item \textit{Giao diện (Frontend):} Phân hệ Quản trị Credentials trên Portal.
+    \item \textit{Tầng bảo vệ (Middleware):} \texttt{requireAuthMiddleware}.
+    \item \textit{Bộ điều khiển:} \texttt{CredentialController}.
+    \item \textit{Tầng ứng dụng:} \texttt{CreateCredentialUseCase}, \texttt{RotateCredentialUseCase}, \texttt{RevokeCredentialUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{CredentialRepository}, Bảng \texttt{credentials}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Lập trình viên chọn chức năng ``Tạo khóa API mới'' trên giao diện Portal.
+    \item Trình duyệt gửi HTTP POST tới \texttt{/portal/credentials} kèm Session Cookie.
+    \item \texttt{requireAuthMiddleware} giải mã phiên và xác nhận quyền hạn tổ chức của lập trình viên.
+    \item \texttt{CredentialController} chuyển lệnh thực thi sang \texttt{CreateCredentialUseCase}.
+    \item Ca sử dụng sinh ngẫu nhiên chuỗi định danh \textit{clientId} (có tiền tố môi trường \texttt{aihub\_live\_}) và chuỗi khóa bí mật \textit{secretKey} độ dài 32 ký tự an toàn.
+    \item Tính toán mã băm Bcrypt của khóa bí mật: $H = \text{Bcrypt}(secretKey, \text{saltRounds}=10)$.
+    \item Gọi \texttt{CredentialRepository} ghi nhận bản ghi mới gồm \textit{clientId}, \textit{secretKeyHash}, và \textit{organizationId} vào bảng \texttt{credentials}.
+    \item Hệ thống trả về gói phản hồi chứa \textit{clientId} và chuỗi \textit{secretKey} thô.
+    \item Giao diện hiển thị cửa sổ Modal chứa khóa bí mật cho người dùng sao chép, đồng thời xóa chuỗi khóa bí mật khỏi bộ nhớ tạm của trình duyệt sau khi đóng.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc02_api_credentials.png}
+    \caption{Sơ đồ tuần tự Use-case 2: Quản lý khóa API}
+    \label{aihub:fig:seq_uc2_manage_credentials}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc2.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc2.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc2.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 2: Quản lý khóa API}
+    \label{aihub:fig:act_uc2_manage_credentials}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Kiểm thử cURL Sandbox (Use-case 3)}
+
+\textbf{1. Mục đích:} Cho phép lập trình viên kiểm thử tương tác trực tiếp các đặc tả API AI đa miền, kiểm định tính tương thích của lược đồ JSON Schema mà không làm phát sinh chi phí hạ tầng đối tác.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Lập trình viên / Đối tác tích hợp.
+    \item \textit{Giao diện (Frontend):} Interactive cURL Playground trên Portal.
+    \item \textit{Bộ điều khiển:} \texttt{SpecController}.
+    \item \textit{Tầng ứng dụng:} \texttt{RunSpecCurlUseCase}.
+    \item \textit{Thành phần thực thi:} \texttt{CreateMicroExerciseUseCase} (cho dịch vụ nội bộ) hoặc Bộ mô phỏng giả lập liên miền (Partner Simulator).
+    \item \textit{Bộ kiểm định:} \texttt{JsonSchemaValidator}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Lập trình viên lựa chọn mã đặc tả \textit{specId} (ví dụ: \texttt{ielts\_micro\_exercise} hoặc \texttt{fintech\_invoice\_ocr\_audit}) và chỉnh sửa payload JSON trên giao diện.
+    \item Lập trình viên nhấn nút ``Execute cURL''.
+    \item Giao diện gửi HTTP POST tới endpoint nội bộ \texttt{/portal/specs/run-curl} kèm thân gói tin JSON.
+    \item \texttt{SpecController} chuyển tiếp yêu cầu đến \texttt{RunSpecCurlUseCase}.
+    \item Ca sử dụng truy vấn cấu hình đặc tả từ cơ sở dữ liệu đặc tả hệ thống \texttt{UNIVERSAL\_SPECS\_DATABASE}.
+    \item Phân nhánh thực thi theo bản chất dịch vụ:
+    \begin{itemize}
+        \item Nếu \textit{specId} là dịch vụ nội bộ (\texttt{ielts\_micro\_exercise}): Điều phối gọi trực tiếp ca sử dụng thật \texttt{CreateMicroExerciseUseCase}.
+        \item Nếu \textit{specId} là dịch vụ đối tác liên miền: Kích hoạt bộ mô phỏng giả lập có trễ (300--800ms) và tổng hợp trường phản hồi động.
+    \end{itemize}
+    \item Kết quả đầu ra được đưa qua \texttt{JsonSchemaValidator} để đối soát với lược đồ \textit{responseSchemaJson}.
+    \item Ca sử dụng đóng gói thời gian thực thi (ms), lượng token tiêu thụ và kết quả hợp lệ của schema, gửi phản hồi về giao diện hiển thị cho lập trình viên.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc03_curl_sandbox.png}
+    \caption{Sơ đồ tuần tự Use-case 3: Kiểm thử cURL Sandbox}
+    \label{aihub:fig:seq_uc3_run_spec_curl}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc3.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc3.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc3.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 3: Kiểm thử cURL Sandbox}
+    \label{aihub:fig:act_uc3_run_spec_curl}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Gọi API sinh bài tập vi mô (Use-case 4)}
+
+\textbf{1. Mục đích:} Cung cấp bài tập khắc phục lỗi viết IELTS dựa trên dẫn chứng bài thi thực tế, phân loại chuẩn xác theo 28 mã lỗi và hỗ trợ cơ chế chịu lỗi đa tầng.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Hệ thống WISPACE / Ứng dụng khách.
+    \item \textit{Tầng Ingress / Middleware:} \texttt{standardRateLimiter}, \texttt{authenticateGatewayKey}.
+    \item \textit{Bộ điều khiển:} \texttt{ExerciseController}.
+    \item \textit{Tầng ứng dụng:} \texttt{CreateMicroExerciseUseCase}.
+    \item \textit{Ngân hàng dẫn chứng:} \texttt{ExternalWispaceReferenceAdapter} / \texttt{WispaceReferenceAdapter}.
+    \item \textit{Bộ điều phối AI đa tầng (LLM Provider Composite):} \texttt{ExternalAIExerciseAdapter}, \texttt{GeminiAdapter}, \texttt{OpenAIAdapter}, \texttt{DeterministicEngine}.
+    \item \textit{Kiểm toán:} \texttt{UsageLogRepository}, Bảng \texttt{usage\_logs}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Ứng dụng WISPACE gửi HTTP POST tới \texttt{/create-micro-exercise} kèm header \textit{x-client-id} và thân gói tin yêu cầu bài tập.
+    \item \texttt{standardRateLimiter} kiểm tra tần suất gọi (tối đa 300 req/phút theo IP).
+    \item \texttt{authenticateGatewayKey} xác minh tính hợp lệ của \textit{x-client-id}, đối chiếu định ngạch tháng còn lại của tổ chức.
+    \item \texttt{ExerciseController} tiếp nhận và kiểm tra cấu trúc dữ liệu bằng Zod schema.
+    \item \texttt{CreateMicroExerciseUseCase} xác thực mã lỗi \textit{error\_code} đối chiếu với bảng phân loại 28 mã lỗi IELTS.
+    \item Ca sử dụng kích hoạt kho dẫn chứng để lấy câu văn lỗi thực tế của học viên và nhận xét của giáo viên theo chủ đề tương ứng.
+    \item Ca sử dụng gửi ngữ cảnh tới bộ điều phối AI (\texttt{CompositeLLMAdapter}):
+    \begin{itemize}
+        \item Hệ thống ưu tiên gọi sang \texttt{ExternalAIExerciseAdapter} tại \texttt{api-ai.wispace.app}.
+        \item Nếu gặp lỗi mạng hoặc quá thời gian chờ, tự động kích hoạt kênh dự phòng 1: \texttt{GeminiAdapter} (Google Gemini 1.5).
+        \item Nếu Gemini lỗi hoặc quá tải quota, kích hoạt kênh dự phòng 2: \texttt{OpenAIAdapter} (GPT-4o).
+        \item Nếu toàn bộ mạng ngoài gặp sự cố, kích hoạt \texttt{DeterministicEngine} để tự động sinh câu hỏi chuẩn cú pháp ngoại tuyến.
+    \end{itemize}
+    \item Dữ liệu sinh ra được chuẩn hóa thành thực thể \textit{GeneratedExerciseResponse}.
+    \item Ghi nhận giao dịch vào bảng \texttt{usage\_logs} (thời lượng xử lý, số token tiêu thụ, mã trạng thái).
+    \item Cổng Gateway trả về mã HTTP 200 OK kèm nội dung bài tập và metadata vận hành cho ứng dụng WISPACE.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc04_create_micro_exercise.png}
+    \caption{Sơ đồ tuần tự Use-case 4: Gọi API sinh bài tập vi mô}
+    \label{aihub:fig:seq_uc4_create_micro_exercise}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc4.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc4.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc4.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 4: Gọi API sinh bài tập vi mô}
+    \label{aihub:fig:act_uc4_create_micro_exercise}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Tra cứu hạn mức và Nhật ký sử dụng (Use-case 5)}
+
+\textbf{1. Mục đích:} Cung cấp bức tranh tổng thể về định ngạch tiêu thụ hàng tháng, tỷ lệ lỗi và nhật ký kiểm toán giao dịch theo thời gian thực cho lập trình viên.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Lập trình viên / Quản trị viên tổ chức.
+    \item \textit{Giao diện (Frontend):} Trang Thống kê \& Nhật ký trên Portal.
+    \item \textit{Bộ điều khiển:} \texttt{PortalAnalyticsController}.
+    \item \textit{Tầng ứng dụng:} \texttt{GetUsageStatsUseCase}, \texttt{QueryUsageLogsUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{UsageLogRepository}, \texttt{PlanRepository}, PostgreSQL.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Người dùng mở trang Thống kê trên Developer Portal.
+    \item Trình duyệt gửi đồng thời hai yêu cầu HTTP GET tới \texttt{/portal/stats} và \texttt{/portal/logs} kèm Session Cookie.
+    \item Bộ điều khiển xác thực phiên người dùng và lấy định danh \textit{organizationId}.
+    \item \texttt{GetUsageStatsUseCase} truy vấn hạn ngạch của tổ chức từ bảng \texttt{plans} và đếm tổng số yêu cầu đã gọi trong chu kỳ tháng hiện tại từ bảng \texttt{usage\_logs}.
+    \item \texttt{QueryUsageLogsUseCase} thực thi truy vấn phân trang danh sách các bản ghi nhật ký giao dịch gần nhất kèm thông số: mã trạng thái, độ trễ, số token.
+    \item Dữ liệu được tính toán và gom nhóm thành chuỗi dữ liệu thời gian (Time-series data).
+    \item Hệ thống gửi gói dữ liệu JSON về trình duyệt.
+    \item Giao diện vẽ biểu đồ trực quan hóa lưu lượng gọi theo ngày, biểu đồ độ trễ trung bình và bảng nhật ký chi tiết.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc05_quota_usage_logs.png}
+    \caption{Sơ đồ tuần tự Use-case 5: Tra cứu hạn mức và Nhật ký sử dụng}
+    \label{aihub:fig:seq_uc5_view_usage_logs}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc5.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc5.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc5.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 5: Tra cứu hạn mức và Nhật ký sử dụng}
+    \label{aihub:fig:act_uc5_view_usage_logs}
+\end{figure}
+
+% =========================================================================
+% NHÓM 2: CHUYÊN VIÊN HỌC THUẬT (USE-CASE 6 - 11)
+% =========================================================================
+
+\newpage
+\paragraph{Luồng hoạt động: Truy vấn ngân hàng lỗi thực tế (Use-case 6)}
+
+\textbf{1. Mục đích:} Trích xuất các đoạn trích dẫn lỗi viết và nhận xét của giáo viên từ hệ thống WISPACE hoặc cơ sở dữ liệu cục bộ để làm dẫn chứng nền tảng cho việc sinh bài tập học thuật.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Chuyên viên học thuật.
+    \item \textit{Giao diện (Frontend):} Academic Lab Workbench UI.
+    \item \textit{Bộ điều khiển:} \texttt{AcademicReferenceController}.
+    \item \textit{Tầng ứng dụng:} \texttt{QueryEssayReferencesUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{ExternalWispaceReferenceAdapter}, \texttt{WispaceReferenceAdapter} (DB), Bảng \texttt{wispace\_essay\_references}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Chuyên viên học thuật thiết lập bộ lọc: chọn Task (Task 1 hoặc Task 2), tiêu chí (TR, CC, LR, GRA), mã lỗi và chủ đề trên Workbench.
+    \item Chuyên viên nhấn ``Tìm kiếm dẫn chứng''.
+    \item Giao diện gửi HTTP POST tới endpoint \texttt{/portal/academic/references/query} kèm tham số bộ lọc.
+    \item \texttt{AcademicReferenceController} xác thực quyền \textit{ACADEMIC\_SPECIALIST} của phiên làm việc.
+    \item \texttt{QueryEssayReferencesUseCase} chuyển tiếp truy vấn đến \texttt{ExternalWispaceReferenceAdapter} để gọi sang WISPACE API.
+    \item Nếu kết nối thành công, nhận dữ liệu gồm: đề bài, câu văn mắc lỗi của học sinh, giải thích và link ảnh (Task 1).
+    \item Nếu kết nối ngoài thất bại, ca sử dụng tự động chuyển sang \texttt{WispaceReferenceAdapter} để truy vấn bảng cơ sở dữ liệu cục bộ \texttt{wispace\_essay\_references}.
+    \item Ca sử dụng chuẩn hóa danh sách thực thể dẫn chứng và trả về phản hồi mã HTTP 200 OK.
+    \item Giao diện hiển thị danh sách các trích dẫn lỗi để chuyên viên lựa chọn đưa vào ngữ cảnh sinh bài tập.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc06_essay_references.png}
+    \caption{Sơ đồ tuần tự Use-case 6: Truy vấn ngân hàng lỗi thực tế}
+    \label{aihub:fig:seq_uc6_query_references}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc6.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc6.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc6.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 6: Truy vấn ngân hàng lỗi thực tế}
+    \label{aihub:fig:act_uc6_query_references}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Khởi tạo mẫu bài tập học thuật (Use-case 7)}
+
+\textbf{1. Mục đích:} Kích hoạt mô hình AI sinh cấu trúc bài tập thử nghiệm dựa trên chỉ dẫn sư phạm chuyên sâu, bảo toàn nguyên vẹn bản sinh thô (\textit{rawAiOutput}) phục vụ công tác kiểm định.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Chuyên viên học thuật.
+    \item \textit{Giao diện (Frontend):} Màn hình khởi tạo mẫu trên Academic Lab.
+    \item \textit{Bộ điều khiển:} \texttt{AcademicSampleController}.
+    \item \textit{Tầng ứng dụng:} \texttt{GenerateAcademicSampleUseCase}.
+    \item \textit{Hạ tầng AI:} \texttt{CompositeLLMAdapter}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, Bảng \texttt{academic\_samples}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Chuyên viên nhập cấu hình bài tập: dạng câu hỏi, mã lỗi, dẫn chứng kèm chỉ dẫn chi tiết (\textit{detailedInstruction}).
+    \item Nhấn nút ``Sinh mẫu thử nghiệm'' trên giao diện Workbench.
+    \item Trình duyệt gửi HTTP POST tới endpoint \texttt{/portal/academic/samples/generate}.
+    \item \texttt{AcademicSampleController} kiểm tra hợp lệ DTO và gọi \texttt{GenerateAcademicSampleUseCase}.
+    \item Ca sử dụng tổng hợp Prompt ngữ cảnh hoàn chỉnh và gửi tới \texttt{CompositeLLMAdapter}.
+    \item Mô hình AI suy luận và trả về cấu trúc bài tập JSON.
+    \item Ca sử dụng tạo thực thể miền \texttt{AcademicSample}, gán trạng thái ban đầu là \texttt{DRAFT}, lưu nội dung AI sinh ra vào trường \textit{rawAiOutput} (kiểu JSONB).
+    \item \texttt{AcademicSampleRepository} ghi bản ghi vào bảng \texttt{academic\_samples} và sinh định danh mẫu mới.
+    \item Trả về mã phản hồi HTTP 200 OK; giao diện tải nội dung thô lên màn hình đối chiếu hiệu đính.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc07_generate_academic_sample.png}
+    \caption{Sơ đồ tuần tự Use-case 7: Khởi tạo mẫu bài tập học thuật}
+    \label{aihub:fig:seq_uc7_academic_generate}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc7.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc7.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc7.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 7: Khởi tạo mẫu bài tập học thuật}
+    \label{aihub:fig:act_uc7_academic_generate}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Kiểm định, hiệu đính và chấm điểm bài tập (Use-case 8)}
+
+\textbf{1. Mục đích:} Cho phép chuyên viên học thuật kiểm tra độ chính xác sư phạm, trực tiếp chỉnh sửa văn bản câu hỏi/đáp án/giải thích để tạo bản hiệu đính (\textit{finalOutput}) và gán điểm chất lượng từ 1 đến 10.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Chuyên viên học thuật.
+    \item \textit{Giao diện (Frontend):} Khung soạn thảo đối chiếu Academic Workbench.
+    \item \textit{Bộ điều khiển:} \texttt{AcademicSampleController}.
+    \item \textit{Tầng ứng dụng:} \texttt{UpdateSampleDraftUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, Bảng \texttt{academic\_samples}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Chuyên viên xem nội dung bản sinh thô tại khung \textit{rawAiOutput} trên giao diện.
+    \item Chuyên viên chỉnh sửa câu chữ, điều chỉnh các phương án nhiễu hoặc viết lại lời giải thích tại khung soạn thảo \textit{finalOutput}.
+    \item Chuyên viên nhập điểm số chất lượng (thang điểm 1--10) phản ánh độ chính xác và tính sư phạm của bản sinh.
+    \item Nhập định danh người thẩm định (\textit{reviewedBy}).
+    \item Cơ chế Auto-save của trình duyệt gửi HTTP PATCH tới \texttt{/portal/academic/samples/:id/draft}.
+    \item \texttt{AcademicSampleController} tiếp nhận và chuyển tiếp DTO tới \texttt{UpdateSampleDraftUseCase}.
+    \item Ca sử dụng xác nhận mẫu đang ở trạng thái hợp lệ và cập nhật nội dung hiệu đính tạm thời vào trường \textit{finalOutput} trong bảng \texttt{academic\_samples}.
+    \item Hệ thống phản hồi xác nhận lưu nháp thành công.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc08_review_score_sample.png}
+    \caption{Sơ đồ tuần tự Use-case 8: Kiểm định, hiệu đính và chấm điểm bài tập}
+    \label{aihub:fig:seq_uc8_academic_review_score}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc8.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc8.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc8.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 8: Kiểm định, hiệu đính và chấm điểm bài tập}
+    \label{aihub:fig:act_uc8_academic_review_score}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Chấp thuận mẫu và xoay vòng lỗi (Use-case 9)}
+
+\textbf{1. Mục đích:} Xác nhận phê duyệt mẫu bài tập đạt chuẩn, lưu trữ đồng thời cặp dữ liệu chuẩn vàng (\textit{rawAiOutput} và \textit{finalOutput}) và tự động tính toán mã lỗi/chủ đề xoay vòng tiếp theo.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Chuyên viên học thuật.
+    \item \textit{Giao diện (Frontend):} Academic Lab Workbench UI.
+    \item \textit{Bộ điều khiển:} \texttt{AcademicSampleController}.
+    \item \textit{Tầng ứng dụng:} \texttt{AcceptSampleUseCase}.
+    \item \textit{Thành phần thuật toán:} \texttt{PedagogicalErrorRotationService}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, PostgreSQL.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Chuyên viên hoàn tất thẩm định và nhấn nút ``Chấp thuận mẫu (Accept)''.
+    \item Giao diện gửi HTTP POST tới endpoint \texttt{/portal/academic/samples/accept} kèm thông tin: \textit{sampleId}, \textit{finalOutput}, \textit{score}, \textit{reviewedBy} và cờ \textit{isFavorite}.
+    \item \texttt{AcademicSampleController} chuyển tiếp yêu cầu đến \texttt{AcceptSampleUseCase}.
+    \item Ca sử dụng cập nhật trạng thái bản ghi trong bảng \texttt{academic\_samples}: gán \textit{status = ``ACCEPTED''}, lưu \textit{finalOutput}, điểm số và dấu thời gian thẩm định.
+    \item Ca sử dụng kích hoạt \texttt{PedagogicalErrorRotationService} để phân tích độ bao phủ kiểm định trên 28 mã lỗi và các chủ đề.
+    \item Dịch vụ xoay vòng tính toán và trả về cấu hình bài tập tiếp theo (mã lỗi có số lượng mẫu đạt chuẩn ít nhất).
+    \item Hệ thống trả về gói phản hồi chứa thông báo chấp thuận thành công và thông số gợi ý cho phiên thẩm định tiếp theo.
+    \item Giao diện tự động làm mới form khởi tạo với các thông số cấu hình vừa được gợi ý.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc09_accept_sample.png}
+    \caption{Sơ đồ tuần tự Use-case 9: Chấp thuận mẫu và xoay vòng lỗi}
+    \label{aihub:fig:seq_uc9_academic_accept}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc9.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc9.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc9.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 9: Chấp thuận mẫu và xoay vòng lỗi}
+    \label{aihub:fig:act_uc9_academic_accept}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Từ chối mẫu và thu thập dữ liệu tinh chỉnh (Use-case 10)}
+
+\textbf{1. Mục đích:} Bác bỏ mẫu bài tập AI sinh ra không đạt chuẩn, ghi nhận phản hồi định lượng và lý do từ chối để phục vụ thu thập dữ liệu huấn luyện mẫu âm (Negative Pairs cho DPO/RLHF).
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Chuyên viên học thuật.
+    \item \textit{Giao diện (Frontend):} Hộp thoại từ chối mẫu trên Academic Workbench.
+    \item \textit{Bộ điều khiển:} \texttt{AcademicSampleController}.
+    \item \textit{Tầng ứng dụng:} \texttt{RejectSampleUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, Bảng \texttt{academic\_samples}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Chuyên viên phát hiện mẫu AI sinh ra lỗi nghiêm trọng và nhấn nút ``Từ chối mẫu (Reject)''.
+    \item Hộp thoại yêu cầu nhập lý do xuất hiện; chuyên viên nhập nhận xét sư phạm chi tiết vào ô \textit{rejectReason} và nhấn xác nhận.
+    \item Trình duyệt gửi HTTP POST tới endpoint \texttt{/portal/academic/samples/reject}.
+    \item \texttt{AcademicSampleController} kiểm tra độ dài chuỗi lý do ($\ge 10$ ký tự) và chuyển tiếp tới \texttt{RejectSampleUseCase}.
+    \item Ca sử dụng cập nhật trạng thái bản ghi trong bảng \texttt{academic\_samples}: gán \textit{status = ``REJECTED''}, lưu \textit{rejectReason} và thời điểm từ chối.
+    \item Hệ thống gắn nhãn mẫu thuộc tập dữ liệu mẫu âm phục vụ Kỹ sư AI phân tích.
+    \item Hệ thống trả về phản hồi xác nhận và đưa ra tùy chọn cho phép chuyên viên kích hoạt tạo lại mẫu mới với ngữ cảnh sửa lỗi.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc10_reject_sample.png}
+    \caption{Sơ đồ tuần tự Use-case 10: Từ chối mẫu và thu thập dữ liệu tinh chỉnh}
+    \label{aihub:fig:seq_uc10_academic_reject}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc10.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc10.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc10.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 10: Từ chối mẫu và thu thập dữ liệu tinh chỉnh}
+    \label{aihub:fig:act_uc10_academic_reject}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Quản lý kho dữ liệu mẫu học thuật (Use-case 11)}
+
+\textbf{1. Mục đích:} Quản lý danh mục kho lưu trữ, lọc phân trang và kiểm tra trạng thái toàn bộ các mẫu bài tập đã sinh và thẩm định.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Chuyên viên học thuật, Kỹ sư AI.
+    \item \textit{Giao diện (Frontend):} Trang Inventory trên Academic Lab.
+    \item \textit{Bộ điều khiển:} \texttt{AcademicSampleController}.
+    \item \textit{Tầng ứng dụng:} \texttt{ListAcademicSamplesUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, Chỉ mục tối ưu PostgreSQL.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Người dùng mở tab ``Kho mẫu bài tập'' trên giao diện Academic Lab.
+    \item Người dùng áp dụng các bộ lọc: trạng thái (\texttt{ACCEPTED}, \texttt{REJECTED}, \texttt{DRAFT}), tiêu chuẩn Task, mã lỗi, hoặc điểm số.
+    \item Giao diện gửi HTTP GET tới \texttt{/portal/academic/samples} kèm các tham số truy vấn phân trang.
+    \item \texttt{AcademicSampleController} tiếp nhận và chuyển lệnh cho \texttt{ListAcademicSamplesUseCase}.
+    \item Ca sử dụng xây dựng mệnh đề truy vấn có điều kiện, gọi \texttt{AcademicSampleRepository} thực thi qua chỉ mục \textit{idx\_academic\_samples\_status\_created}.
+    \item PostgreSQL trả về danh sách các bản ghi và tổng số trang.
+    \item Hệ thống gửi dữ liệu JSON về trình duyệt; giao diện hiển thị danh sách dạng bảng kèm thẻ trạng thái và điểm thẩm định.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc11_academic_inventory.png}
+    \caption{Sơ đồ tuần tự Use-case 11: Quản lý kho dữ liệu mẫu học thuật}
+    \label{aihub:fig:seq_uc11_academic_inventory}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc11.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc11.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc11.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 11: Quản lý kho dữ liệu mẫu học thuật}
+    \label{aihub:fig:act_uc11_academic_inventory}
+\end{figure}
+
+% =========================================================================
+% NHÓM 3: KỸ SƯ AI (USE-CASE 12 - 15)
+% =========================================================================
+
+\newpage
+\paragraph{Luồng hoạt động: Cấu hình mẫu Prompt (Use-case 12)}
+
+\textbf{1. Mục đích:} Quản lý các mẫu System Prompt, các biến nội suy ngữ cảnh và lược đồ cấu trúc JSON đầu ra cho từng loại mã lỗi và câu hỏi bài tập.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Kỹ sư AI.
+    \item \textit{Giao diện (Frontend):} Prompt Management UI trên trang điều hành.
+    \item \textit{Bộ điều khiển:} \texttt{PromptConfigController}.
+    \item \textit{Tầng ứng dụng:} \texttt{UpdatePromptTemplateUseCase}.
+    \item \textit{Bộ kiểm tra:} \texttt{JsonSchemaValidator}, Bộ nhớ đệm Prompt Runtime.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Kỹ sư AI chọn nhóm mã lỗi cần cấu hình trên giao diện quản trị prompt.
+    \item Kỹ sư điều chỉnh nội dung hướng dẫn hệ thống (System Prompt), thiết lập vị trí các biến nội suy (\texttt{\{\{error\_code\}\}}, \texttt{\{\{student\_quote\}\}}) và cấu trúc JSON Schema.
+    \item Nhấn nút ``Kiểm tra \& Lưu cấu hình''.
+    \item Giao diện gửi HTTP PUT tới \texttt{/portal/admin/prompts/:id}.
+    \item \texttt{PromptConfigController} chuyển tiếp yêu cầu tới \texttt{UpdatePromptTemplateUseCase}.
+    \item Ca sử dụng gọi \texttt{JsonSchemaValidator} để biên dịch và kiểm tra tính hợp lệ của schema đầu ra.
+    \item Nếu hợp lệ, lưu trữ bản ghi cấu hình phiên bản mới vào cơ sở dữ liệu và xóa bộ nhớ đệm cũ để cập nhật tức thì vào runtime.
+    \item Hệ thống phản hồi mã HTTP 200 OK xác nhận cấu hình mới đã được kích hoạt.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc12_prompt_templates.png}
+    \caption{Sơ đồ tuần tự Use-case 12: Cấu hình mẫu Prompt}
+    \label{aihub:fig:seq_uc12_config_prompt}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc12.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc12.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc12.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 12: Cấu hình mẫu Prompt}
+    \label{aihub:fig:act_uc12_config_prompt}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Cấu hình chuỗi mô hình dự phòng (Use-case 13)}
+
+\textbf{1. Mục đích:} Thiết lập thứ tự ưu tiên các nhà cung cấp mô hình AI, ngưỡng thời gian chờ ngắt kết nối (timeout) và số lần thử lại để duy trì tính sẵn sàng 99.9\% của Gateway.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Kỹ sư AI.
+    \item \textit{Giao diện (Frontend):} Model Routing \& Fallback UI.
+    \item \textit{Bộ điều khiển:} \texttt{ModelConfigController}.
+    \item \textit{Tầng ứng dụng:} \texttt{ConfigureFallbackChainUseCase}.
+    \item \textit{Hạ tầng Gateway:} \texttt{CompositeLLMAdapter}, Bộ nhớ đệm cấu hình Runtime.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Kỹ sư AI mở bảng điều khiển cấu hình chuỗi dự phòng và điều chỉnh thứ tự ưu tiên: Cấp 1 (WISPACE Proxy) $\rightarrow$ Cấp 2 (Google Gemini) $\rightarrow$ Cấp 3 (OpenAI GPT-4o) $\rightarrow$ Cấp 4 (Deterministic Engine).
+    \item Thiết lập các thông số thời gian chờ (ví dụ: Timeout 8.000ms cho Cấp 1).
+    \item Nhấn nút ``Cập nhật chuỗi dự phòng''.
+    \item Giao diện gửi HTTP PUT tới \texttt{/portal/admin/models/fallback-chain}.
+    \item \texttt{ModelConfigController} chuyển tiếp DTO cấu hình tới \texttt{ConfigureFallbackChainUseCase}.
+    \item Ca sử dụng kiểm tra quy tắc: đảm bảo phải luôn tồn tại ít nhất một nhà cung cấp đám mây và động cơ ngoại tuyến Deterministic Engine ở cấp cuối cùng.
+    \item Cập nhật cấu hình vào cơ sở dữ liệu và nạp lại danh sách nhà cung cấp của \texttt{CompositeLLMAdapter} trong bộ nhớ tiến trình.
+    \item Hệ thống phản hồi xác nhận cập nhật thành công.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc13_model_fallback.png}
+    \caption{Sơ đồ tuần tự Use-case 13: Cấu hình chuỗi mô hình dự phòng}
+    \label{aihub:fig:seq_uc13_config_fallback}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc13.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc13.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc13.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 13: Cấu hình chuỗi mô hình dự phòng}
+    \label{aihub:fig:act_uc13_config_fallback}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Trích xuất tập dữ liệu tinh chỉnh SFT/DPO (Use-case 14)}
+
+\textbf{1. Mục đích:} Trích xuất và đóng gói các mẫu bài tập đã thẩm định chất lượng thành tệp dữ liệu định dạng chuẩn JSONL phục vụ quá trình tinh chỉnh mô hình ngôn ngữ lớn (SFT và DPO).
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Kỹ sư AI.
+    \item \textit{Giao diện (Frontend):} Dataset Export UI.
+    \item \textit{Bộ điều khiển:} \texttt{DatasetExportController}.
+    \item \textit{Tầng ứng dụng:} \texttt{ExportCuratedDatasetUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, Dịch vụ nén tệp File Storage.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Kỹ sư AI chọn loại tập dữ liệu cần trích xuất (SFT hoặc DPO), khoảng thời gian và tiêu chí lọc điểm số ($\ge 8.0$).
+    \item Nhấn nút ``Đóng gói Dataset''.
+    \item Giao diện gửi HTTP POST tới endpoint \texttt{/portal/admin/datasets/export}.
+    \item \texttt{DatasetExportController} gọi \texttt{ExportCuratedDatasetUseCase}.
+    \item Ca sử dụng truy vấn toàn bộ các bản ghi thỏa mãn điều kiện từ bảng \texttt{academic\_samples}.
+    \item Tiến hành chuẩn hóa dữ liệu:
+    \begin{itemize}
+        \item Định dạng SFT: Ánh xạ câu lệnh Prompt và văn bản hoàn thiện của con người (\textit{finalOutput}).
+        \item Định dạng DPO: Ánh xạ bộ ba gồm Prompt đầu vào, phương án được chọn (\textit{finalOutput}) và phương án bị từ chối (\textit{rawAiOutput} hoặc mẫu \texttt{REJECTED}).
+    \end{itemize}
+    \item Xuất dữ liệu ra luồng định dạng JSONL, thực hiện nén tệp \texttt{.jsonl.gz} và lưu tạm vào kho lưu trữ nội bộ.
+    \item Ca sử dụng trả về đường dẫn tải xuống an toàn kèm số lượng mẫu hợp lệ.
+    \item Trình duyệt nhận phản hồi và tự động kích hoạt tải tệp dữ liệu về máy kỹ sư.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc14_export_datasets.png}
+    \caption{Sơ đồ tuần tự Use-case 14: Trích xuất tập dữ liệu tinh chỉnh SFT/DPO}
+    \label{aihub:fig:seq_uc14_export_datasets}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc14.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc14.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc14.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 14: Trích xuất tập dữ liệu tinh chỉnh SFT/DPO}
+    \label{aihub:fig:act_uc14_export_datasets}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Theo dõi và phân tích lỗi mô hình (Use-case 15)}
+
+\textbf{1. Mục đích:} Thống kê tỷ lệ mẫu bị từ chối, nhận diện hiện tượng suy thoái chất lượng sinh nội dung hoặc sai lệch lược đồ trên 28 mã lỗi IELTS để tối ưu hóa prompt.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Kỹ sư AI.
+    \item \textit{Giao diện (Frontend):} Model Performance Analytics Dashboard.
+    \item \textit{Bộ điều khiển:} \texttt{ModelAnalyticsController}.
+    \item \textit{Tầng ứng dụng:} \texttt{AnalyzeModelErrorsUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{AcademicSampleRepository}, PostgreSQL.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Kỹ sư AI mở trang Phân tích hiệu năng mô hình trên cổng quản trị.
+    \item Trình duyệt gửi HTTP GET tới \texttt{/portal/admin/analytics/model-errors}.
+    \item \texttt{ModelAnalyticsController} chuyển lệnh thực thi tới \texttt{AnalyzeModelErrorsUseCase}.
+    \item Ca sử dụng truy vấn bảng \texttt{academic\_samples}, tính toán tỷ lệ chấp thuận (Acceptance Rate) và tỷ lệ từ chối (Rejection Rate) theo chu kỳ.
+    \item Phân tích và nhóm các chuỗi lý do từ chối (\textit{rejectReason}) thành các danh mục lỗi chính (lỗi đa nghĩa phương án, lỗi lệch band, lỗi format JSON).
+    \item Tổng hợp ma trận phân bố lỗi trên 28 mã lỗi IELTS.
+    \item Trả về gói dữ liệu tổng hợp cho giao diện hiển thị dưới dạng biểu đồ nhiệt (Heatmap) và danh sách trường hợp lỗi điển hình.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc15_model_error_analysis.png}
+    \caption{Sơ đồ tuần tự Use-case 15: Theo dõi và phân tích lỗi mô hình}
+    \label{aihub:fig:seq_uc15_analyze_model_errors}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc15.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc15.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc15.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 15: Theo dõi và phân tích lỗi mô hình}
+    \label{aihub:fig:act_uc15_analyze_model_errors}
+\end{figure}
+
+% =========================================================================
+% NHÓM 4: QUẢN TRỊ VIÊN TỔ CHỨC & NỀN TẢNG (USE-CASE 16 - 20)
+% =========================================================================
+
+\newpage
+\paragraph{Luồng hoạt động: Quản lý thành viên tổ chức (Use-case 16)}
+
+\textbf{1. Mục đích:} Tiếp nhận, mời thành viên mới, phân bổ vai trò quản trị hoặc lập trình viên trong phạm vi tổ chức thuê bao.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Quản trị viên tổ chức.
+    \item \textit{Giao diện (Frontend):} Phân hệ Team Management trên Portal.
+    \item \textit{Bộ điều khiển:} \texttt{OrgMemberController}.
+    \item \textit{Tầng ứng dụng:} \texttt{InviteOrgMemberUseCase}, \texttt{RemoveOrgMemberUseCase}.
+    \item \textit{Dịch vụ ngoài:} Dịch vụ gửi thư điện tử (Mail Service).
+    \item \textit{Hạ tầng dữ liệu:} \texttt{OrgMemberRepository}, Bảng \texttt{org\_members}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Quản trị viên tổ chức nhập email nhân sự mới và chọn vai trò (\textit{ADMIN} hoặc \textit{MEMBER}) trên giao diện.
+    \item Nhấn nút ``Gửi lời mời''.
+    \item Giao diện gửi HTTP POST tới \texttt{/portal/org/members/invite} kèm DTO thông tin.
+    \item \texttt{OrgMemberController} xác thực quyền hạn \textit{OWNER} hoặc \textit{ADMIN} của người thực hiện.
+    \item \texttt{InviteOrgMemberUseCase} kiểm tra sự tồn tại của email trong hệ thống và đối soát xem người dùng đã thuộc tổ chức chưa.
+    \item Tạo bản ghi liên kết mới ở trạng thái chờ kích hoạt trong bảng \texttt{org\_members}.
+    \item Gọi Mail Service gửi thư điện tử chứa đường dẫn kích hoạt phiên tham gia tổ chức tới email người dùng.
+    \item Hệ thống trả về phản hồi mã HTTP 200 OK; giao diện cập nhật danh sách thành viên.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc16_organization_members.png}
+    \caption{Sơ đồ tuần tự Use-case 16: Quản lý thành viên tổ chức}
+    \label{aihub:fig:seq_uc16_manage_org_members}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc16.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc16.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc16.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 16: Quản lý thành viên tổ chức}
+    \label{aihub:fig:act_uc16_manage_org_members}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Quản trị gói cước và Hạn mức (Use-case 17)}
+
+\textbf{1. Mục đích:} Cấu hình các gói dịch vụ thuê bao API, quy định hạn ngạch yêu cầu hàng tháng và trần tần suất RPM tối đa để kiểm soát tải Gateway.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Quản trị viên nền tảng.
+    \item \textit{Giao diện (Frontend):} Plan Management UI trên Admin Portal.
+    \item \textit{Bộ điều khiển:} \texttt{AdminPlanController}.
+    \item \textit{Tầng ứng dụng:} \texttt{UpdatePlanLimitsUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{PlanRepository}, Bảng \texttt{plans}, Bộ nhớ đệm Gateway.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Quản trị viên nền tảng mở danh mục gói cước và chọn gói cần chỉnh sửa (ví dụ: gói Pro).
+    \item Nhập các thông số mới: \textit{monthlyQuota} (50.000 req/tháng), \textit{rateLimitRpm} (300 RPM) và giá cước.
+    \item Nhấn nút ``Lưu thay đổi''.
+    \item Giao diện gửi HTTP PUT tới \texttt{/portal/admin/plans/:id} kèm dữ liệu cấu hình.
+    \item \texttt{AdminPlanController} xác thực quyền quản trị hệ thống toàn cục (\textit{PLATFORM\_ADMIN}).
+    \item \texttt{UpdatePlanLimitsUseCase} kiểm tra tính hợp lệ của số liệu và cập nhật bảng \texttt{plans} cùng bảng \texttt{plan\_limits} trong cơ sở dữ liệu.
+    \item Hệ thống phát tín hiệu xóa cache để middleware kiểm soát lưu lượng của Gateway đồng bộ ngay lập tức hạn mức mới.
+    \item Trả về mã phản hồi HTTP 200 OK và cập nhật bảng danh mục gói trên màn hình quản trị.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc17_plans_quota.png}
+    \caption{Sơ đồ tuần tự Use-case 17: Quản trị gói cước và Hạn mức}
+    \label{aihub:fig:seq_uc17_config_plans}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc17.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc17.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc17.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 17: Quản trị gói cước và Hạn mức}
+    \label{aihub:fig:act_uc17_config_plans}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Giám sát trạng thái toàn hệ thống (Use-case 18)}
+
+\textbf{1. Mục đích:} Thăm dò định kỳ sức khỏe của tiến trình máy chủ Express, kiểm tra kết nối cơ sở dữ liệu PostgreSQL và tính sẵn sàng của các endpoint AI bên ngoài qua \texttt{/health}.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Quản trị viên nền tảng / Hệ thống tự động (Prometheus, Uptime Kuma).
+    \item \textit{Bộ định tuyến Gateway:} Express Gateway.
+    \item \textit{Bộ điều khiển:} \texttt{HealthController}.
+    \item \textit{Tầng ứng dụng:} \texttt{CheckSystemHealthUseCase}.
+    \item \textit{Hạ tầng kiểm tra:} Prisma Database Client, External AI Ping Service.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Công cụ giám sát gửi HTTP GET tới endpoint \texttt{/health} (endpoint được cấu hình bỏ qua bộ lọc rate limit).
+    \item \texttt{HealthController} tiếp nhận và kích hoạt ca sử dụng \texttt{CheckSystemHealthUseCase}.
+    \item Ca sử dụng thực thi kiểm tra song song ba hạng mục độc lập:
+    \begin{itemize}
+        \item Truy vấn cơ sở dữ liệu nhẹ (\texttt{SELECT 1}) kiểm tra trạng thái pool kết nối PostgreSQL.
+        \item Thăm dò cổng kết nối tới dịch vụ AI chính \texttt{api-ai.wispace.app}.
+        \item Đọc chỉ số tiêu thụ tài nguyên máy chủ: thời gian chạy liên tục (\textit{uptime}), bộ nhớ RAM Heap đã dùng.
+    \end{itemize}
+    \item Tổng hợp kết quả: Nếu tất cả đều phản hồi tốt, xác lập \textit{status = ``healthy''}; nếu dịch vụ ngoài gián đoạn, xác lập \textit{status = ``degraded''}.
+    \item Trả về mã phản hồi HTTP 200 OK kèm gói tin JSON chứa chi tiết trạng thái từng phân hệ và dấu thời gian ISO.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc18_system_health.png}
+    \caption{Sơ đồ tuần tự Use-case 18: Giám sát trạng thái toàn hệ thống}
+    \label{aihub:fig:seq_uc18_health_probe}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc18.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc18.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc18.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 18: Giám sát trạng thái toàn hệ thống}
+    \label{aihub:fig:act_uc18_health_probe}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Quản lý danh mục Universal Specs (Use-case 19)}
+
+\textbf{1. Mục đích:} Quản trị vòng đời đặc tả các dịch vụ AI đa miền, cập nhật tài liệu kỹ thuật và lược đồ JSON Schema phục vụ đồng bộ công cụ kiểm thử cURL Sandbox.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Quản trị viên nền tảng.
+    \item \textit{Giao diện (Frontend):} Universal Spec Editor trên Admin Portal.
+    \item \textit{Bộ điều khiển:} \texttt{SpecManagementController}.
+    \item \textit{Tầng ứng dụng:} \texttt{UpdateUniversalSpecUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} Cơ sở dữ liệu đặc tả \texttt{UNIVERSAL\_SPECS\_DATABASE}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Quản trị viên mở phân hệ quản lý đặc tả Universal Specs và chọn một dịch vụ AI cần cập nhật.
+    \item Chỉnh sửa tài liệu mô tả, các tham số bắt buộc và cấu trúc lược đồ \textit{responseSchemaJson}.
+    \item Nhấn nút ``Xác thực \& Xuất bản (Publish Spec)''.
+    \item Giao diện gửi HTTP PUT tới \texttt{/portal/admin/specs/:id} kèm nội dung đặc tả.
+    \item \texttt{SpecManagementController} gọi \texttt{UpdateUniversalSpecUseCase}.
+    \item Ca sử dụng kiểm định cú pháp JSON Schema draft-07 và kiểm tra tính toàn vẹn của cấu trúc đặc tả.
+    \item Ghi nhận phiên bản đặc tả mới vào cơ sở dữ liệu và đồng bộ vào danh mục dùng chung của hệ thống.
+    \item Hệ thống phản hồi xác nhận xuất bản thành công; cURL Sandbox lập tức áp dụng lược đồ kiểm thử mới.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc19_universal_specs.png}
+    \caption{Sơ đồ tuần tự Use-case 19: Quản lý danh mục Universal Specs}
+    \label{aihub:fig:seq_uc19_manage_universal_specs}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc19.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc19.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc19.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 19: Quản lý danh mục Universal Specs}
+    \label{aihub:fig:act_uc19_manage_universal_specs}
+\end{figure}
+
+\newpage
+\paragraph{Luồng hoạt động: Kiểm toán hệ thống và truy vết giao dịch (Use-case 20)}
+
+\textbf{1. Mục đích:} Tra cứu, lọc điều tra dấu vết thực thi của mọi yêu cầu qua Gateway và hỗ trợ xuất tệp tin báo cáo CSV phục vụ kiểm toán bảo mật và đối soát cước.
+
+\textbf{2. Thành phần liên quan:}
+\begin{itemize}
+    \item \textit{Tác nhân:} Quản trị viên nền tảng.
+    \item \textit{Giao diện (Frontend):} Audit Logs Explorer trên Admin Portal.
+    \item \textit{Bộ điều khiển:} \texttt{AdminAuditLogController}.
+    \item \textit{Tầng ứng dụng:} \texttt{QueryAuditLogsUseCase}, \texttt{ExportAuditLogsCsvUseCase}.
+    \item \textit{Hạ tầng dữ liệu:} \texttt{UsageLogRepository}, Bảng \texttt{usage\_logs}.
+\end{itemize}
+
+\textbf{3. Luồng tương tác chi tiết:}
+\begin{enumerate}
+    \item Quản trị viên mở trang Kiểm toán hệ thống và áp dụng các tiêu chí lọc: mã lỗi HTTP ($4xx, 5xx$), khoảng thời gian, hoặc mã định danh tổ chức.
+    \item Nhấn nút ``Tra cứu nhật ký''.
+    \item Giao diện gửi HTTP GET tới \texttt{/portal/admin/audit-logs} kèm các tham số lọc phân trang.
+    \item \texttt{AdminAuditLogController} tiếp nhận và chuyển lệnh cho \texttt{QueryAuditLogsUseCase}.
+    \item Ca sử dụng truy vấn danh sách bản ghi giao dịch bất biến từ bảng \texttt{usage\_logs} trong PostgreSQL.
+    \item Hệ thống trả về mảng dữ liệu nhật ký giao dịch kèm thông tin phân trang.
+    \item Giao diện hiển thị bảng nhật ký; khi quản trị viên chọn xuất dữ liệu, \texttt{ExportAuditLogsCsvUseCase} đóng gói toàn bộ bản ghi thành tệp CSV và gửi về cho người dùng tải xuống.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth,trim=60bp 3bp 25bp 5bp,clip]{Images/Sequence/AIHub/sequence_uc20_audit_logs.png}
+    \caption{Sơ đồ tuần tự Use-case 20: Kiểm toán hệ thống và truy vết giao dịch}
+    \label{aihub:fig:seq_uc20_system_audit_logs}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{Images/ac_uc20.png}{\includegraphics[width=0.72\textwidth]{Images/ac_uc20.png}}{\fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình: \texttt{\detokenize{Images/ac_uc20.png}}}}}
+    \caption{Sơ đồ hoạt động Use-case 20: Kiểm toán hệ thống và truy vết giao dịch}
+    \label{aihub:fig:act_uc20_system_audit_logs}
+\end{figure}
+
+\subsection{Sơ đồ luồng dữ liệu DFD}
+
+Sơ đồ luồng dữ liệu (Data Flow Diagram -- DFD) được sử dụng để mô tả cách dữ liệu đi vào hệ thống, được xử lý, lưu trữ và trả về cho các tác nhân bên ngoài. Khác với sơ đồ Use Case, DFD không tập trung vào việc mô tả tác nhân sử dụng chức năng nào, mà tập trung vào các luồng dữ liệu như từ khóa tìm kiếm, bộ lọc sản phẩm, thông tin sản phẩm, câu hỏi tư vấn, kết quả đồng bộ và danh sách sản phẩm gợi ý.
+
+Trong phạm vi đề tài, toàn bộ Frontend, Backend Spring Boot API, Python AI Service, MySQL Database và AI Index/Qdrant được xem là một hệ thống Ecommerce AI thống nhất. Do đó, Khách hàng và Quản trị viên được xem là các tác nhân ngoài của hệ thống. Python AI Service được xem là thành phần xử lý nội bộ, còn MySQL Database và AI Index/Qdrant được biểu diễn dưới dạng kho dữ liệu.
+
+\subsubsection{Các thành phần trong DFD}
+
+\begin{table}[H]
+\centering
+\caption{Danh sách tác nhân ngoài trong DFD}
+\label{tab:dfd-entities}
+\begin{tabularx}{\linewidth}{@{}p{0.12\linewidth}p{0.25\linewidth}X@{}}
+\toprule
+\textbf{Mã} & \textbf{Tác nhân ngoài} & \textbf{Mô tả} \\
+\midrule
+E1 & Khách hàng & Gửi từ khóa tìm kiếm, bộ lọc, câu hỏi tư vấn và nhận kết quả sản phẩm hoặc phản hồi từ assistant. \\
+E2 & Quản trị viên & Quản lý dữ liệu sản phẩm, gửi yêu cầu đồng bộ AI Index và kiểm thử các tính năng AI của hệ thống. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Danh sách tiến trình trong DFD Level 1}
+\label{tab:dfd-processes}
+\begin{tabularx}{\linewidth}{@{}p{0.12\linewidth}p{0.30\linewidth}X@{}}
+\toprule
+\textbf{Mã} & \textbf{Tiến trình} & \textbf{Mô tả} \\
+\midrule
+P1 & Quản lý sản phẩm & Xử lý dữ liệu sản phẩm, giá, biến thể, hình ảnh, danh mục và thuộc tính. \\
+P2 & Xử lý tìm kiếm và lọc sản phẩm & Xử lý truy vấn tìm kiếm, bộ lọc, truy xuất AI Index và đối chiếu dữ liệu sản phẩm từ MySQL. \\
+P3 & Xử lý tư vấn bằng AI Assistant & Xử lý câu hỏi hội thoại, truy xuất sản phẩm liên quan và tạo phản hồi tư vấn cho khách hàng. \\
+P4 & Đồng bộ dữ liệu AI Index & Trích xuất dữ liệu sản phẩm từ MySQL, tạo dữ liệu lập chỉ mục và cập nhật AI Index/Qdrant. \\
+P5 & Kiểm thử tính năng AI & Xử lý dữ liệu kiểm thử cho embedding, tìm kiếm AI và assistant. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Danh sách kho dữ liệu trong DFD}
+\label{tab:dfd-data-stores}
+\begin{tabularx}{\linewidth}{@{}p{0.12\linewidth}p{0.28\linewidth}X@{}}
+\toprule
+\textbf{Mã} & \textbf{Kho dữ liệu} & \textbf{Mô tả} \\
+\midrule
+D1 & MySQL Database & Lưu dữ liệu sản phẩm, giá, biến thể, hình ảnh, danh mục, thuộc tính và trạng thái đồng bộ. \\
+D2 & AI Index/Qdrant & Lưu vector text/image và payload metadata phục vụ tìm kiếm AI và gợi ý sản phẩm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{DFD Level 0}
+
+Sơ đồ ngữ cảnh, mô tả hệ thống Ecommerce AI như một tiến trình duy nhất. Ở mức này, sơ đồ thể hiện các luồng dữ liệu chính giữa hệ thống với Khách hàng và Quản trị viên.
+
+\begin{figure}[H]
+\centering
+\IfFileExists{Images/Usecase/dfd_lv0.png}{%
+    \includegraphics[width=0.95\linewidth]{Images/Usecase/dfd_lv0.png}%
+}{%
+    \fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình DFD Level 0:\\
+    \texttt{\detokenize{Images/Usecase/dfd_lv0.png}}}}%
+}
+\caption{DFD Level 0 của hệ thống Ecommerce AI}
+\label{fig:dfd-level-0}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Danh sách luồng dữ liệu DFD Level 0}
+\label{tab:dfd-level-0-flows}
+\begin{tabularx}{\linewidth}{@{}p{0.12\linewidth}p{0.22\linewidth}p{0.25\linewidth}X@{}}
+\toprule
+\textbf{Mã} & \textbf{Nguồn} & \textbf{Đích} & \textbf{Luồng dữ liệu} \\
+\midrule
+F0.1 & Khách hàng & Hệ thống Ecommerce AI & Từ khóa tìm kiếm, bộ lọc sản phẩm, ảnh tìm kiếm. \\
+F0.2 & Hệ thống Ecommerce AI & Khách hàng & Danh sách sản phẩm tìm kiếm, bộ lọc đã suy luận, cảnh báo AI. \\
+F0.3 & Khách hàng & Hệ thống Ecommerce AI & Câu hỏi tư vấn, thông tin phiên hội thoại, ảnh đính kèm. \\
+F0.4 & Hệ thống Ecommerce AI & Khách hàng & Nội dung tư vấn, danh sách sản phẩm gợi ý. \\
+F0.5 & Quản trị viên & Hệ thống Ecommerce AI & Dữ liệu sản phẩm cập nhật. \\
+F0.6 & Hệ thống Ecommerce AI & Quản trị viên & Kết quả quản lý sản phẩm. \\
+F0.7 & Quản trị viên & Hệ thống Ecommerce AI & Yêu cầu đồng bộ, mã sản phẩm đồng bộ. \\
+F0.8 & Hệ thống Ecommerce AI & Quản trị viên & Kết quả đồng bộ, danh sách sản phẩm lỗi, cảnh báo đồng bộ. \\
+F0.9 & Quản trị viên & Hệ thống Ecommerce AI & Mã sản phẩm kiểm thử, mẫu truy vấn kiểm thử. \\
+F0.10 & Hệ thống Ecommerce AI & Quản trị viên & Kết quả kiểm thử AI. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{DFD Level 1}
+
+Phân rã hệ thống Ecommerce AI thành các tiến trình xử lý dữ liệu chính. Ở mức này, dữ liệu được mô tả chi tiết hơn giữa các tác nhân ngoài, tiến trình xử lý và kho dữ liệu. Các tác nhân ngoài không truy cập trực tiếp vào kho dữ liệu, mà phải thông qua các tiến trình của hệ thống.
+
+\begin{figure}[H]
+\centering
+\IfFileExists{Images/Usecase/dfd_lv1.png}{%
+    \includegraphics[width=0.95\linewidth]{Images/Usecase/dfd_lv1.png}%
+}{%
+    \fbox{\parbox{0.85\linewidth}{\centering Chưa có tệp hình DFD Level 1:\\
+    \texttt{\detokenize{Images/Usecase/dfd_lv1.png}}}}%
+}
+\caption{DFD Level 1 của hệ thống Ecommerce AI}
+\label{fig:dfd-level-1}
+\end{figure}
+
+\begin{longtable}{@{}p{0.10\linewidth}p{0.18\linewidth}p{0.20\linewidth}p{0.42\linewidth}@{}}
+\caption{Danh sách luồng dữ liệu DFD Level 1}
+\label{tab:dfd-level-1-flows}\\
+\toprule
+\textbf{Mã} & \textbf{Nguồn} & \textbf{Đích} & \textbf{Luồng dữ liệu} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Mã} & \textbf{Nguồn} & \textbf{Đích} & \textbf{Luồng dữ liệu} \\
+\midrule
+\endhead
+
+F1.1 & Quản trị viên & P1 & Dữ liệu sản phẩm cập nhật. \\
+F1.2 & D1 & P1 & Hồ sơ sản phẩm hiện có. \\
+F1.3 & P1 & D1 & Bản ghi sản phẩm, giá, biến thể, hình ảnh, danh mục, thuộc tính. \\
+F1.4 & P1 & Quản trị viên & Kết quả quản lý sản phẩm. \\
+F1.5 & P1 & P4 & Mã sản phẩm cần cập nhật chỉ mục, mã sản phẩm cần xóa khỏi chỉ mục. \\
+F1.6 & Khách hàng & P2 & Từ khóa tìm kiếm, bộ lọc sản phẩm, ảnh tìm kiếm, giới hạn kết quả. \\
+F1.7 & P2 & D2 & Vector truy vấn, điều kiện lọc AI. \\
+F1.8 & D2 & P2 & Mã sản phẩm ứng viên, điểm tương đồng, bộ lọc đã suy luận. \\
+F1.9 & P2 & D1 & Mã sản phẩm ứng viên, điều kiện hiển thị sản phẩm. \\
+F1.10 & D1 & P2 & Thông tin thẻ sản phẩm, giá, tồn kho, hình ảnh. \\
+F1.11 & P2 & Khách hàng & Danh sách sản phẩm tìm kiếm, bộ lọc đã suy luận, cảnh báo AI. \\
+F1.12 & Khách hàng & P3 & Câu hỏi tư vấn, thông tin phiên hội thoại, ảnh đính kèm. \\
+F1.13 & P3 & D2 & Vector truy vấn hội thoại, điều kiện lọc tư vấn. \\
+F1.14 & D2 & P3 & Mã sản phẩm gợi ý, điểm phù hợp. \\
+F1.15 & P3 & D1 & Mã sản phẩm gợi ý, yêu cầu ngữ cảnh sản phẩm. \\
+F1.16 & D1 & P3 & Ngữ cảnh sản phẩm, giá, tồn kho, hình ảnh. \\
+F1.17 & P3 & Khách hàng & Nội dung tư vấn, danh sách sản phẩm gợi ý, bộ lọc đã suy luận. \\
+F1.18 & Quản trị viên & P4 & Yêu cầu đồng bộ, mã sản phẩm đồng bộ. \\
+F1.19 & P4 & D1 & Tiêu chí trích xuất sản phẩm, mốc đồng bộ hiện tại. \\
+F1.20 & D1 & P4 & Dữ liệu sản phẩm lập chỉ mục, trạng thái đồng bộ trước đó. \\
+F1.21 & P4 & D2 & Vector sản phẩm, payload chỉ mục sản phẩm. \\
+F1.22 & D2 & P4 & Kết quả ghi chỉ mục, thông tin lỗi chỉ mục. \\
+F1.23 & P4 & D1 & Mốc đồng bộ mới. \\
+F1.24 & P4 & Quản trị viên & Kết quả đồng bộ, danh sách sản phẩm lỗi, cảnh báo đồng bộ. \\
+F1.25 & Quản trị viên & P5 & Mã sản phẩm kiểm thử, mẫu truy vấn kiểm thử. \\
+F1.26 & P5 & D1 & Mã sản phẩm kiểm thử, yêu cầu dữ liệu kiểm thử. \\
+F1.27 & D1 & P5 & Dữ liệu sản phẩm kiểm thử. \\
+F1.28 & P5 & D2 & Vector kiểm thử, payload kiểm thử, điều kiện truy vấn kiểm thử. \\
+F1.29 & D2 & P5 & Kết quả chỉ mục kiểm thử, kết quả truy vấn kiểm thử. \\
+F1.30 & P5 & Quản trị viên & Kết quả kiểm thử AI, cảnh báo kiểm thử. \\
+\bottomrule
+\end{longtable}
+\subsection*{Kết chương}
+Chương này đã tập hợp các đặc tả use-case và luồng hoạt động của hai hệ thống theo nội dung nguồn. Các mô hình phân tích là cơ sở cho việc thiết kế và hiện thực hệ thống; phần DFD được giữ lại để cập nhật khi có tài liệu thay thế tương ứng.

@@ -1,0 +1,41 @@
+\section{Kết luận và hướng phát triển}
+
+\subsection{Kết luận}
+
+Đề tài đã xây dựng được hệ thống thương mại điện tử có tích hợp các chức năng tìm kiếm thông minh và trợ lý mua sắm dựa trên AI. Hệ thống được thiết kế theo hướng tách biệt giữa backend nghiệp vụ và dịch vụ AI, trong đó \verb|service-api-ecommerce| đóng vai trò backend chính, còn \verb|service-ai| phụ trách các chức năng embedding, tìm kiếm vector, xử lý ảnh và hội thoại với người dùng.
+
+Backend Spring Boot đảm nhiệm các nghiệp vụ cốt lõi như quản lý người dùng, xác thực JWT, catalog sản phẩm, giỏ hàng, đặt hàng, thanh toán COD, khuyến mãi, đánh giá, wishlist và quản trị hệ thống. Dữ liệu nghiệp vụ được lưu trữ trong MySQL và được xem là nguồn dữ liệu chính của hệ thống.
+
+Dịch vụ AI FastAPI hỗ trợ tìm kiếm sản phẩm bằng văn bản, hình ảnh, tìm kiếm kết hợp text và image, cũng như trợ lý tư vấn mua sắm. Qdrant được sử dụng để lưu trữ vector embedding, giúp hệ thống tìm kiếm theo ngữ nghĩa và độ tương đồng hình ảnh thay vì chỉ dựa vào từ khóa truyền thống.
+
+Một điểm quan trọng trong thiết kế là frontend và service AI không truy cập trực tiếp vào cơ sở dữ liệu chính. Frontend chỉ gọi Spring Boot, còn service AI chỉ nhận dữ liệu sản phẩm đã được backend chuẩn hóa. Khi AI trả về danh sách sản phẩm gợi ý, Spring Boot sẽ resolve lại từ MySQL để đảm bảo thông tin hiển thị như giá, tồn kho, ảnh và trạng thái sản phẩm luôn chính xác.
+
+Nhìn chung, hệ thống đã đáp ứng được các mục tiêu chính: xây dựng backend thương mại điện tử hoàn chỉnh, tích hợp dịch vụ AI độc lập, hỗ trợ tìm kiếm thông minh và đảm bảo kiến trúc có khả năng mở rộng.
+
+\subsection{Hạn chế}
+
+Bên cạnh các kết quả đạt được, hệ thống vẫn còn một số hạn chế:
+
+\begin{itemize}
+    \item Giao diện frontend mới dừng ở mức đơn giản, chưa hoàn thiện toàn bộ trải nghiệm người dùng.
+    \item Chất lượng tìm kiếm AI phụ thuộc vào LLM quá nhiều , LLM chưa hoàn thiện gây nên tình trạng ảo giác
+    \item Việc xử lý ảnh và tạo embedding có thể tốn tài nguyên khi số lượng sản phẩm lớn.
+    \item Assistant mới tập trung vào tư vấn và tìm kiếm sản phẩm, chưa mở rộng sâu sang các tác vụ hậu mãi hoặc chăm sóc khách hàng.
+\end{itemize}
+
+\subsection{Hướng phát triển}
+
+Trong tương lai, hệ thống có thể được phát triển thêm theo các hướng sau:
+
+\begin{itemize}
+    \item Hoàn thiện frontend React, bao gồm wishlist, review, coupon, quản trị catalog, quản trị đơn hàng và trải nghiệm AI search bằng hình ảnh.
+    \item Cải thiện thuật toán ranking trong tìm kiếm AI bằng cách kết hợp thêm hành vi người dùng, lịch sử mua hàng, lượt xem và đánh giá sản phẩm.
+    \item Tối ưu quá trình indexing bằng batch processing, queue hoặc event-driven architecture để đồng bộ sản phẩm nhanh và ổn định hơn.
+    \item Cải thiện assistant để hỗ trợ hội thoại nhiều lượt tốt hơn, ghi nhớ ngữ cảnh dài hơn và đưa ra gợi ý cá nhân hóa.
+    \item Bổ sung hệ thống recommendation dựa trên lịch sử xem, lịch sử mua và sản phẩm tương tự.
+    \item Hoàn thiện monitoring, logging, tracing và cảnh báo lỗi cho cả backend và service AI.
+    \item Tối ưu hiệu năng Qdrant, cache các truy vấn phổ biến và đánh giá chất lượng tìm kiếm bằng bộ test riêng.
+    \item Sử dụng LLM chạy local có finetune theo nhu cầu sử dụng 
+\end{itemize}
+
+Từ các hướng phát triển trên, hệ thống có thể tiếp tục được mở rộng thành một nền tảng thương mại điện tử có khả năng tìm kiếm và tư vấn thông minh, đáp ứng tốt hơn nhu cầu mua sắm cá nhân hóa của người dùng.

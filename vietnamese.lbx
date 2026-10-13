@@ -1,0 +1,34 @@
+\ProvidesFile{vietnamese.lbx}
+[\abx@lbxid]
+
+\InheritBibliographyExtras{english}
+\InheritBibliographyStrings{english}
+
+\DeclareBibliographyExtras{%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\thefield{#3}\space}%
+    \iffieldundef{#2}
+      {}
+      {tháng\space\thefield{#2}\space}%
+    \iffieldundef{#1}
+      {}
+      {\thefield{#1}}%
+  }%
+}
+
+\DeclareBibliographyStrings{%
+  inherit = {english},
+  and     = {{và}{và}},
+  url     = {{[Trực tuyến]. Có sẵn tại}{[Trực tuyến]. Có sẵn tại}},
+  urlseen = {{Truy cập}{Truy cập}},
+  page    = {{trang}{tr\adddot}},
+  pages   = {{trang}{tr\adddot}},
+  volume  = {{tập}{t\adddot}},
+  number  = {{số}{số}},
+  edition = {{ấn bản}{ấn bản}},
+  editor  = {{biên tập}{bt\adddot}},
+  editors = {{biên tập}{bt\adddot}},
+  in      = {{trong}{trong}},
+}

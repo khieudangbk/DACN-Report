@@ -1,0 +1,405 @@
+% %=========================
+% % Sections/00-Guideline.tex
+% % Hướng dẫn viết báo cáo và dùng LaTeX
+% %=========================
+
+% \clearpage
+% \phantomsection
+% \section*{Guideline -- Hướng dẫn viết báo cáo và LaTeX}
+% \addcontentsline{toc}{section}{Guideline -- Hướng dẫn viết báo cáo và LaTeX}
+
+% \begin{infobox}{Mục đích của section này}
+% Section này là tài liệu hướng dẫn nội bộ cho nhóm khi viết báo cáo. Khi nộp bản chính thức, comment dòng sau trong \filepath{main.tex}: \inlinecode{\textbackslash input\{Sections/00-Guideline\}}.
+% \end{infobox}
+
+% \subsection*{1. Quy ước chung cho báo cáo}
+
+% \begin{itemize}
+%   \item Viết nhất quán theo văn phong học thuật, tránh viết như ghi chú cá nhân.
+%   \item Từ \textbf{Chương 1 đến cuối báo cáo}, mọi nội dung được tổng hợp, trích xuất hoặc diễn giải từ tài liệu bên ngoài phải có trích dẫn ngay tại đoạn liên quan, ví dụ: \inlinecode{\textbackslash parencite\{iso25010\}} hoặc \inlinecode{\textbackslash textcite\{fielding2000\}}.
+%   \item Không để các placeholder như \todoitem{viết thêm} trong bản nộp cuối.
+%   \item Mỗi chương nên kết thúc bằng một mục \textbf{Kết chương} để tóm tắt nội dung đã trình bày và nối sang chương tiếp theo.
+%   \item Tên hình, bảng, mã nguồn phải đủ nghĩa. Không đặt caption kiểu ``Hình minh họa'' hoặc ``Bảng dữ liệu''.
+% \end{itemize}
+
+% \subsection*{2. Cách trích dẫn tài liệu}
+
+% Template dùng \textbf{biblatex + biber} theo phong cách APA/Harvard. Thêm tài liệu vào \filepath{References/refs.bib}, sau đó gọi trong nội dung.
+
+% \begin{lstlisting}[language=TeX,caption={Vi du trich dan trong LaTeX}]
+% Theo kien truc REST, tai nguyen duoc dinh danh thong qua URI va duoc thao tac bang cac phuong thuc thong nhat \parencite{fielding2000}.
+
+% \textcite{iso25010} de xuat mo hinh chat luong phan mem gom nhieu dac tinh nhu hieu nang, bao mat va kha dung.
+% \end{lstlisting}
+
+% \begin{warningbox}{Nguyên tắc citation bắt buộc}
+% Nếu một đoạn viết dựa trên paper, article, documentation, blog kỹ thuật, phần mềm/tool/hệ thống khác, hoặc số liệu benchmark, hãy trích dẫn ngay trong đoạn đó. Không gom toàn bộ citation ở cuối chương.
+% \end{warningbox}
+
+% \subsection*{3. Tạo hình ảnh}
+
+% Đặt ảnh trong thư mục \filepath{Images/}. Gọi ảnh bằng \inlinecode{\textbackslash includegraphics}. Nên dùng định dạng \filepath{.png}, \filepath{.jpg} hoặc \filepath{.pdf}.
+
+% \begin{lstlisting}[language=TeX,caption={Chen mot hinh anh}]
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.85\linewidth]{system-overview.png}
+%   \caption{Tong quan he thong de xuat}
+%   \label{fig:system-overview}
+% \end{figure}
+
+% Nhu trinh bay o \Cref{fig:system-overview}, he thong gom ba nhom thanh phan chinh.
+% \end{lstlisting}
+
+% \subsection*{4. Tạo bảng chuẩn báo cáo}
+
+% Dùng \inlinecode{booktabs}, \inlinecode{tabularx}, \inlinecode{longtable}. Không nên dùng quá nhiều đường kẻ dọc.
+
+% \begin{lstlisting}[language=TeX,caption={Bang yeu cau chuc nang}]
+% \begin{table}[H]
+% \centering
+% \caption{Danh sach yeu cau chuc nang chinh}
+% \label{tab:functional-requirements}
+% \begin{tabularx}{\linewidth}{@{}p{0.14\linewidth}X p{0.18\linewidth}@{}}
+% \toprule
+% \textbf{Ma} & \textbf{Mo ta} & \textbf{Do uu tien} \\
+% \midrule
+% FR-01 & Nguoi dung co the tim kiem san pham bang van ban. & Cao \\
+% FR-02 & Nguoi dung co the tai anh de tim san pham tuong tu. & Cao \\
+% FR-03 & He thong goi y san pham dua tren ngu canh hoi thoai. & Trung binh \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{5. Viết code listing}
+
+% Dùng \inlinecode{lstlisting}; không dùng \inlinecode{minted} để tránh lỗi shell-escape trên Overleaf. Ví dụ bên dưới là một listing JavaScript thực tế.
+
+% \begin{lstlisting}[language=JavaScript,caption={Vi du API handler},label={lst:api-handler}]
+% export async function searchProducts(query) {
+%   const response = await fetch(`/api/products?q=${query}`);
+%   return response.json();
+% }
+% \end{lstlisting}
+
+% Với command terminal, dùng style \inlinecode{terminal}:
+
+% \begin{lstlisting}[style=terminal,caption={Khoi chay he thong bang Docker Compose}]
+% docker compose up --build
+% \end{lstlisting}
+
+% \subsection*{6. Viết thuật toán hoặc giả mã}
+
+% \begin{lstlisting}[language=TeX,caption={Mau thuat toan}]
+% \begin{algorithm}[H]
+% \caption{Xep hang san pham theo truy van da phuong tien}
+% \label{alg:ranking}
+% \begin{algorithmic}[1]
+% \Require Truy van van ban $q$, anh dau vao $I$, tap san pham $P$
+% \Ensure Danh sach san pham duoc xep hang $R$
+% \State Trich xuat embedding van ban tu $q$
+% \State Trich xuat embedding hinh anh tu $I$
+% \For{moi san pham $p \in P$}
+%   \State Tinh diem tuong dong tong hop cua $p$
+% \EndFor
+% \State Sap xep san pham theo diem giam dan
+% \State \Return $R$
+% \end{algorithmic}
+% \end{algorithm}
+% \end{lstlisting}
+
+% \subsection*{7. Mẫu use case dạng bảng}
+
+% \begin{lstlisting}[language=TeX,caption={Mau mo ta use case}]
+% \begin{table}[H]
+% \centering
+% \caption{Mo ta use case UC-01: Tim kiem san pham}
+% \label{tab:uc-search-product}
+% \begin{tabularx}{\linewidth}{@{}p{0.25\linewidth}X@{}}
+% \toprule
+% \textbf{Thuoc tinh} & \textbf{Mo ta} \\
+% \midrule
+% Ma use case & UC-01 \\
+% Ten use case & Tim kiem san pham \\
+% Tac nhan & Khach hang \\
+% Tien dieu kien & Nguoi dung truy cap he thong \\
+% Luong chinh & Nguoi dung nhap truy van; he thong xu ly; he thong hien thi ket qua \\
+% Ngoai le & Truy van rong hoac dich vu tim kiem khong phan hoi \\
+% Hau dieu kien & Danh sach san pham phu hop duoc hien thi \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{8. Mẫu API contract}
+
+% \begin{lstlisting}[language=TeX,caption={Mau mo ta API}]
+% \begin{table}[H]
+% \centering
+% \caption{API tim kiem san pham}
+% \label{tab:api-search}
+% \begin{tabularx}{\linewidth}{@{}p{0.20\linewidth}X@{}}
+% \toprule
+% \textbf{Thuoc tinh} & \textbf{Gia tri} \\
+% \midrule
+% Endpoint & \inlinecode{POST /api/v1/search} \\
+% Muc dich & Tim kiem san pham bang van ban hoac anh \\
+% Request body & \inlinecode{query}, \inlinecode{image}, \inlinecode{filters} \\
+% Response & Danh sach san pham va diem xep hang \\
+% Ma loi & 400, 401, 500 \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{9. Mẫu test case}
+
+% \begin{lstlisting}[language=TeX,caption={Mau bang test case}]
+% \begin{longtable}{@{}p{0.12\linewidth}p{0.25\linewidth}p{0.24\linewidth}p{0.24\linewidth}@{}}
+% \caption{Danh sach test case cho chuc nang tim kiem}\label{tab:test-search}\\
+% \toprule
+% \textbf{Ma} & \textbf{Muc tieu} & \textbf{Du lieu vao} & \textbf{Ket qua ky vong} \\
+% \midrule
+% \endfirsthead
+% \toprule
+% \textbf{Ma} & \textbf{Muc tieu} & \textbf{Du lieu vao} & \textbf{Ket qua ky vong} \\
+% \midrule
+% \endhead
+% TC-01 & Tim kiem bang tu khoa hop le & ``ao so mi trang'' & Hien thi san pham phu hop \\
+% TC-02 & Truy van rong & Chuoi rong & Hien thi thong bao loi hop le \\
+% \bottomrule
+% \end{longtable}
+% \end{lstlisting}
+
+% \subsection*{10. Vẽ sơ đồ đơn giản bằng TikZ}
+
+% Với sơ đồ phức tạp như use case, activity, sequence hoặc database schema, nên vẽ bằng Draw.io, StarUML, PlantUML rồi export ảnh PDF/PNG. Với sơ đồ đơn giản, có thể dùng TikZ.
+
+% \begin{lstlisting}[language=TeX,caption={Mau so do kien truc don gian bang TikZ}]
+% \begin{figure}[H]
+% \centering
+% \begin{tikzpicture}[
+%   node distance=1.6cm,
+%   box/.style={draw, rounded corners, fill=HCMUTLightBlue, minimum width=3cm, minimum height=1cm, align=center},
+%   arrow/.style={-Latex, thick}
+% ]
+% \node[box] (client) {Web/Mobile Client};
+% \node[box, right=of client] (api) {Backend API};
+% \node[box, right=of api] (db) {Database};
+% \draw[arrow] (client) -- (api);
+% \draw[arrow] (api) -- (db);
+% \end{tikzpicture}
+% \caption{So do kien truc muc cao}
+% \label{fig:tikz-architecture}
+% \end{figure}
+% \end{lstlisting}
+
+% \subsection*{11. Cấu trúc viết từng chương}
+
+% \begin{description}
+%   \item[Chương 1] Trả lời vì sao làm đề tài, làm gì, phạm vi nào và đóng góp gì.
+%   \item[Chương 2] Trình bày kiến thức/công nghệ nền tảng đủ để người đọc hiểu hệ thống.
+%   \item[Chương 3] So sánh công trình liên quan, chỉ ra khoảng trống mà đề tài giải quyết.
+%   \item[Chương 4] Mô tả hệ thống đề xuất và đặc tả yêu cầu.
+%   \item[Chương 5] Phân tích nghiệp vụ, tương tác, lựa chọn công nghệ và thiết kế.
+%   \item[Chương 6] Trình bày hiện thực và kiểm thử.
+%   \item[Chương 7] Đánh giá hệ thống bằng tiêu chí, kịch bản, số liệu hoặc phân tích định tính.
+%   \item[Chương 8] Tổng kết kết quả, hạn chế và hướng phát triển.
+% \end{description}
+% \subsection*{12. Quy ước đặt tên file, label và citation key}
+
+% Để báo cáo dễ bảo trì, toàn bộ file, label và citation key nên được đặt tên nhất quán.
+
+% \begin{itemize}
+%   \item Tên file nên viết thường, dùng dấu gạch ngang, không dùng dấu cách hoặc tiếng Việt có dấu.
+%   \item Ảnh nên đặt theo nội dung, ví dụ: \filepath{system-architecture.png}, \filepath{search-flow.pdf}.
+%   \item Label hình bắt đầu bằng \inlinecode{fig:}, bảng bằng \inlinecode{tab:}, mã nguồn bằng \inlinecode{lst:}, thuật toán bằng \inlinecode{alg:}, phương trình bằng \inlinecode{eq:}.
+%   \item Citation key trong file \filepath{refs.bib} nên có dạng \inlinecode{authorYearKeyword}, ví dụ: \inlinecode{fielding2000rest}, \inlinecode{iso25010quality}.
+% \end{itemize}
+
+% \begin{lstlisting}[language=TeX,caption={Vi du dat label nhat quan}]
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.85\linewidth]{system-architecture.png}
+%   \caption{Kien truc tong quan cua he thong}
+%   \label{fig:system-architecture}
+% \end{figure}
+
+% Nhu trinh bay o \Cref{fig:system-architecture}, he thong gom ba lop chinh.
+% \end{lstlisting}
+
+% \subsection*{13. Quy ước viết caption cho hình, bảng và mã nguồn}
+
+% Caption cần mô tả rõ nội dung, không quá ngắn và không chỉ lặp lại tên hình hoặc bảng.
+
+% \begin{itemize}
+%   \item Caption nên trả lời câu hỏi: hình/bảng này thể hiện điều gì?
+%   \item Không viết caption chung chung như ``Ket qua'', ``Mo hinh'', ``Bang so lieu''.
+%   \item Với bảng kết quả, caption nên nêu rõ đối tượng đánh giá hoặc phạm vi dữ liệu.
+%   \item Với sơ đồ hệ thống, caption nên nêu mức độ biểu diễn, ví dụ: kiến trúc mức cao, luồng xử lý, mô hình triển khai.
+% \end{itemize}
+
+% \begin{warningbox}{Luu y khi viet caption}
+% Caption phải đủ nghĩa để người đọc có thể hiểu sơ bộ hình hoặc bảng mà không cần đọc toàn bộ đoạn văn trước đó.
+% \end{warningbox}
+
+% \subsection*{14. Cách viết đoạn văn học thuật}
+
+% Một đoạn văn nên có cấu trúc rõ ràng: câu chủ đề, phần giải thích, dẫn chứng hoặc phân tích, và câu kết nối.
+
+% \begin{itemize}
+%   \item Không viết mỗi ý thành một đoạn quá ngắn.
+%   \item Tránh dùng văn nói như ``rất hay'', ``khá ổn'', ``cực kỳ tốt''.
+%   \item Ưu tiên các cách diễn đạt khách quan như ``cho thấy'', ``được sử dụng nhằm'', ``có thể hỗ trợ'', ``kết quả cho thấy''.
+%   \item Khi so sánh công nghệ hoặc phương pháp, cần nêu tiêu chí so sánh rõ ràng.
+% \end{itemize}
+
+% \begin{lstlisting}[language=TeX,caption={Vi du viet lai cau theo van phong hoc thuat}]
+% % Chua tot:
+% Mo hinh nay rat tot va chay kha nhanh.
+
+% % Nen viet:
+% Mo hinh duoc lua chon do co kha nang xu ly truy van voi thoi gian phan hoi thap
+% va phu hop voi yeu cau trien khai cua he thong.
+% \end{lstlisting}
+
+% \subsection*{15. Quy ước viết danh sách yêu cầu}
+
+% Khi viết yêu cầu chức năng và phi chức năng, cần tránh mô tả mơ hồ. Mỗi yêu cầu nên có mã, mô tả, tác nhân liên quan, mức ưu tiên và tiêu chí nghiệm thu.
+
+% \begin{lstlisting}[language=TeX,caption={Mau bang yeu cau chi tiet}]
+% \begin{table}[H]
+% \centering
+% \caption{Mo ta chi tiet yeu cau chuc nang}
+% \label{tab:requirement-detail}
+% \begin{tabularx}{\linewidth}{@{}p{0.12\linewidth}X p{0.16\linewidth} p{0.18\linewidth}@{}}
+% \toprule
+% \textbf{Ma} & \textbf{Mo ta} & \textbf{Uu tien} & \textbf{Tieu chi nghiem thu} \\
+% \midrule
+% FR-01 & Nguoi dung co the tim kiem san pham bang tu khoa. & Cao
+% & He thong tra ve danh sach san pham phu hop trong thoi gian chap nhan duoc. \\
+% FR-02 & Nguoi dung co the loc ket qua theo khoang gia va danh muc. & Trung binh
+% & Ket qua hien thi dung voi bo loc da chon. \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{16. Mẫu mô tả yêu cầu phi chức năng}
+
+% Yêu cầu phi chức năng nên được viết theo hướng có thể kiểm chứng, tránh các câu chung chung như ``hệ thống phải nhanh'', ``hệ thống phải bảo mật tốt''.
+
+% \begin{lstlisting}[language=TeX,caption={Mau bang yeu cau phi chuc nang}]
+% \begin{table}[H]
+% \centering
+% \caption{Danh sach yeu cau phi chuc nang}
+% \label{tab:non-functional-requirements}
+% \begin{tabularx}{\linewidth}{@{}p{0.14\linewidth}p{0.22\linewidth}X@{}}
+% \toprule
+% \textbf{Ma} & \textbf{Loai yeu cau} & \textbf{Mo ta} \\
+% \midrule
+% NFR-01 & Hieu nang & Thoi gian phan hoi trung binh cua API tim kiem khong vuot qua nguong duoc xac dinh trong kich ban kiem thu. \\
+% NFR-02 & Bao mat & Cac API yeu cau xac thuc phai kiem tra token hop le truoc khi xu ly yeu cau. \\
+% NFR-03 & Kha dung & Giao dien can hien thi thong bao loi ro rang khi dich vu khong phan hoi. \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{17. Quy ước mô tả kiến trúc hệ thống}
+
+% Khi trình bày kiến trúc, không chỉ chèn hình mà cần giải thích vai trò của từng thành phần và luồng dữ liệu chính.
+
+% \begin{itemize}
+%   \item Mở đầu bằng mục tiêu của kiến trúc.
+%   \item Liệt kê các thành phần chính và trách nhiệm của từng thành phần.
+%   \item Mô tả luồng xử lý chính từ phía người dùng đến backend, database hoặc service liên quan.
+%   \item Nếu có lựa chọn công nghệ, cần giải thích lý do chọn.
+% \end{itemize}
+
+% \begin{lstlisting}[language=TeX,caption={Mau mo ta thanh phan kien truc}]
+% \begin{table}[H]
+% \centering
+% \caption{Vai tro cua cac thanh phan trong kien truc he thong}
+% \label{tab:architecture-components}
+% \begin{tabularx}{\linewidth}{@{}p{0.25\linewidth}X@{}}
+% \toprule
+% \textbf{Thanh phan} & \textbf{Vai tro} \\
+% \midrule
+% Frontend & Cung cap giao dien tuong tac, gui yeu cau tim kiem va hien thi ket qua cho nguoi dung. \\
+% Backend API & Xu ly logic nghiep vu, dieu phoi truy van va tra ve ket qua cho frontend. \\
+% Database & Luu tru thong tin nguoi dung, san pham va lich su tuong tac. \\
+% Recommendation Service & Tinh toan goi y san pham dua tren ngu canh truy van hoac hanh vi nguoi dung. \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{18. Quy ước trình bày kết quả thực nghiệm}
+
+% Khi trình bày kết quả, cần nêu rõ tập dữ liệu, môi trường chạy, tiêu chí đánh giá và cách diễn giải kết quả.
+
+% \begin{itemize}
+%   \item Không chỉ đưa bảng số liệu mà không phân tích.
+%   \item Cần giải thích ý nghĩa của từng metric.
+%   \item Nếu so sánh nhiều phương pháp, cần dùng cùng điều kiện đánh giá.
+%   \item Sau mỗi bảng hoặc biểu đồ kết quả, nên có đoạn nhận xét ngắn.
+% \end{itemize}
+
+% \begin{lstlisting}[language=TeX,caption={Mau bang ket qua danh gia}]
+% \begin{table}[H]
+% \centering
+% \caption{Ket qua danh gia thoi gian phan hoi cua chuc nang tim kiem}
+% \label{tab:search-response-time}
+% \begin{tabularx}{\linewidth}{@{}p{0.25\linewidth}p{0.22\linewidth}p{0.22\linewidth}X@{}}
+% \toprule
+% \textbf{Kich ban} & \textbf{So luong truy van} & \textbf{Thoi gian TB} & \textbf{Nhan xet} \\
+% \midrule
+% Tim kiem van ban & 100 & 0.45s & Dap ung muc tieu hieu nang de ra. \\
+% Tim kiem bang hinh anh & 100 & 0.82s & Cham hon do buoc trich xuat dac trung anh. \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}
+% \end{lstlisting}
+
+% \subsection*{19. Checklist truoc khi nop bao cao}
+
+% Trước khi nộp bản cuối, nhóm nên kiểm tra toàn bộ báo cáo theo checklist sau.
+
+% \begin{itemize}
+%   \item Da comment section Guideline trong \filepath{main.tex}.
+%   \item Khong con placeholder, ghi chu tam thoi hoac noi dung dang viet do.
+%   \item Tat ca hinh, bang, listing va thuat toan deu co caption va label.
+%   \item Tat ca hinh, bang, listing va thuat toan deu duoc nhac den trong noi dung bang \inlinecode{\textbackslash Cref}.
+%   \item Cac noi dung tham khao tu tai lieu ben ngoai deu co citation.
+%   \item File \filepath{refs.bib} khong co muc tai lieu thua hoac bi loi.
+%   \item Muc luc, danh muc hinh, danh muc bang hien thi dung.
+%   \item Bao cao bien dich thanh cong bang \textbf{biber} va khong con loi nghiem trong.
+%   \item Dinh dang font, canh le, heading, caption va so trang thong nhat.
+%   \item Ten file anh, file chuong va label duoc dat ro rang, khong dung ten tam thoi.
+% \end{itemize}
+
+% \subsection*{20. Loi LaTeX thuong gap va cach xu ly nhanh}
+
+% \begin{table}[H]
+% \centering
+% \caption{Mot so loi LaTeX thuong gap}
+% \label{tab:latex-common-errors}
+% \begin{tabularx}{\linewidth}{@{}p{0.28\linewidth}X X@{}}
+% \toprule
+% \textbf{Loi} & \textbf{Nguyen nhan thuong gap} & \textbf{Cach xu ly} \\
+% \midrule
+% Undefined control sequence & Dung lenh chua khai bao package hoac go sai ten lenh
+% & Kiem tra lai ten lenh va package can thiet trong preamble. \\
+% Citation undefined & Chua chay biber, sai citation key hoac thieu tai lieu trong \filepath{refs.bib}
+% & Kiem tra key va bien dich lai theo thu tu LaTeX -- Biber -- LaTeX. \\
+% File not found & Sai duong dan anh hoac ten file
+% & Kiem tra thu muc \filepath{Images/} va ten file anh. \\
+% Reference undefined & Label chua ton tai hoac chua bien dich lai du so lan
+% & Kiem tra \inlinecode{\textbackslash label} va bien dich lai. \\
+% Overfull hbox & Dong qua dai, bang qua rong hoac URL khong tu xuong dong
+% & Dung \inlinecode{tabularx}, rut gon noi dung hoac chen xuong dong hop ly. \\
+% \bottomrule
+% \end{tabularx}
+% \end{table}

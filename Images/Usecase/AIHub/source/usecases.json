@@ -1,0 +1,249 @@
+[
+  {
+    "actor": "Lập trình viên / Đối tác",
+    "extension": "",
+    "name": "Đăng nhập và xác thực Portal",
+    "condition": "",
+    "id": 1,
+    "support": "Session Service",
+    "includes": [
+      "Kiểm tra thông tin đăng nhập",
+      "Thiết lập phiên làm việc"
+    ],
+    "filename": "usecase_uc01_portal_auth.jpg"
+  },
+  {
+    "actor": "Lập trình viên / Quản trị viên tổ chức",
+    "extension": "Thu hồi khóa API",
+    "name": "Quản lý khóa API",
+    "condition": "Khi chọn vô hiệu hóa khóa",
+    "id": 2,
+    "includes": [
+      "Kiểm tra quyền và giới hạn khóa",
+      "Cấp phát và bảo vệ khóa bí mật"
+    ],
+    "filename": "usecase_uc02_api_credentials.jpg"
+  },
+  {
+    "actor": "Lập trình viên / Đối tác",
+    "extension": "",
+    "name": "Kiểm thử cURL Sandbox",
+    "condition": "",
+    "id": 3,
+    "includes": [
+      "Thực thi yêu cầu kiểm thử",
+      "Đối chiếu lược đồ phản hồi"
+    ],
+    "filename": "usecase_uc03_curl_sandbox.jpg"
+  },
+  {
+    "actor": "Ứng dụng WISPACE / Lập trình viên",
+    "extension": "Chuyển mô hình dự phòng",
+    "name": "Gọi API sinh bài tập vi mô",
+    "condition": "Khi mô hình chính thất bại",
+    "id": 4,
+    "support": "Nhà cung cấp AI",
+    "includes": [
+      "Xác thực khóa và kiểm tra hạn mức",
+      "Sinh và chuẩn hóa bài tập"
+    ],
+    "filename": "usecase_uc04_create_micro_exercise.jpg"
+  },
+  {
+    "actor": "Lập trình viên / Đối tác",
+    "extension": "",
+    "name": "Tra cứu hạn mức và nhật ký sử dụng",
+    "condition": "",
+    "id": 5,
+    "includes": [
+      "Tổng hợp mức sử dụng của tổ chức",
+      "Tra cứu nhật ký theo bộ lọc"
+    ],
+    "filename": "usecase_uc05_quota_usage_logs.jpg"
+  },
+  {
+    "actor": "Chuyên viên học thuật",
+    "extension": "Truy vấn dữ liệu cục bộ",
+    "name": "Truy vấn ngân hàng lỗi thực tế",
+    "condition": "Khi API WISPACE thất bại",
+    "id": 6,
+    "support": "WISPACE Reference API",
+    "includes": [
+      "Kiểm tra tham số truy vấn",
+      "Truy xuất dẫn chứng lỗi"
+    ],
+    "filename": "usecase_uc06_essay_references.jpg"
+  },
+  {
+    "actor": "Chuyên viên học thuật",
+    "extension": "Nhập dẫn chứng tùy biến",
+    "name": "Khởi tạo mẫu bài tập học thuật",
+    "condition": "Khi chuyên viên cung cấp dẫn chứng",
+    "id": 7,
+    "support": "Nhà cung cấp AI",
+    "includes": [
+      "Sinh nội dung theo tham số sư phạm",
+      "Lưu mẫu ở trạng thái DRAFT"
+    ],
+    "filename": "usecase_uc07_generate_academic_sample.jpg"
+  },
+  {
+    "actor": "Chuyên viên học thuật",
+    "extension": "Sao chép nguyên bản AI",
+    "name": "Kiểm định, hiệu đính và chấm điểm",
+    "condition": "Khi nội dung AI đạt yêu cầu",
+    "id": 8,
+    "includes": [
+      "Đối chiếu và hoàn thiện nội dung",
+      "Chấm điểm và lưu bản hiệu đính"
+    ],
+    "filename": "usecase_uc08_review_score_sample.jpg"
+  },
+  {
+    "actor": "Chuyên viên học thuật",
+    "extension": "Đánh dấu mẫu chuẩn mực",
+    "name": "Chấp thuận mẫu và xoay vòng lỗi",
+    "condition": "Khi chọn Favorite",
+    "id": 9,
+    "includes": [
+      "Lưu mẫu chuẩn ở trạng thái ACCEPTED",
+      "Tính mã lỗi và chủ đề kế tiếp"
+    ],
+    "filename": "usecase_uc09_accept_sample.jpg"
+  },
+  {
+    "actor": "Chuyên viên học thuật",
+    "extension": "",
+    "name": "Từ chối mẫu và thu thập dữ liệu",
+    "condition": "",
+    "id": 10,
+    "includes": [
+      "Ghi nhận lý do từ chối",
+      "Lưu mẫu ở trạng thái REJECTED"
+    ],
+    "filename": "usecase_uc10_reject_sample.jpg"
+  },
+  {
+    "actor": "Chuyên viên học thuật / Kỹ sư AI",
+    "extension": "Đánh dấu mẫu yêu thích",
+    "name": "Quản lý kho mẫu học thuật",
+    "condition": "Khi chọn biểu tượng ngôi sao",
+    "id": 11,
+    "includes": [
+      "Lọc và phân trang kho mẫu",
+      "Xem bản AI và bản hiệu đính"
+    ],
+    "filename": "usecase_uc11_academic_inventory.jpg"
+  },
+  {
+    "actor": "Kỹ sư AI",
+    "extension": "Chạy thử Prompt",
+    "name": "Cấu hình mẫu Prompt",
+    "condition": "Khi chọn Dry Run trước khi lưu",
+    "id": 12,
+    "includes": [
+      "Kiểm tra lược đồ và biến nội suy",
+      "Lưu phiên bản và đồng bộ cấu hình"
+    ],
+    "filename": "usecase_uc12_prompt_templates.jpg"
+  },
+  {
+    "actor": "Kỹ sư AI",
+    "extension": "Tạm ngắt nhà cung cấp",
+    "name": "Cấu hình chuỗi mô hình dự phòng",
+    "condition": "Khi nhà cung cấp gặp sự cố",
+    "id": 13,
+    "includes": [
+      "Thiết lập thứ tự, timeout và retry",
+      "Kiểm tra kết nối và lưu cấu hình"
+    ],
+    "filename": "usecase_uc13_model_fallback.jpg"
+  },
+  {
+    "actor": "Kỹ sư AI",
+    "extension": "",
+    "name": "Trích xuất tập dữ liệu SFT/DPO",
+    "condition": "",
+    "id": 14,
+    "includes": [
+      "Lọc mẫu đã thẩm định",
+      "Làm sạch và đóng gói JSONL"
+    ],
+    "filename": "usecase_uc14_export_datasets.jpg"
+  },
+  {
+    "actor": "Kỹ sư AI",
+    "extension": "",
+    "name": "Theo dõi và phân tích lỗi mô hình",
+    "condition": "",
+    "id": 15,
+    "includes": [
+      "Thống kê chấp thuận và từ chối",
+      "Phân tích nhóm lỗi và mẫu điển hình"
+    ],
+    "filename": "usecase_uc15_model_error_analysis.jpg"
+  },
+  {
+    "actor": "Quản trị viên tổ chức",
+    "extension": "Chuyển quyền sở hữu",
+    "name": "Quản lý thành viên tổ chức",
+    "condition": "Khi OWNER yêu cầu chuyển quyền",
+    "id": 16,
+    "support": "Dịch vụ Email",
+    "includes": [
+      "Kiểm tra quyền quản trị tổ chức",
+      "Cập nhật thành viên và vai trò"
+    ],
+    "filename": "usecase_uc16_organization_members.jpg"
+  },
+  {
+    "actor": "Quản trị viên nền tảng",
+    "extension": "Thiết lập quota riêng",
+    "name": "Quản trị gói cước và hạn mức",
+    "condition": "Khi tổ chức có hạn mức tùy biến",
+    "id": 17,
+    "includes": [
+      "Kiểm tra thông số gói và quota",
+      "Lưu gói và đồng bộ Gateway"
+    ],
+    "filename": "usecase_uc17_plans_quota.jpg"
+  },
+  {
+    "includes": [
+      "Thăm dò các thành phần hạ tầng",
+      "Tổng hợp sức khỏe và mã phản hồi"
+    ],
+    "id": 18,
+    "actor": "Quản trị viên / Công cụ giám sát",
+    "support": "Dịch vụ hạ tầng",
+    "extension": "",
+    "name": "Giám sát trạng thái hệ thống",
+    "condition": "",
+    "support_target": 0,
+    "filename": "usecase_uc18_system_health.jpg"
+  },
+  {
+    "actor": "Quản trị viên nền tảng",
+    "extension": "Tạm ngưng dịch vụ Sandbox",
+    "name": "Quản lý danh mục Universal Specs",
+    "condition": "Khi chọn Inactive hoặc Deprecated",
+    "id": 19,
+    "includes": [
+      "Kiểm định JSON Schema",
+      "Xuất bản đặc tả dịch vụ"
+    ],
+    "filename": "usecase_uc19_universal_specs.jpg"
+  },
+  {
+    "actor": "Quản trị viên nền tảng",
+    "extension": "Xuất báo cáo CSV",
+    "name": "Kiểm toán và truy vết giao dịch",
+    "condition": "Khi yêu cầu tải báo cáo",
+    "id": 20,
+    "includes": [
+      "Lọc nhật ký giao dịch",
+      "Xem chi tiết vết thực thi"
+    ],
+    "filename": "usecase_uc20_audit_logs.jpg"
+  }
+]

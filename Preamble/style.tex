@@ -1,0 +1,192 @@
+%=========================
+% Preamble/style.tex
+% Style chung: màu sắc, header/footer, caption, box, hyperlink, clever reference
+%=========================
+
+%========== Tên thành phần tiếng Việt ==========
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\listfigurename}{Danh mục hình}
+\renewcommand{\listtablename}{Danh mục bảng}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\refname}{Tài liệu tham khảo}
+\floatname{algorithm}{Thuật toán}
+\renewcommand{\algorithmicrequire}{\textbf{Đầu vào:}}
+\renewcommand{\algorithmicensure}{\textbf{Đầu ra:}}
+
+%========== Typography & paragraph ==========
+\onehalfspacing
+\setlength{\parindent}{1.2cm}
+\setlength{\parskip}{3pt}
+\setlist{itemsep=3pt, topsep=4pt}
+\renewcommand{\arraystretch}{1.18}
+
+%========== Header / footer ==========
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{40pt}
+\fancyhead[L]{%
+  \begingroup
+  \setstretch{1}
+  \normalsize
+  \renewcommand{\arraystretch}{1}
+  \begin{tabular}{@{}rl@{}}
+    \begin{picture}(25,15)(0,0)
+      \put(0,-8){%
+        \includegraphics[width=10mm,height=10mm]{Images/\LogoFile}%
+      }
+    \end{picture}
+    &
+    \begin{tabular}{@{}l@{}}
+      \textbf{Đại học Quốc gia TP. Hồ Chí Minh}\\
+      \textbf{Trường Đại học Bách Khoa - Khoa KH\&KT Máy tính}
+    \end{tabular}
+  \end{tabular}
+  \endgroup
+}
+\fancyfoot[L]{\scriptsize Báo cáo Đồ án chuyên ngành}
+\fancyfoot[R]{%
+  \if\relax\thepage\relax
+  \else
+    \scriptsize Trang~\thepage/\pageref*{LastPage}%
+  \fi
+}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+%========== Tiêu đề kiểu chương trong article ==========
+% Section vẫn đánh số 1, 2, 3 để subsection là 1.1, 1.2...
+% Nhưng heading hiển thị là "Chương 1 -- Tên chương".
+\titleformat{\section}
+  {\clearpage\Large\bfseries\color{HCMUTDarkBlue}}
+  {Chương~\thesection}{0.8em}{--\ }
+\titleformat{\subsection}
+  {\large\bfseries\color{HCMUTBlue}}
+  {\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{HCMUTDarkBlue}}
+  {\thesubsubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{0pt}{10pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
+
+%========== Mục lục ==========
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\setlength{\cftbeforesecskip}{4pt}
+
+%========== Caption ==========
+\captionsetup{
+  labelfont={bf,color=HCMUTDarkBlue},
+  textfont=it,
+  font=small,
+  justification=centering
+}
+\captionsetup[table]{position=top}
+
+%========== Link ==========
+\usepackage[unicode]{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=HCMUTDarkBlue,
+  citecolor=HCMUTDarkBlue,
+  urlcolor=HCMUTBlue,
+  filecolor=HCMUTBlue
+}
+\usepackage{bookmark}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+% Tên tham chiếu tiếng Việt cho cleveref.
+\crefname{section}{chương}{chương}
+\Crefname{section}{Chương}{Chương}
+\crefname{subsection}{mục}{mục}
+\Crefname{subsection}{Mục}{Mục}
+\crefname{subsubsection}{mục}{mục}
+\Crefname{subsubsection}{Mục}{Mục}
+\crefname{figure}{hình}{hình}
+\Crefname{figure}{Hình}{Hình}
+\crefname{table}{bảng}{bảng}
+\Crefname{table}{Bảng}{Bảng}
+\crefname{algorithm}{thuật toán}{thuật toán}
+\Crefname{algorithm}{Thuật toán}{Thuật toán}
+\crefname{lstlisting}{mã nguồn}{mã nguồn}
+\Crefname{lstlisting}{Mã nguồn}{Mã nguồn}
+
+%========== tcolorbox: box dùng trong báo cáo ==========
+\tcbset{
+  enhanced,
+  boxrule=0.6pt,
+  arc=2mm,
+  left=2mm,
+  right=2mm,
+  top=1.5mm,
+  bottom=1.5mm,
+  fonttitle=\bfseries,
+  breakable
+}
+
+\newtcolorbox{infobox}[1]{
+  title={#1},
+  colback=HCMUTLightBlue,
+  colframe=HCMUTBlue
+}
+
+\newtcolorbox{notebox}[1]{
+  title={#1},
+  colback=HCMUTLightBlue,
+  colframe=HCMUTDarkBlue,
+  coltitle=white,
+  colbacktitle=HCMUTDarkBlue
+}
+
+\newtcolorbox{warningbox}[1]{
+  title={#1},
+  colback=WarningYellow,
+  colframe=orange!70!black
+}
+
+\newtcolorbox{requirementbox}[1]{
+  title={#1},
+  colback=SuccessGreen,
+  colframe=green!45!black
+}
+
+\newtcolorbox{riskbox}[1]{
+  title={#1},
+  colback=DangerRed,
+  colframe=red!60!black
+}
+
+%========== Macro tiện ích ==========
+\newcommand{\filepath}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\inlinecode}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\term}[1]{\textbf{#1}}
+\newcommand{\todoitem}[1]{\textcolor{red!70!black}{\textbf{TODO:} #1}}
+\newcommand{\sourceplaceholder}{\textcolor{red!70!black}{[Cần trích dẫn nguồn]}}
+
+
+% Tạo heading không đánh số, không đưa vào mục lục, không hiện số trang.
+\newcommand{\frontmatterchapter}[1]{%
+  \clearpage
+  \section*{#1}
+  \thispagestyle{empty}
+}
+
+%========== Cấu hình siunitx ==========
+\sisetup{
+  detect-all,
+  group-separator={,},
+  group-minimum-digits=4
+}
+
+%feedback 
+\newcommand{\commentlines}[1]{%
+  \par\noindent
+  \begingroup
+  \color{black!35}%
+  \count0=0
+  \loop\ifnum\count0<#1
+    \noindent\rule{\textwidth}{0.4pt}\par\vspace{0.75cm}%
+    \advance\count0 by 1
+  \repeat
+  \endgroup
+}

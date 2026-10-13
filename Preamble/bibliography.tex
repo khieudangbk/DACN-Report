@@ -1,0 +1,26 @@
+%=========================
+% Preamble/bibliography.tex
+% IEEE: biblatex + biber
+%=========================
+
+\usepackage{csquotes}
+\usepackage{url}
+
+\DeclareQuoteStyle{vietnamese}
+  {\textquotedblleft}
+  {\textquotedblright}
+  {\textquoteleft}
+  {\textquoteright}
+
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=none,
+  language=vietnamese,
+  autolang=other,
+  url=true,
+  doi=true,
+  isbn=false
+]{biblatex}
+
+\addbibresource{References/refs.bib}

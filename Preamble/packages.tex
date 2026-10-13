@@ -1,0 +1,125 @@
+%=========================
+% Preamble/packages.tex
+% Bộ package nền tảng cho báo cáo đồ án Công nghệ phần mềm
+% Ưu tiên tương thích Overleaf + XeLaTeX + Unicode tiếng Việt.
+%=========================
+
+%========== Ngôn ngữ & mã hóa: XeLaTeX + Unicode tiếng Việt ==========
+\usepackage{iftex}
+\RequireXeTeX
+\XeTeXinputnormalization=1
+\usepackage{lmodern}
+\usepackage[no-math]{fontspec}
+\usepackage[vietnamese]{babel}
+\usepackage{microtype}
+\usepackage{ltablex}
+\keepXColumns
+
+%========== Màu: nạp sớm để tránh option clash ==========
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{HCMUTBlue}{HTML}{005BAA}
+\definecolor{HCMUTDarkBlue}{HTML}{003B73}
+\definecolor{HCMUTLightBlue}{HTML}{EAF4FF}
+\definecolor{SoftGray}{HTML}{F5F7FA}
+\definecolor{BorderGray}{HTML}{D9E2EC}
+\definecolor{CodeBg}{HTML}{F7F7F7}
+\definecolor{CodeKeyword}{HTML}{005BAA}
+\definecolor{CodeComment}{HTML}{5C6773}
+\definecolor{CodeString}{HTML}{A31515}
+\definecolor{SuccessGreen}{HTML}{EAF8EF}
+\definecolor{WarningYellow}{HTML}{FFF7E6}
+\definecolor{DangerRed}{HTML}{FDECEC}
+\usepackage{todonotes}
+
+%========== Bố cục trang ==========
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left=25mm,
+  right=25mm,
+  top=30mm,
+  bottom=25mm,
+  headheight=40pt
+}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+
+%========== Hình ảnh, biểu đồ, sơ đồ ==========
+\usepackage{svg}
+\usepackage{graphicx}
+\graphicspath{{Images/}}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{pdflscape}
+\usepackage{adjustbox}
+\usepackage{placeins}
+\usepackage{pdfpages}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc,matrix}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+%========== Toán, đơn vị, ký hiệu ==========
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{siunitx}
+
+%========== Bảng chuyên nghiệp ==========
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{etoolbox}
+\makeatletter
+\@ifpackagelater{longtable}{2025/12/22}{}{%
+  \patchcmd{\LT@output}{\vss}
+    {\vskip\z@\@plus1fil\@minus\normalbaselineskip}
+    {}
+    {\PackageWarning{longtable}{Could not apply compatibility fix}}%
+  \patchcmd{\LT@output}{\vss}
+    {\vskip\z@\@plus1fil\@minus\normalbaselineskip}
+    {}
+    {\PackageWarning{longtable}{Could not apply compatibility fix}}%
+}
+\makeatother
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{colortbl}
+\usepackage{threeparttable}
+\usepackage{diagbox}
+\usepackage{makecell}
+
+
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{ragged2e}
+\usepackage{seqsplit}
+
+%========== Danh sách, trích dẫn, ghi chú ==========
+\usepackage{enumitem}
+\usepackage[babel,strict=false]{csquotes}
+\usepackage[most]{tcolorbox}
+
+%========== Thuật toán / giả mã ==========
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+%========== Kế hoạch / tiến độ ==========
+\usepackage{pgfgantt}
+
+%========== Phụ lục ==========
+\usepackage[toc,page]{appendix}
+
+%========== URL ==========
+\usepackage{xurl}
+% Lưu ý: hyperref được nạp trong Preamble/style.tex sau biblatex để giảm xung đột.
+
+
+%%% bìa
+\usepackage{tikz}

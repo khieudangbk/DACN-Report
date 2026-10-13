@@ -1,0 +1,46 @@
+%=========================
+% FrontMatter/lists.tex
+% Thứ tự phần đầu theo yêu cầu báo cáo
+%=========================
+
+% Các phần trước Danh mục từ viết tắt: không hiện số trang
+\pagenumbering{gobble}
+
+
+\input{FrontMatter/Camdoan}
+\input{FrontMatter/Thankyou}
+\input{FrontMatter/summary_vi}
+
+\clearpage
+\phantomsection
+\tableofcontents
+\clearpage
+
+% Bắt đầu đánh số trang từ Danh mục từ viết tắt
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\phantomsection
+\input{FrontMatter/abbreviations}
+\addcontentsline{toc}{section}{Danh mục từ viết tắt}
+\clearpage
+
+\phantomsection
+\listoffigures
+\addcontentsline{toc}{section}{Danh mục hình}
+\clearpage
+
+\phantomsection
+\listoftables
+\addcontentsline{toc}{section}{Danh mục bảng}
+\clearpage
+
+% Bật nếu hội đồng yêu cầu danh mục mã nguồn.
+\phantomsection
+\lstlistoflistings
+\addcontentsline{toc}{section}{Danh mục mã nguồn}
+\clearpage
+
+% Nội dung chính bắt đầu lại từ trang 1
+\pagenumbering{arabic}
+\setcounter{page}{1}

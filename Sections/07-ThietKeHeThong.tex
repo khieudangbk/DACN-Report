@@ -1,0 +1,289 @@
+% Sections/07-ThietKeHeThong.tex
+% Chương 7 – Thiết kế hệ thống
+%=========================
+
+\section{Thiết kế hệ thống}
+
+Chương này trình bày thiết kế tổng thể của hệ thống thương mại điện tử tích hợp các chức năng tìm kiếm thông minh và trợ lý ảo. Mục tiêu chính của thiết kế là tách biệt rõ ràng giữa phần nghiệp vụ thương mại điện tử và phần xử lý trí tuệ nhân tạo. Trong đó, backend Spring Boot đóng vai trò trung tâm, quản lý dữ liệu nghiệp vụ và cung cấp API cho frontend. Service AI chỉ đảm nhiệm các tác vụ liên quan đến embedding, tìm kiếm vector, xử lý ảnh, hiểu truy vấn và sinh phản hồi trợ lý ảo.
+
+Cách tổ chức này giúp hệ thống dễ mở rộng, dễ bảo trì và hạn chế phụ thuộc trực tiếp vào mô hình AI. Đồng thời, dữ liệu quan trọng như giá bán, tồn kho, trạng thái sản phẩm và đơn hàng luôn được lấy từ cơ sở dữ liệu nghiệp vụ chính thay vì phụ thuộc hoàn toàn vào dữ liệu trong vector database.
+
+\subsection{Mục tiêu thiết kế}
+
+Hệ thống được thiết kế theo các mục tiêu sau:
+
+\begin{itemize}
+    \item Tách biệt phần xử lý nghiệp vụ thương mại điện tử và phần xử lý AI.
+    \item Đảm bảo frontend chỉ giao tiếp với backend Spring Boot, không gọi trực tiếp đến Service AI.
+    \item Đảm bảo dữ liệu cuối cùng trả về người dùng luôn được xác thực lại từ MySQL.
+    \item Hỗ trợ tìm kiếm sản phẩm bằng văn bản, hình ảnh và tìm kiếm kết hợp.
+    \item Hỗ trợ trợ lý ảo có khả năng hiểu truy vấn, gợi ý sản phẩm và trả lời theo ngữ cảnh.
+    \item Cho phép đồng bộ dữ liệu sản phẩm từ backend sang hệ thống vector database.
+    \item Tăng khả năng mở rộng bằng cách triển khai riêng backend nghiệp vụ và Service AI.
+    \item Có cơ chế fallback khi Service AI, Gemini hoặc YOLOv26 gặp lỗi.
+\end{itemize}
+
+\subsection{Kiến trúc tổng thể}
+
+Hệ thống gồm các thành phần chính như sau:
+
+\begin{itemize}
+    \item \textbf{Frontend React}: giao diện người dùng, cho phép khách hàng tìm kiếm sản phẩm, xem chi tiết sản phẩm, thêm vào giỏ hàng, đặt hàng và tương tác với trợ lý ảo.
+    \item \textbf{Spring Boot Backend}: đóng vai trò API chính của hệ thống, xử lý xác thực, phân quyền, catalog, giỏ hàng, đơn hàng, thanh toán, đánh giá, wishlist và quản trị hệ thống.
+    \item \textbf{AI Service}: xử lý các chức năng AI như tạo embedding, tìm kiếm vector, xử lý ảnh, hybrid search, query understanding và assistant.
+    \item \textbf{MySQL}: cơ sở dữ liệu nghiệp vụ chính, lưu trữ người dùng, sản phẩm, đơn hàng, tồn kho, thanh toán, đánh giá và các dữ liệu vận hành.
+    \item \textbf{Qdrant}: vector database dùng để lưu trữ text embedding và image embedding phục vụ tìm kiếm ngữ nghĩa.
+    \item \textbf{Gemini}: hỗ trợ hiểu câu truy vấn, rewrite query, trích xuất bộ lọc và sinh phản hồi cho trợ lý ảo.
+    \item \textbf{YOLOv26}: phát hiện vùng sản phẩm trong ảnh trước khi tạo image embedding cho chức năng tìm kiếm bằng hình ảnh.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Kien_truc/kien_truc_tong_quat.png}
+    \caption{Kiến trúc tổng thể hệ thống}
+    \label{fig:system-architecture}
+\end{figure}
+
+Trong kiến trúc này, frontend chỉ gọi API của Spring Boot Backend. Khi người dùng thực hiện các chức năng AI như tìm kiếm thông minh hoặc chat với trợ lý ảo, Spring Boot sẽ gọi nội bộ sang AI Service. Sau khi nhận danh sách sản phẩm gợi ý từ AI Service, Spring Boot tiếp tục truy vấn MySQL để lấy thông tin sản phẩm mới nhất trước khi trả về frontend.
+
+\subsection{Nguyên tắc phân chia trách nhiệm}
+
+Hệ thống áp dụng nguyên tắc phân chia trách nhiệm rõ ràng giữa backend nghiệp vụ và Service AI. Spring Boot Backend là nguồn dữ liệu chính và có quyền quyết định dữ liệu cuối cùng trả về người dùng. AI Service chỉ đóng vai trò hỗ trợ tìm kiếm, phân tích và đề xuất.
+
+Spring Boot Backend chịu trách nhiệm xử lý các nghiệp vụ chính như quản lý người dùng, đăng nhập, phân quyền, quản lý sản phẩm, danh mục, biến thể, giá bán, hình ảnh, giỏ hàng, đơn hàng, thanh toán, coupon, khuyến mãi, đánh giá, wishlist và trang quản trị. Ngoài ra, Spring Boot còn chịu trách nhiệm đồng bộ dữ liệu sản phẩm sang Service AI và resolve lại kết quả tìm kiếm AI thành dữ liệu sản phẩm thật từ MySQL.
+
+AI Service chịu trách nhiệm xử lý các tác vụ AI như tạo text embedding, image embedding, phát hiện và crop sản phẩm bằng YOLOv26, tìm kiếm vector trên Qdrant, kết hợp điểm số tìm kiếm, hiểu truy vấn bằng Gemini, rewrite query, trích xuất bộ lọc và xử lý workflow của assistant. Service AI không trực tiếp đọc hoặc ghi dữ liệu vào MySQL nhằm tránh sai lệch so với dữ liệu nghiệp vụ chính.
+
+\subsection{Thiết kế Backend }
+
+Backend Spring Boot được tổ chức theo kiến trúc nhiều lớp nhằm tách biệt rõ ràng giữa tầng giao tiếp API, tầng xử lý nghiệp vụ và tầng truy cập dữ liệu.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{Images/Chapter7/layer.drawio.png}
+    \caption{Kiến trúc phân lớp Backend }
+    \label{fig:backend-layers}
+\end{figure}
+
+Trong đó:
+
+\begin{itemize}
+    \item \textbf{Controller}: tiếp nhận HTTP request từ frontend, kiểm tra dữ liệu đầu vào và gọi đến tầng service.
+    \item \textbf{Service}: chứa logic nghiệp vụ chính của hệ thống như xử lý đơn hàng, thanh toán, giỏ hàng, đồng bộ AI và resolve kết quả AI.
+    \item \textbf{Repository}: sử dụng Spring Data JPA để truy vấn và thao tác với MySQL.
+    \item \textbf{Entity}: ánh xạ với các bảng trong cơ sở dữ liệu.
+    \item \textbf{DTO}: dùng để truyền dữ liệu giữa các tầng và trả về API response, tránh lộ trực tiếp entity nội bộ.
+    \item \textbf{Mapper}: chuyển đổi dữ liệu giữa Entity và DTO.
+\end{itemize}
+
+
+\subsection{Thiết kế cơ sở dữ liệu nghiệp vụ}
+
+Cơ sở dữ liệu MySQL được thiết kế theo từng nhóm domain để dễ quản lý và mở rộng. Các nhóm bảng chính gồm:
+
+\begin{itemize}
+    \item \textbf{Identity}: \texttt{user\_accounts}, \texttt{user\_roles}, \texttt{refresh\_tokens}, \texttt{customer\_profiles}, \texttt{customer\_addresses}.
+    \item \textbf{Catalog}: \texttt{products}, \texttt{categories}, \texttt{product\_categories}, \texttt{product\_variants}, \texttt{product\_prices}, \texttt{product\_images}, \texttt{product\_attributes}.
+    \item \textbf{Cart}: \texttt{carts}, \texttt{cart\_items}.
+    \item \textbf{Order}: \texttt{orders}, \texttt{order\_items}, \texttt{order\_addresses}, \texttt{order\_status\_history}.
+    \item \textbf{Inventory}: \texttt{inventory\_reservations}, \texttt{inventory\_movements}.
+    \item \textbf{Payment}: \texttt{payments}, \texttt{payment\_transactions}, \texttt{payment\_webhook\_events}.
+    \item \textbf{Promotion/Coupon}: \texttt{coupons}, \texttt{coupon\_redemptions}, \texttt{promotions}, \texttt{promotion\_products}, \texttt{promotion\_categories}.
+    \item \textbf{Review/Wishlist}: \texttt{product\_reviews}, \texttt{product\_review\_summary}, \texttt{wishlists}, \texttt{wishlist\_items}.
+    \item \textbf{AI Sync}: \texttt{ai\_sync\_state}.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Images/Chapter7/database.png}
+    \caption{Nhóm dữ liệu chính trong MySQL}
+    \label{fig:database-domain}
+\end{figure}
+
+.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Kien_truc/mapping.png}
+    \caption{Ánh xạ các bảng dữ liệu sản phẩm}
+    \label{fig:catalog-mapping}
+\end{figure}
+
+\subsection{Thiết kế AI Service}
+
+AI Service được tách thành các module chuyên biệt để dễ bảo trì và mở rộng:
+
+\begin{itemize}
+    \item \texttt{api/routes/search.py}: định nghĩa API tìm kiếm bằng văn bản, hình ảnh và hybrid search.
+    \item \texttt{api/routes/assistant.py}: định nghĩa API xử lý hội thoại với trợ lý ảo.
+    \item \texttt{api/routes/internal\_indexing.py}: định nghĩa API nội bộ để Spring Boot đồng bộ sản phẩm.
+    \item \texttt{services/indexing}: xử lý build dữ liệu index và upsert vector vào Qdrant.
+    \item \texttt{services/search}: xử lý tìm kiếm, lọc kết quả và tính điểm.
+    \item \texttt{services/embeddings}: tạo text embedding và image embedding.
+    \item \texttt{services/cropping}: xử lý phát hiện và crop sản phẩm bằng YOLOv26.
+    \item \texttt{services/query\_understanding}: xử lý hiểu truy vấn bằng Gemini.
+    \item \texttt{services/assistant}: quản lý workflow hội thoại, intent và session context.
+    \item \texttt{infrastructure/qdrant.py}: giao tiếp với Qdrant.
+    \item \texttt{infrastructure/springboot.py}: gọi ngược về Spring Boot khi cần dữ liệu ngữ cảnh.
+\end{itemize}
+
+Service AI nhận dữ liệu sản phẩm đã được chuẩn hóa từ Spring Boot, sau đó tạo embedding và lưu vào Qdrant. Khi người dùng tìm kiếm, Service AI thực hiện truy vấn vector và trả về danh sách candidate product IDs cho Spring Boot.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Kien_truc/module_service_ai.png}
+    \caption{Cấu trúc các module nội bộ của Service AI}
+    \label{fig:ai-service-modules}
+\end{figure}
+
+\subsection{Contract giữa Spring Boot và Service AI}
+
+Dữ liệu sản phẩm được Spring Boot chuẩn hóa thành DTO trước khi gửi sang Service AI. Dữ liệu này sử dụng định dạng JSON dạng \texttt{snake\_case}, bao gồm các trường chính sau:
+
+\begin{verbatim}
+{
+  "product_id": "...",
+  "external_id": "...",
+  "title": "...",
+  "title_vi": "...",
+  "description": "...",
+  "description_vi": "...",
+  "brand": "...",
+  "colors": ["..."],
+  "colors_vi": ["..."],
+  "categories": ["..."],
+  "sizes": ["..."],
+  "price": 0,
+  "discounted_price": 0,
+  "effective_price": 0,
+  "currency": "VND",
+  "total_stock": 0,
+  "available": true,
+  "is_active": true,
+  "image_urls": ["..."],
+  "attributes": {},
+  "attributes_vi": {},
+  "updated_at": "..."
+}
+\end{verbatim}
+
+Service AI sử dụng dữ liệu trên để tạo vector và payload filter trong Qdrant. Khi thực hiện tìm kiếm, Service AI không trả về toàn bộ thông tin sản phẩm mà chỉ trả về dữ liệu hỗ trợ như \texttt{product\_id}, \texttt{score}, \texttt{source}, \texttt{filters}, \texttt{rewritten\_query} và \texttt{warnings}.
+
+Spring Boot sử dụng các \texttt{product\_id} này để truy vấn lại MySQL, lấy thông tin sản phẩm mới nhất và trả về frontend dưới dạng \texttt{ProductCardResponse}. Cách làm này giúp tránh việc người dùng nhìn thấy giá, tồn kho hoặc trạng thái sản phẩm đã lỗi thời trong vector index.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Kien_truc/api_luong_xu_ly.png}
+    \caption{Luồng xử lý API tìm kiếm và hội thoại giữa các dịch vụ}
+    \label{fig:api-processing-flow}
+\end{figure}
+
+\subsection{Luồng đồng bộ AI Index}
+
+Dữ liệu sản phẩm trong MySQL cần được đồng bộ sang Qdrant để phục vụ tìm kiếm AI. Hệ thống hỗ trợ cả full sync và incremental sync.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Chapter7/dongboAI.png}
+    \caption{Luồng đồng bộ dữ liệu AI Index}
+    \label{fig:ai-sync-flow}
+\end{figure}
+
+Spring Boot cung cấp các endpoint quản trị phục vụ đồng bộ AI:
+
+\begin{itemize}
+    \item \texttt{POST /admin/ai-sync/full}
+    \item \texttt{POST /admin/ai-sync/incremental}
+    \item \texttt{POST /admin/ai-sync/products/\{productId\}}
+    \item \texttt{POST /admin/ai-sync/test-embedding/products/\{productId\}}
+\end{itemize}
+
+AI Service cung cấp các endpoint nội bộ:
+
+\begin{itemize}
+    \item \texttt{POST /internal/index/products/batch}
+    \item \texttt{POST /internal/index/products/\{product\_id\}}
+    \item \texttt{DELETE /internal/index/products/\{product\_id\}}
+\end{itemize}
+
+Full sync được sử dụng khi cần xây dựng lại toàn bộ chỉ mục vector. Incremental sync được sử dụng khi chỉ có một phần sản phẩm thay đổi, ví dụ sản phẩm mới được thêm, sản phẩm cập nhật giá hoặc thay đổi trạng thái hiển thị.
+
+\subsection{Luồng tìm kiếm AI}
+
+Luồng tìm kiếm AI được thiết kế để đảm bảo Service AI chỉ đóng vai trò tìm kiếm và xếp hạng ứng viên, còn Spring Boot chịu trách nhiệm trả về dữ liệu sản phẩm chính xác cho frontend.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Chapter7/searchAII.png}
+    \caption{Luồng xử lý tìm kiếm AI}
+    \label{fig:ai-search-flow}
+\end{figure}
+
+Đối với tìm kiếm bằng văn bản, người dùng nhập truy vấn trên frontend, sau đó frontend gửi request đến Spring Boot. Backend chuyển truy vấn sang Service AI để thực hiện hiểu truy vấn, rewrite query, trích xuất bộ lọc và tìm kiếm vector trong Qdrant. Service AI trả về danh sách \texttt{product\_id} cùng điểm số tương ứng. Spring Boot sử dụng danh sách này để load lại sản phẩm, giá bán, tồn kho và hình ảnh mới nhất từ MySQL trước khi trả kết quả về frontend.
+
+Đối với tìm kiếm bằng hình ảnh, frontend gửi ảnh lên Spring Boot. Backend chuyển tiếp ảnh sang Service AI. Service AI sử dụng YOLOv26 để phát hiện vùng sản phẩm, crop ảnh nếu cần, sau đó tạo image embedding và tìm kiếm trong Qdrant. Kết quả cuối cùng vẫn được Spring Boot resolve lại từ MySQL trước khi trả về frontend.
+
+Đối với hybrid search, Service AI kết hợp nhiều tín hiệu như text embedding, image embedding, filter, category, màu sắc, kích thước và khoảng giá để tính điểm xếp hạng sản phẩm. Kết quả có điểm số cao hơn sẽ được ưu tiên hiển thị trước.
+
+\subsection{Luồng xử lý Assistant}
+
+Assistant được thiết kế để hỗ trợ người dùng tìm sản phẩm và hỏi đáp trong phạm vi thương mại điện tử.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Images/Chapter7/Assistant.png}
+    \caption{Luồng xử lý Assistant}
+    \label{fig:assistant-flow}
+\end{figure}
+
+Assistant có thể xử lý các nhóm intent chính:
+
+\begin{itemize}
+    \item Tìm sản phẩm theo mô tả tự nhiên.
+    \item Lọc sản phẩm theo màu sắc, kích thước, thương hiệu hoặc khoảng giá.
+    \item Hỏi tiếp dựa trên kết quả trước đó.
+    \item Yêu cầu gợi ý sản phẩm phù hợp với nhu cầu.
+    \item Yêu cầu làm rõ khi câu hỏi của người dùng quá mơ hồ.
+\end{itemize}
+
+Trong trường hợp assistant trả về danh sách sản phẩm gợi ý, Spring Boot vẫn chịu trách nhiệm resolve lại dữ liệu sản phẩm từ MySQL để đảm bảo tính chính xác.
+
+\subsection{Thiết kế bảo mật}
+
+Hệ thống sử dụng JWT theo cơ chế stateless authentication. Sau khi đăng nhập thành công, người dùng nhận được access token để gọi các API yêu cầu xác thực.
+
+Các API dành cho khách hàng như giỏ hàng, checkout, đơn hàng, thanh toán, đánh giá và wishlist yêu cầu người dùng đăng nhập. Các API quản trị có tiền tố \texttt{/admin/**} yêu cầu tài khoản có quyền \texttt{ADMIN}.
+
+Kết nối nội bộ giữa Spring Boot Backend và AI Service được bảo vệ bằng header:
+
+\begin{verbatim}
+X-Internal-API-Key
+\end{verbatim}
+
+Header này giúp ngăn client bên ngoài gọi trực tiếp vào các API nội bộ của Service AI, đặc biệt là các API indexing có khả năng thay đổi dữ liệu vector trong Qdrant.
+
+Ngoài ra, hệ thống cần áp dụng các nguyên tắc bảo mật sau:
+
+\begin{itemize}
+    \item Không cho frontend gọi trực tiếp Service AI.
+    \item Không trả về thông tin nhạy cảm trong API response.
+    \item Kiểm tra quyền truy cập đối với các API quản trị.
+    \item Validate dữ liệu đầu vào ở tầng controller và service.
+    \item Ẩn API key, token và thông tin kết nối database trong biến môi trường.
+    \item Ghi log lỗi ở backend nhưng không hiển thị stack trace trực tiếp cho người dùng.
+\end{itemize}
+
+\subsection{Thiết kế fallback và xử lý lỗi}
+
+Do hệ thống có tích hợp nhiều thành phần AI, việc thiết kế fallback là cần thiết để đảm bảo hệ thống vẫn hoạt động khi một thành phần gặp lỗi.
+
+Các cơ chế fallback chính gồm:
+
+\begin{itemize}
+    \item Khi \texttt{AI\_SERVICE\_MOCK=true}, Spring Boot sử dụng mock AI client để kiểm thử mà không cần chạy Python service hoặc Qdrant.
+    \item Khi Service AI gặp lỗi, Spring Boot có thể retry hoặc chuyển sang keyword search fallback.
+    \item Khi Gemini gặp lỗi, Service AI sử dụng rule-based fallback để xử lý truy vấn cơ bản.
+    \item Khi YOLOv26 không phát hiện được vùng sản phẩm, hệ thống sử dụng ảnh gốc hoặc crop fallback để tạo embedding.
+    \item Khi assistant gặp lỗi, hệ thống trả về thông báo thân thiện kèm warning thay vì làm frontend bị crash.
+\end{itemize}
+

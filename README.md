@@ -1,4 +1,4 @@
-# HCMUT Software Engineering Report Template
+# HCMUT Specialized Project Report Template
 
 Template LaTeX cho báo cáo Đồ án chuyên ngành, đã map theo mục lục yêu cầu.
 

@@ -1,7 +1,22 @@
 % Sections/05-KhaiThacYeuCau.tex
 \section{Khai thác yêu cầu}
 
-Chương này trình bày tổng quan, các nhóm người dùng, yêu cầu chức năng, yêu cầu phi chức năng và yêu cầu dữ liệu của nền tảng AIHub và mô-đun Wispace Speaking. Các yêu cầu được sử dụng làm cơ sở cho phân tích và thiết kế hệ thống.
+Chương này trình bày quá trình khai thác và phân tích yêu cầu cho hệ thống Wispace Speaking và nền tảng AIHub. Các yêu cầu được xác định làm cơ sở cho việc thiết kế kiến trúc, cơ sở dữ liệu, hiện thực chức năng và kiểm thử hệ thống.
+
+Wispace Speaking cung cấp các chức năng quản lý tài khoản, quản lý kho đề, luyện tập theo từng Part, thi thử và theo dõi tiến bộ học tập. Mô hình AI chấm điểm Speaking được tích hợp để xử lý audio câu trả lời, đánh giá theo các tiêu chí IELTS và cung cấp phản hồi cho học viên. Bên cạnh đó, AIHub cung cấp môi trường sử dụng API, xây dựng và thẩm định mẫu bài tập học thuật, cấu hình dịch vụ AI và quản trị việc sử dụng theo tổ chức.
+
+Vì vậy, quá trình khai thác yêu cầu trong đồ án tập trung vào hai nhóm chính: yêu cầu phục vụ luyện tập và đánh giá kỹ năng Nói IELTS trên Wispace Speaking; yêu cầu cung cấp dịch vụ AI và quản lý dữ liệu học thuật trên AIHub. Hai nhóm yêu cầu làm rõ nhu cầu của người học, chuyên viên học thuật, lập trình viên và quản trị viên trong phạm vi từng hệ thống.
+
+Trong chương này, đồ án tập trung phân tích:
+\begin{itemize}
+    \item Các nhóm người dùng, vai trò và phạm vi quyền hạn của từng nhóm.
+    \item Các yêu cầu chức năng và phi chức năng của Wispace Speaking và AIHub.
+    \item Các yêu cầu dữ liệu đối với tài khoản, kho đề, audio, kết quả chấm và lịch sử luyện tập.
+    \item Các chức năng sử dụng API, tạo và thẩm định mẫu học thuật, cấu hình mô hình và quản trị tổ chức.
+    \item Các yêu cầu về chất lượng chấm điểm, bảo mật, hiệu năng, hạn mức sử dụng và khả năng duy trì dịch vụ AI.
+\end{itemize}
+
+Ngoài ra, chương này cung cấp cơ sở để xây dựng biểu đồ Use Case, sơ đồ hoạt động, thiết kế cơ sở dữ liệu và kiến trúc xử lý AI ở các chương tiếp theo.
 
 \subsection{Hệ thống AI hỗ trợ chấm điểm và cá nhân hóa luyện tập kỹ năng Nói IELTS}
 \label{subsec:wispace_system_spec}

@@ -1,0 +1,189 @@
+\clearpage
+\subsubsection{Sơ đồ luồng dữ liệu DFD}
+\label{wispace:sec:dfd}
+
+Phần này trình bày sơ đồ ngữ cảnh và DFD mức 1 của Wispace Speaking, tập trung vào dữ liệu tài khoản, kho đề, bài làm, kết quả và gói dịch vụ. Frontend, backend, hàng đợi và kho dữ liệu thuộc phạm vi hệ thống; các dịch vụ xác thực, TTS, chấm Speaking và thanh toán được xem là tác nhân ngoài.
+
+Luồng dữ liệu được tổ chức quanh các nhóm nghiệp vụ dưới đây. Mã E, P và D chỉ có ý nghĩa trong phạm vi từng hệ thống.
+
+\begin{longtable}{@{}p{0.07\linewidth}p{0.25\linewidth}p{0.6\linewidth}@{}}
+\caption{Tác nhân ngoài của Wispace Speaking}\label{wispace:tab:dfd-entities}\\
+\toprule
+\textbf{Mã} & \textbf{Tác nhân} & \textbf{Dữ liệu trao đổi} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Tác nhân} & \textbf{Dữ liệu trao đổi} \\
+\midrule
+\endhead
+E1 & Khách / Học viên & Cung cấp thông tin tài khoản, bộ lọc đề, audio, yêu cầu xem kết quả và thanh toán; nhận nội dung luyện tập, báo cáo và quyền lợi sử dụng. \\
+E2 & Moderator / Admin & Cung cấp dữ liệu đề, quyết định kiểm duyệt, thay đổi người dùng và cấu hình gói; nhận danh sách, trạng thái xử lý và nhật ký. \\
+E3 & Email / Google OAuth & Tiếp nhận nội dung gửi OTP hoặc yêu cầu xác minh Google; trả trạng thái gửi hoặc thông tin danh tính. OTP do người dùng nhập thuộc luồng E1. \\
+E4 & Dịch vụ TTS & Nhận văn bản câu hỏi và lựa chọn giọng; trả audio câu hỏi hoặc thông tin lỗi. \\
+E5 & Scoring Model & Nhận audio và ngữ cảnh câu hỏi; trả transcript, điểm theo tiêu chí, lỗi và nhận xét. \\
+E6 & PayOS & Nhận dữ liệu đơn thanh toán; trả liên kết thanh toán và trạng thái giao dịch đã xác minh. \\
+\bottomrule
+\end{longtable}
+
+
+\begin{longtable}{@{}p{0.07\linewidth}p{0.48\linewidth}p{0.37\linewidth}@{}}
+\caption{Tiến trình mức 1 của Wispace Speaking}\label{wispace:tab:dfd-processes}\\
+\toprule
+\textbf{Mã} & \textbf{Tiến trình} & \textbf{Phạm vi} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Tiến trình} & \textbf{Phạm vi} \\
+\midrule
+\endhead
+P1 & Xác thực và quản lý hồ sơ & UC01--UC04 \\
+P2 & Tra cứu và quản lý kho đề & UC06--UC08 \\
+P3 & Tiếp nhận bài và chấm Speaking & UC09, UC11 \\
+P4 & Tổng hợp kết quả và tiến bộ & UC10, UC12 \\
+P5 & Quản trị người dùng và gói dịch vụ & UC05; gói dịch vụ ở Chương 5 \\
+\bottomrule
+\end{longtable}
+
+
+\begin{longtable}{@{}p{0.07\linewidth}p{0.25\linewidth}p{0.6\linewidth}@{}}
+\caption{Kho dữ liệu của Wispace Speaking}\label{wispace:tab:dfd-stores}\\
+\toprule
+\textbf{Mã} & \textbf{Kho dữ liệu} & \textbf{Nội dung} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Kho dữ liệu} & \textbf{Nội dung} \\
+\midrule
+\endhead
+D1 & Tài khoản và phiên & Thông tin tài khoản, hồ sơ, vai trò, trạng thái, OTP và dữ liệu phiên xác thực. \\
+D2 & Kho đề Speaking & Câu hỏi, chủ đề, nguồn đề, trạng thái kiểm duyệt, báo cáo đề và audio câu hỏi. \\
+D3 & Bài làm và kết quả & Phiên luyện tập/thi thử, audio câu trả lời, trạng thái chấm, điểm, transcript, lỗi, tiến bộ và liên kết chia sẻ. \\
+D4 & Gói, quota, thanh toán & Gói dịch vụ, quyền lợi, định mức, bút toán sử dụng/hoàn quota và giao dịch thanh toán. \\
+D5 & Nhật ký quản trị & Người thực hiện, lý do, thời điểm và nội dung thay đổi người dùng hoặc cấu hình gói. \\
+\bottomrule
+\end{longtable}
+
+
+\clearpage
+
+\paragraph{Sơ đồ ngữ cảnh.}
+
+Sơ đồ thể hiện toàn bộ Wispace Speaking như một tiến trình duy nhất; các mũi tên ghi rõ dữ liệu gửi đến và dữ liệu trả về cho từng tác nhân ngoài.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{Images/DFD/Wispace/wispace_dfd_context.png}
+\caption{DFD ngữ cảnh của Wispace Speaking}
+\label{wispace:fig:dfd-context}
+\end{figure}
+
+\clearpage
+
+\begin{longtable}{@{}p{0.22\linewidth}p{0.72\linewidth}@{}}
+\caption{Luồng dữ liệu biên của Wispace Speaking}\label{wispace:tab:dfd-boundary}\\
+\toprule
+\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
+\midrule
+\endhead
+E1 → 0 & Tài khoản; đề; audio; tra cứu / chia sẻ; yêu cầu thanh toán \\
+0 → E1 & Phiên; đề; báo cáo; link chia sẻ / trả phí; quyền lợi sử dụng \\
+E2 → 0 & Dữ liệu đề; duyệt đề; thay đổi người dùng; cấu hình gói \\
+0 → E2 & Danh sách; trạng thái cập nhật; nhật ký \\
+0 → E3 & Nội dung gửi OTP; yêu cầu xác minh Google \\
+E3 → 0 & Trạng thái gửi; thông tin danh tính \\
+0 → E4 & Văn bản câu hỏi; lựa chọn giọng \\
+E4 → 0 & Audio câu hỏi; thông tin lỗi \\
+0 → E5 & Audio câu trả lời; ngữ cảnh câu hỏi \\
+E5 → 0 & Transcript; điểm; lỗi và nhận xét \\
+0 → E6 & Dữ liệu đơn thanh toán \\
+E6 → 0 & Liên kết thanh toán; trạng thái giao dịch \\
+\bottomrule
+\end{longtable}
+
+
+\paragraph{Sơ đồ mức 1.}
+
+Để giữ nhãn và đường nối dễ đọc, cùng một sơ đồ mức 1 được trình bày thành hai phần. Các tác nhân và kho dữ liệu có cùng mã ở hai phần là cùng một đối tượng logic. Dữ liệu giữa các nhóm xử lý được trao đổi qua kho dùng chung, không phải các bản sao tách biệt.
+
+\clearpage
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{Images/DFD/Wispace/wispace_dfd_level1_1.png}
+\caption{DFD mức 1 của Wispace Speaking: P1, P2, P3}
+\label{wispace:fig:dfd-level1-1}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{Images/DFD/Wispace/wispace_dfd_level1_2.png}
+\caption{DFD mức 1 của Wispace Speaking: P4, P5}
+\label{wispace:fig:dfd-level1-2}
+\end{figure}
+
+\clearpage
+
+\begin{longtable}{@{}p{0.22\linewidth}p{0.72\linewidth}@{}}
+\caption{Luồng dữ liệu mức 1 của Wispace Speaking}\label{wispace:tab:dfd-flows}\\
+\toprule
+\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
+\midrule
+\endhead
+E1 → P1 & Thông tin tài khoản \\
+P1 → E1 & Phiên và hồ sơ \\
+P1 → D1 & Hồ sơ và phiên \\
+D1 → P1 & Dữ liệu xác thực \\
+P1 → E3 & OTP / xác minh \\
+E3 → P1 & Trạng thái / danh tính \\
+E1 → P2 & Bộ lọc / đề đề xuất \\
+P2 → E1 & Danh sách / trạng thái \\
+E2 → P2 & Dữ liệu / duyệt đề \\
+P2 → E2 & Kết quả quản lý đề \\
+P2 → D2 & Đề và trạng thái \\
+D2 → P2 & Đề / audio đã lưu \\
+P2 → E4 & Câu hỏi / giọng \\
+E4 → P2 & Audio / lỗi \\
+E1 → P3 & Audio và dữ liệu phiên \\
+P3 → E1 & Trạng thái / kết quả \\
+D2 → P3 & Câu hỏi / audio đề \\
+P3 → D3 & Bài / điểm / trạng thái \\
+D3 → P3 & Audio / phiên đã lưu \\
+P3 → D4 & Bút toán quota \\
+D4 → P3 & Quyền lợi / số dư \\
+P3 → E4 & Câu hỏi / giọng \\
+E4 → P3 & Audio / lỗi \\
+P3 → E5 & Audio / ngữ cảnh \\
+E5 → P3 & Điểm / transcript / lỗi \\
+E1 → P4 & Bộ lọc / bài / chia sẻ \\
+P4 → E1 & Báo cáo / liên kết \\
+P4 → D3 & Lộ trình / link / chấm lại \\
+D3 → P4 & Điểm / lỗi / lịch sử \\
+E2 → P5 & Thay đổi / cấu hình \\
+P5 → E2 & Kết quả / nhật ký \\
+E1 → P5 & Lựa chọn gói dịch vụ \\
+P5 → E1 & Link / quyền lợi gói \\
+P5 → D1 & Vai trò / trạng thái \\
+D1 → P5 & Thông tin người dùng \\
+P5 → D4 & Gói / quota / giao dịch \\
+D4 → P5 & Gói / quyền lợi \\
+P5 → D5 & Bản ghi kiểm toán \\
+D5 → P5 & Nhật ký đã lưu \\
+P5 → E6 & Đơn thanh toán \\
+E6 → P5 & Link / giao dịch \\
+\bottomrule
+\end{longtable}
+
+
+P3 đọc câu hỏi từ D2, ghi audio và kết quả vào D3, đồng thời cập nhật bút toán quota ở D4. P4 dùng dữ liệu D3 để lập báo cáo, thống kê tiến bộ và quản lý liên kết chia sẻ; yêu cầu chấm lại được ghi vào trạng thái bài làm ở D3 để P3 xử lý. P5 bao gồm yêu cầu mua gói đã nêu ở Chương 5, ngoài phạm vi 12 use-case chi tiết.
+
+Các luồng dữ liệu biên ở sơ đồ ngữ cảnh được phân bổ vào các tiến trình mức 1 tương ứng. Luồng đọc, ghi và phản hồi được thể hiện bằng các mũi tên riêng; sơ đồ không dùng điều kiện rẽ nhánh, nút bắt đầu hoặc kết thúc của activity diagram.

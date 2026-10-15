@@ -1,0 +1,56 @@
+% Thiết kế luồng dựa trên các đặc tả WiSpace/AIHub ở Chương Phân tích.
+\subsection{Luồng hoạt động của hệ thống Wispace và AIHub}
+\label{sec:activity-design-wispace-aihub}
+
+Phần này trình bày luồng hoạt động của Wispace Speaking và AIHub dựa trên các chức năng đã được phân tích. Nội dung tập trung vào trình tự thực hiện nghiệp vụ, trách nhiệm của các tác nhân và cách hệ thống xử lý yêu cầu từ khi tiếp nhận đến khi trả kết quả.
+
+Đối với Wispace Speaking, các luồng chính bao gồm quản lý tài khoản, lựa chọn và quản lý đề, thực hiện bài luyện tập hoặc thi thử, chấm bài và theo dõi tiến bộ. Đối với AIHub, các luồng tập trung vào xác thực và sử dụng API, truy vấn dẫn chứng, tạo và thẩm định mẫu học thuật, cấu hình mô hình và quản trị dịch vụ. Các bước kiểm tra quyền, dữ liệu đầu vào, hạn mức sử dụng và xử lý lỗi được xác định trong từng nhóm chức năng.
+
+Thông qua các luồng hoạt động, phần này làm rõ sự phối hợp giữa người dùng, hệ thống và các dịch vụ hỗ trợ, đồng thời xác định những yêu cầu về lưu trữ trạng thái, xử lý bất đồng bộ và bảo đảm nhất quán dữ liệu. Đây là cơ sở để triển khai các thành phần xử lý và kiểm thử hành vi của từng chức năng.
+
+\subsubsection{Thiết kế luồng Wispace Speaking}
+
+\paragraph{Tài khoản và quản lý người dùng (UC01--UC05).}
+Đăng ký hội tụ hai nhánh email/OTP và Google OAuth tại bước kích hoạt tài khoản, cấp gói dùng thử và tạo phiên. OTP sai cho phép nhập lại trong giới hạn; hết hạn thì tạo mã mới cho tài khoản đang chờ, không tạo thêm tài khoản. Đăng nhập kiểm tra danh tính và trạng thái trước khi cấp access token/refresh token; khôi phục mật khẩu phải thu hồi các phiên cũ. Đăng xuất giải quyết bài thi và audio chưa tải trước khi thu hồi phiên. Khi mất mạng, xóa token tại trình duyệt không đồng nghĩa máy chủ đã thu hồi token.
+
+Quản lý hồ sơ kiểm tra quyền sở hữu và dữ liệu trước khi lưu. Đổi mật khẩu, xóa audio và yêu cầu xóa tài khoản được tách thành nhánh riêng có xác minh bổ sung. Quản trị người dùng yêu cầu quyền Admin, lý do hợp lệ và quy tắc không tự khóa/hạ vai trò; thay đổi dữ liệu cùng nhật ký kiểm toán cần được lưu trong một giao dịch. Các sơ đồ tương ứng là Hình~\ref{wispace:fig:activity_uc01}--\ref{wispace:fig:activity_uc05}.
+
+\paragraph{Kho đề và kiểm duyệt (UC06--UC08).}
+Quyền xem đề được áp dụng trong truy vấn: đề riêng tư theo chủ sở hữu, đề cộng đồng theo trạng thái đã duyệt. Quyền xem danh sách không tự cấp quyền vào luyện tập hoặc thi thử. Đề do học viên tạo được lưu riêng tư trước, sau đó mới chuyển sang Chờ duyệt nếu học viên đề xuất công khai. Gợi ý Part 3 bằng AI là tùy chọn; lỗi hoặc quá thời gian chờ có đường nhập thủ công.
+
+Nhập CSV/JSON phải kiểm tra toàn bộ dữ liệu trước khi ghi; một dòng lỗi thì không nhập phần nào. TTS được xử lý sau khi lưu đề, vì vậy lỗi TTS dẫn đến trạng thái Thiếu audio và cho phép sinh lại. Ẩn đề đã có bài làm phải giữ lịch sử của học viên. Các nhánh này được thể hiện tại Hình~\ref{wispace:fig:activity_uc06}--\ref{wispace:fig:activity_uc08}.
+
+\paragraph{Luyện tập, thi thử và tiến bộ (UC09--UC12).}
+Luyện theo Part tách ghi âm khỏi chấm bài. Audio được kiểm tra thời lượng và tỷ lệ im lặng trước khi lưu và giữ quota. Công việc chấm được đưa vào hàng đợi; khi thành công mới lưu kết quả và ghi nhận tiêu thụ, khi thất bại cuối cùng phải hoàn quota đúng một lần. Thử lại công việc không được tạo lượt trả lời hoặc bút toán quota trùng. Hết quota vẫn cho ghi âm tự nghe nhưng không đưa vào hàng chấm (Hình~\ref{wispace:fig:activity_uc09}).
+
+Trong báo cáo kết quả, \textit{chấm lại} bài thất bại và \textit{luyện lại} cùng câu hỏi là hai thao tác khác nhau: chấm lại dùng audio đã nộp và không trừ quota theo đặc tả; luyện lại tạo lượt trả lời mới qua UC09 và kiểm tra quota. Audio hết hạn không làm mất transcript hoặc điểm. Roadmap chỉ nhận lỗi lặp khi đạt ngưỡng và được học viên đồng ý (Hình~\ref{wispace:fig:activity_uc10}).
+
+Thi thử tạo phiên và trừ đúng một lượt khi bắt đầu. Phục hồi trong cửa sổ 30 phút tiếp tục câu chưa trả lời; quá cửa sổ thì nộp phần đã làm. Mất mạng chuyển sang ghi cục bộ và tải bù; trước khi đưa vào hàng chấm phải kiểm tra audio đã tải đủ. Bài kết thúc sớm chỉ có band từng Part; thất bại sau giới hạn thử chấm dẫn tới hoàn lượt và báo Admin (Hình~\ref{wispace:fig:activity_uc11}). Lịch sử chỉ tính xu hướng từ các bài có điểm hợp lệ; dưới ba bài thì hiển thị điểm riêng. Link chia sẻ không chứa audio và có thể thu hồi (Hình~\ref{wispace:fig:activity_uc12}).
+
+\subsubsection{Thiết kế luồng AIHub}
+
+\paragraph{Portal, Gateway và sử dụng API (UC01--UC05).}
+Portal dùng phiên qua HTTP-only Secure Cookie, trong khi API Gateway dùng credentials của tổ chức. Khi tạo hoặc rotate khóa, cơ sở dữ liệu lưu mã băm và giao diện chỉ hiển thị khóa bí mật mới một lần. Revoke phải làm khóa không còn sử dụng được tại Gateway. Sandbox lựa chọn giữa ca sử dụng thật của dịch vụ nội bộ và bộ mô phỏng dịch vụ đối tác, sau đó cùng kiểm định schema phản hồi; không coi mọi kết quả Sandbox là phản hồi thật từ nhà cung cấp (Hình~\ref{aihub:fig:activity_uc01}--\ref{aihub:fig:activity_uc03}).
+
+API sinh bài kiểm tra tần suất, credentials, quota, cấu trúc yêu cầu và mã lỗi trước khi gọi model. Các model được gọi tuần tự theo chuỗi dự phòng, với timeout/retry tương ứng, rồi chuẩn hóa và kiểm định đầu ra. Đề xuất trả lỗi cuối cùng nếu không có đầu ra hợp lệ sau toàn bộ chuỗi, thay vì trả thành công không có bài tập. Bảng đặc tả credentials có secretKey nhưng mô tả UC04 chỉ nêu header x-client-id; cần thống nhất hợp đồng xác thực trước khi hiện thực (Hình~\ref{aihub:fig:activity_uc04}). Tra cứu mức sử dụng và nhật ký chạy song song nhưng đều bị giới hạn bởi organizationId của phiên (Hình~\ref{aihub:fig:activity_uc05}).
+
+\paragraph{Chu trình học thuật (UC06--UC11).}
+Truy vấn dẫn chứng ưu tiên WISPACE Reference API, chuyển sang dữ liệu cục bộ khi lỗi kết nối hoặc timeout. Kết quả rỗng là kết quả nghiệp vụ hợp lệ và dẫn đến lựa chọn đổi bộ lọc hoặc sinh không có dẫn chứng. Khởi tạo mẫu chỉ tạo DRAFT khi nội dung AI hợp lệ đã được lưu; rawAiOutput phải được bảo toàn qua các bước hiệu đính (Hình~\ref{aihub:fig:activity_uc06}--\ref{aihub:fig:activity_uc07}).
+
+Hiệu đính cập nhật finalOutput và điểm nguyên 1--10; auto-save không tự chấp thuận mẫu. Accept kiểm tra xung đột cập nhật trước khi lưu ACCEPTED, sau đó mới tính mã lỗi/chủ đề kế tiếp. Reject bắt buộc lý do tối thiểu 10 ký tự và lưu REJECTED để phân tích dữ liệu âm. Kho mẫu cho lọc, phân trang, xem hai phiên bản và đánh dấu yêu thích; Favorite không thay đổi trạng thái thẩm định (Hình~\ref{aihub:fig:activity_uc08}--\ref{aihub:fig:activity_uc11}).
+
+\paragraph{Cấu hình và dữ liệu mô hình (UC12--UC15).}
+Mẫu Prompt phải qua kiểm định schema và biến nội suy trước khi lưu phiên bản mới; Dry Run chỉ là chạy thử. Chuỗi model phải duy trì ít nhất một nhà cung cấp đám mây và Deterministic Engine cuối chuỗi. Sau khi lưu cần cập nhật cache/runtime để cấu hình mới có hiệu lực (Hình~\ref{aihub:fig:activity_uc12}--\ref{aihub:fig:activity_uc13}).
+
+SFT xuất Prompt cùng finalOutput đã thẩm định. Với DPO, đề xuất kiểm tra chosen/rejected cùng Prompt và khác nội dung, không ghép tùy ý hai mẫu chỉ vì khác trạng thái. Dưới 50 mẫu là cảnh báo trong tài liệu nguồn; lựa chọn tiếp tục xuất sau cảnh báo là đề xuất thiết kế cần thống nhất. Thống kê chấp thuận/từ chối nên loại DRAFT khỏi mẫu số và hiển thị chưa đủ dữ liệu nếu chưa có mẫu thẩm định (Hình~\ref{aihub:fig:activity_uc14}--\ref{aihub:fig:activity_uc15}).
+
+\paragraph{Quản trị và vận hành (UC16--UC20).}
+Quản trị thành viên áp dụng trong phạm vi tổ chức, không cho xóa OWNER duy nhất. Chuyển quyền sở hữu yêu cầu OWNER xác nhận mật khẩu và đích nhận là ADMIN. Gói dùng chung và quota override là hai nhánh độc lập; override chỉ tác động tổ chức được chỉ định (Hình~\ref{aihub:fig:activity_uc16}--\ref{aihub:fig:activity_uc17}).
+
+Health check thăm dò cơ sở dữ liệu, AI và tài nguyên máy chủ song song rồi tổng hợp: PostgreSQL mất kết nối trả unhealthy/503; AI chính lỗi nhưng còn dự phòng trả degraded/200; các thành phần tốt trả healthy/200. Trường hợp toàn bộ kênh AI lỗi chưa được nguồn quy định rõ; sơ đồ ghi rõ đề xuất unhealthy/503 (Hình~\ref{aihub:fig:activity_uc18}). Quản lý Universal Specs kiểm định schema trước xuất bản và đồng bộ Sandbox; Inactive/Deprecated ngăn chạy thử. Kiểm toán đọc nhật ký bất biến và xuất CSV theo bộ lọc hiện hành (Hình~\ref{aihub:fig:activity_uc19}--\ref{aihub:fig:activity_uc20}).
+
+\subsubsection{Ràng buộc nhất quán và điểm cần hoàn thiện}
+
+Các sơ đồ mô tả đường đi nghiệp vụ ở mức thiết kế. Khi hiện thực cần kiểm chứng tính nguyên tử và chống xử lý lặp của việc giữ/ghi nhận/hoàn quota; kiểm soát phiên bản khi duyệt mẫu; bảo toàn rawAiOutput; giới hạn dữ liệu theo người dùng/tổ chức; và hiệu lực của khóa, phiên, cấu hình sau khi cập nhật. Cần bổ sung chính sách xử lý lỗi gửi email, lỗi Storage, lỗi đồng bộ cache và timeout của health check.
+
+Tài liệu hiện dùng ngưỡng khóa đăng nhập khác nhau: Wispace ghi sai 5 lần, AIHub ghi sai quá 5 lần. UC09 Wispace mô tả thử lại 3 lần, còn UC11 mô tả thất bại sau 3 lần thử; cần phân biệt số retry với tổng số lần thực thi. Chính sách quota AIHub khi fallback hoặc yêu cầu thất bại chưa được mô tả đủ để suy ra cách tính phí. Những điểm này phải được thống nhất trong hợp đồng nghiệp vụ; sơ đồ không tự khẳng định chúng đã được cài đặt hoặc bảo đảm mục tiêu SLA.

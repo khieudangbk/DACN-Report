@@ -88,34 +88,6 @@ Sơ đồ thể hiện toàn bộ AIHub như một tiến trình duy nhất; cá
 
 \clearpage
 
-\begin{longtable}{|p{0.22\linewidth}|p{0.72\linewidth}|}
-\caption{Luồng dữ liệu biên của AIHub}\label{aihub:tab:dfd-boundary}\\
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endfirsthead
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endhead
-E1 → 0 & Thông tin đăng nhập; tham số nghiệp vụ; nội dung / cấu hình \\
-\hline
-0 → E1 & Phiên và khóa mới; kết quả / thống kê; tệp dữ liệu xuất \\
-\hline
-E2 → 0 & Credentials; payload sinh bài \\
-\hline
-0 → E2 & Bài tập; metadata; thông tin lỗi \\
-\hline
-0 → E3 & Prompt / tham số; yêu cầu thăm dò \\
-\hline
-E3 → 0 & Nội dung AI; token; trạng thái / lỗi \\
-\hline
-0 → E4 & Bộ lọc dẫn chứng Task, tiêu chí, lỗi \\
-\hline
-E4 → 0 & Dẫn chứng Writing; thông tin lỗi \\
-\hline
-\end{longtable}
-
 
 \paragraph{Sơ đồ mức 1.}
 
@@ -139,103 +111,9 @@ E4 → 0 & Dẫn chứng Writing; thông tin lỗi \\
 \label{aihub:fig:dfd-level1-2}
 \end{figure}
 
-\clearpage
 
-\begin{longtable}{|p{0.22\linewidth}|p{0.72\linewidth}|}
-\caption{Luồng dữ liệu mức 1 của AIHub}\label{aihub:tab:dfd-flows}\\
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endfirsthead
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endhead
-E1 → P1 & Đăng nhập / thao tác khóa \\
-\hline
-P1 → E1 & Phiên / khóa mới \\
-\hline
-P1 → D1 & Phiên / mã băm khóa \\
-\hline
-D1 → P1 & Danh tính / vai trò \\
-\hline
-E2 → P2 & Credentials / payload \\
-\hline
-P2 → E2 & Bài tập / metadata \\
-\hline
-E1 → P2 & Sandbox / yêu cầu sinh \\
-\hline
-P2 → E1 & JSON / mẫu nháp \\
-\hline
-D1 → P2 & Khóa / quyền truy cập \\
-\hline
-D2 → P2 & Prompt / spec / quota \\
-\hline
-P2 → D3 & Usage / dấu vết \\
-\hline
-P2 → D4 & Mẫu AI nguyên bản \\
-\hline
-D4 → P2 & Dẫn chứng / ngữ cảnh \\
-\hline
-P2 → E3 & Prompt / tham số \\
-\hline
-E3 → P2 & Nội dung / metadata \\
-\hline
-E1 → P3 & Bộ lọc / bản hiệu đính \\
-\hline
-P3 → E1 & Dẫn chứng / trạng thái \\
-\hline
-P3 → D4 & Dẫn chứng / thẩm định \\
-\hline
-D4 → P3 & Mẫu / dẫn chứng cũ \\
-\hline
-P3 → E4 & Bộ lọc dẫn chứng \\
-\hline
-E4 → P3 & Dẫn chứng / lỗi \\
-\hline
-E1 → P4 & Prompt / model / spec \\
-\hline
-P4 → E1 & Kết quả lưu / chạy thử \\
-\hline
-P4 → D2 & Phiên bản cấu hình \\
-\hline
-D2 → P4 & Cấu hình hiện hành \\
-\hline
-P4 → E3 & Prompt / thăm dò \\
-\hline
-E3 → P4 & Đầu ra / trạng thái \\
-\hline
-E1 → P5 & Bộ lọc / loại dữ liệu \\
-\hline
-P5 → E1 & Thống kê / tệp xuất \\
-\hline
-D4 → P5 & Mẫu / điểm / lý do \\
-\hline
-E1 → P6 & Thành viên / gói / bộ lọc \\
-\hline
-P6 → E1 & Kết quả / logs / health \\
-\hline
-P6 → D1 & Thành viên / vai trò \\
-\hline
-D1 → P6 & Tổ chức / thành viên \\
-\hline
-P6 → D2 & Gói / quota override \\
-\hline
-D2 → P6 & Cấu hình hạn mức \\
-\hline
-P6 → D3 & Dấu vết quản trị \\
-\hline
-D3 → P6 & Usage / nhật ký \\
-\hline
-P6 → E3 & Yêu cầu thăm dò \\
-\hline
-E3 → P6 & Trạng thái AI \\
-\hline
-\end{longtable}
 
 
 P3 lưu dẫn chứng vào D4 để P2 sử dụng khi sinh nội dung. Mẫu nguyên bản do P2 ghi vào D4 được P3 hiệu đính và thẩm định; P5 chỉ trích xuất dữ liệu phù hợp với loại tập huấn luyện được chọn. P2 và P6 cùng sử dụng D3 cho nhật ký và đối soát hạn mức. Sandbox của dịch vụ đối tác dùng dữ liệu mô phỏng trong P2, không phát sinh một lời gọi thật đến đối tác.
 
 Deterministic Engine là thành phần dự phòng nội bộ của P2. Health check trong P6 kiểm tra kho dữ liệu nội bộ và nhận trạng thái từ nhà cung cấp AI; không xem PostgreSQL như một tác nhân ngoài.
-
-Các luồng dữ liệu biên ở sơ đồ ngữ cảnh được phân bổ vào các tiến trình mức 1 tương ứng. Luồng đọc, ghi và phản hồi được thể hiện bằng các mũi tên riêng; sơ đồ không dùng điều kiện rẽ nhánh, nút bắt đầu hoặc kết thúc của activity diagram.

@@ -92,42 +92,6 @@ Sơ đồ thể hiện toàn bộ Wispace Speaking như một tiến trình duy 
 
 \clearpage
 
-\begin{longtable}{|p{0.22\linewidth}|p{0.72\linewidth}|}
-\caption{Luồng dữ liệu biên của Wispace Speaking}\label{wispace:tab:dfd-boundary}\\
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endfirsthead
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endhead
-E1 → 0 & Tài khoản; đề; audio; tra cứu / chia sẻ; yêu cầu thanh toán \\
-\hline
-0 → E1 & Phiên; đề; báo cáo; link chia sẻ / trả phí; quyền lợi sử dụng \\
-\hline
-E2 → 0 & Dữ liệu đề; duyệt đề; thay đổi người dùng; cấu hình gói \\
-\hline
-0 → E2 & Danh sách; trạng thái cập nhật; nhật ký \\
-\hline
-0 → E3 & Nội dung gửi OTP; yêu cầu xác minh Google \\
-\hline
-E3 → 0 & Trạng thái gửi; thông tin danh tính \\
-\hline
-0 → E4 & Văn bản câu hỏi; lựa chọn giọng \\
-\hline
-E4 → 0 & Audio câu hỏi; thông tin lỗi \\
-\hline
-0 → E5 & Audio câu trả lời; ngữ cảnh câu hỏi \\
-\hline
-E5 → 0 & Transcript; điểm; lỗi và nhận xét \\
-\hline
-0 → E6 & Dữ liệu đơn thanh toán \\
-\hline
-E6 → 0 & Liên kết thanh toán; trạng thái giao dịch \\
-\hline
-\end{longtable}
-
 
 \paragraph{Sơ đồ mức 1.}
 
@@ -151,103 +115,7 @@ E6 → 0 & Liên kết thanh toán; trạng thái giao dịch \\
 \label{wispace:fig:dfd-level1-2}
 \end{figure}
 
-\clearpage
 
-\begin{longtable}{|p{0.22\linewidth}|p{0.72\linewidth}|}
-\caption{Luồng dữ liệu mức 1 của Wispace Speaking}\label{wispace:tab:dfd-flows}\\
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endfirsthead
-\hline
-\textbf{Nguồn → Đích} & \textbf{Dữ liệu} \\
-\hline
-\endhead
-E1 → P1 & Thông tin tài khoản \\
-\hline
-P1 → E1 & Phiên và hồ sơ \\
-\hline
-P1 → D1 & Hồ sơ và phiên \\
-\hline
-D1 → P1 & Dữ liệu xác thực \\
-\hline
-P1 → E3 & OTP / xác minh \\
-\hline
-E3 → P1 & Trạng thái / danh tính \\
-\hline
-E1 → P2 & Bộ lọc / đề đề xuất \\
-\hline
-P2 → E1 & Danh sách / trạng thái \\
-\hline
-E2 → P2 & Dữ liệu / duyệt đề \\
-\hline
-P2 → E2 & Kết quả quản lý đề \\
-\hline
-P2 → D2 & Đề và trạng thái \\
-\hline
-D2 → P2 & Đề / audio đã lưu \\
-\hline
-P2 → E4 & Câu hỏi / giọng \\
-\hline
-E4 → P2 & Audio / lỗi \\
-\hline
-E1 → P3 & Audio và dữ liệu phiên \\
-\hline
-P3 → E1 & Trạng thái / kết quả \\
-\hline
-D2 → P3 & Câu hỏi / audio đề \\
-\hline
-P3 → D3 & Bài / điểm / trạng thái \\
-\hline
-D3 → P3 & Audio / phiên đã lưu \\
-\hline
-P3 → D4 & Bút toán quota \\
-\hline
-D4 → P3 & Quyền lợi / số dư \\
-\hline
-P3 → E4 & Câu hỏi / giọng \\
-\hline
-E4 → P3 & Audio / lỗi \\
-\hline
-P3 → E5 & Audio / ngữ cảnh \\
-\hline
-E5 → P3 & Điểm / transcript / lỗi \\
-\hline
-E1 → P4 & Bộ lọc / bài / chia sẻ \\
-\hline
-P4 → E1 & Báo cáo / liên kết \\
-\hline
-P4 → D3 & Lộ trình / link / chấm lại \\
-\hline
-D3 → P4 & Điểm / lỗi / lịch sử \\
-\hline
-E2 → P5 & Thay đổi / cấu hình \\
-\hline
-P5 → E2 & Kết quả / nhật ký \\
-\hline
-E1 → P5 & Lựa chọn gói dịch vụ \\
-\hline
-P5 → E1 & Link / quyền lợi gói \\
-\hline
-P5 → D1 & Vai trò / trạng thái \\
-\hline
-D1 → P5 & Thông tin người dùng \\
-\hline
-P5 → D4 & Gói / quota / giao dịch \\
-\hline
-D4 → P5 & Gói / quyền lợi \\
-\hline
-P5 → D5 & Bản ghi kiểm toán \\
-\hline
-D5 → P5 & Nhật ký đã lưu \\
-\hline
-P5 → E6 & Đơn thanh toán \\
-\hline
-E6 → P5 & Link / giao dịch \\
-\hline
-\end{longtable}
 
 
 P3 đọc câu hỏi từ D2, ghi audio và kết quả vào D3, đồng thời cập nhật bút toán quota ở D4. P4 dùng dữ liệu D3 để lập báo cáo, thống kê tiến bộ và quản lý liên kết chia sẻ; yêu cầu chấm lại được ghi vào trạng thái bài làm ở D3 để P3 xử lý. P5 bao gồm yêu cầu mua gói đã nêu ở Chương 5, ngoài phạm vi 12 use-case chi tiết.
-
-Các luồng dữ liệu biên ở sơ đồ ngữ cảnh được phân bổ vào các tiến trình mức 1 tương ứng. Luồng đọc, ghi và phản hồi được thể hiện bằng các mũi tên riêng; sơ đồ không dùng điều kiện rẽ nhánh, nút bắt đầu hoặc kết thúc của activity diagram.

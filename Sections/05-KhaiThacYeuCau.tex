@@ -1,52 +1,24 @@
 % Sections/05-KhaiThacYeuCau.tex
 \section{Khai thác yêu cầu}
 
-Chương này trình bày quá trình khai thác và phân tích yêu cầu cho hệ thống Wispace Speaking và nền tảng AIHub. Các yêu cầu được xác định làm cơ sở cho việc thiết kế kiến trúc, cơ sở dữ liệu, hiện thực chức năng và kiểm thử hệ thống.
-
-Wispace Speaking cung cấp các chức năng quản lý tài khoản, quản lý kho đề, luyện tập theo từng Part, thi thử và theo dõi tiến bộ học tập. Mô hình AI chấm điểm Speaking được tích hợp để xử lý audio câu trả lời, đánh giá theo các tiêu chí IELTS và cung cấp phản hồi cho học viên. Bên cạnh đó, AIHub cung cấp môi trường sử dụng API, xây dựng và thẩm định mẫu bài tập học thuật, cấu hình dịch vụ AI và quản trị việc sử dụng theo tổ chức.
-
-Vì vậy, quá trình khai thác yêu cầu trong đồ án tập trung vào hai nhóm chính: yêu cầu phục vụ luyện tập và đánh giá kỹ năng Nói IELTS trên Wispace Speaking; yêu cầu cung cấp dịch vụ AI và quản lý dữ liệu học thuật trên AIHub. Hai nhóm yêu cầu làm rõ nhu cầu của người học, chuyên viên học thuật, lập trình viên và quản trị viên trong phạm vi từng hệ thống.
-
-Trong chương này, đồ án tập trung phân tích:
-\begin{itemize}
-    \item Các nhóm người dùng, vai trò và phạm vi quyền hạn của từng nhóm.
-    \item Các yêu cầu chức năng và phi chức năng của Wispace Speaking và AIHub.
-    \item Các yêu cầu dữ liệu đối với tài khoản, kho đề, audio, kết quả chấm và lịch sử luyện tập.
-    \item Các chức năng sử dụng API, tạo và thẩm định mẫu học thuật, cấu hình mô hình và quản trị tổ chức.
-    \item Các yêu cầu về chất lượng chấm điểm, bảo mật, hiệu năng, hạn mức sử dụng và khả năng duy trì dịch vụ AI.
-\end{itemize}
-
-Ngoài ra, chương này cung cấp cơ sở để xây dựng biểu đồ Use Case, sơ đồ hoạt động, thiết kế cơ sở dữ liệu và kiến trúc xử lý AI ở các chương tiếp theo.
+Chương này xác định tác nhân, yêu cầu chức năng, phi chức năng và dữ liệu của hai hệ thống Wispace Speaking và AIHub. Wispace phục vụ luyện tập, thi thử và đánh giá kỹ năng Nói IELTS; AIHub cung cấp API mô hình cho đối tác B2B và công cụ quản lý chất lượng mô hình nội bộ. Các yêu cầu làm cơ sở cho phân tích nghiệp vụ ở Chương 6 và thiết kế ở Chương 7.
 
 \subsection{Hệ thống AI hỗ trợ chấm điểm và cá nhân hóa luyện tập kỹ năng Nói IELTS}
 \label{subsec:wispace_system_spec}
 
 \subsubsection{Mô tả tổng quan về hệ thống}
-Hệ thống Wispace Speaking (Wispace IELTS Speaking Module) là phân hệ luyện thi IELTS Speaking trực tuyến, được mở rộng từ nền tảng luyện viết Wispace hiện có. Lõi của hệ thống là \textbf{Wispace Speaking Scoring Model}, mô hình AI chấm điểm Speaking do đội ngũ Wispace tự huấn luyện. Mô hình nhận trực tiếp audio câu trả lời của học viên và trả về bản ghi lời nói có mốc thời gian, lỗi phát âm đến từng từ, các chỉ số độ trôi chảy, cùng band điểm theo bốn tiêu chí chính thức của IELTS: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation. Mô hình chạy thành dịch vụ riêng trên GPU, được gọi gián tiếp qua hàng đợi chấm bài, và tách biệt khỏi các thao tác người dùng. Mỗi kết quả chấm lưu kèm phiên bản mô hình đã dùng; phiên bản mới chỉ được bật sau khi chạy thử song song và đạt ngưỡng sai lệch tối đa 0.5 band so với giám khảo thật. Phần còn lại của nền tảng, gồm xác thực, gói dịch vụ, thanh toán PayOS và thống kê, được dùng chung với Wispace Writing.
+Wispace Speaking hỗ trợ luyện tập theo Part và thi thử IELTS với kho đề Cambridge 1--20, Forecast hoặc đề tự thêm. Scoring Model do Wispace tự huấn luyện nhận audio, trả transcript, lỗi phát âm và band theo bốn tiêu chí Fluency \& Coherence, Lexical Resource, Grammatical Range \& Accuracy và Pronunciation. Kết quả được dùng để theo dõi tiến bộ và xây dựng lộ trình cá nhân hóa.
 
-Trên nền mô hình đó, học viên luyện tập theo từng Part với kho đề Cambridge IELTS 1--20, bộ đề Forecast theo quý hoặc đề tự thêm, hoặc tham gia \textbf{Phòng thi thử như thật} (Mock Speaking Test Room). Phòng thi mô phỏng đầy đủ buổi thi 11--14 phút với giám khảo AI đặt câu hỏi bằng giọng nói và không cho nghe lại hay ghi lại. Lỗi lặp lại của học viên được tổng hợp vào lộ trình học cá nhân hóa (Adaptive Roadmap). Audio của những học viên đã đồng ý, cùng bộ bài chuẩn có điểm của giám khảo thật, trở thành dữ liệu để huấn luyện lại mô hình, tạo thành vòng cải tiến chất lượng chấm điểm liên tục cho người học Việt Nam.
+Thi thử mô phỏng buổi thi 11--14 phút, có giọng đọc câu hỏi và không cho nghe lại hoặc ghi lại. Tài khoản, gói Self-practice và thanh toán PayOS được dùng chung trong nền tảng Wispace Writing/Speaking. Dữ liệu dùng để cải thiện mô hình cần sự đồng ý của học viên và nhãn đánh giá của chuyên gia.
 
 \subsubsection{Các nhóm người dùng và chức năng}
-Hệ thống xác định 4 nhóm tác nhân người dùng (User Personas) và các tác nhân hệ thống tích hợp:
 \begin{itemize}
-    \item \textbf{Khách (Guest):} Người dùng chưa đăng nhập. Khách có thể xem danh sách đề thi Cambridge và Forecast, đăng ký tài khoản bằng email (xác thực bằng mã OTP) hoặc bằng tài khoản Google, đăng nhập và khôi phục mật khẩu. Muốn luyện tập hay thi thử, khách phải đăng nhập.
-
-  \item \textbf{Học viên (Student):} Người luyện thi IELTS Speaking. Học viên duyệt và tìm kiếm đề theo nguồn, Part và chủ đề, tự thêm đề riêng và đề xuất công khai. Học viên luyện tập theo từng Part với ghi âm, nghe lại và ghi lại, rồi nhận band điểm theo bốn tiêu chí (Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation) kèm bản ghi lời nói được đánh dấu lỗi. Học viên có thể tham gia Phòng thi thử như thật với giám khảo AI, theo dõi lịch sử và tiến bộ, quản lý hồ sơ cá nhân, và mua gói Self-practice dùng chung cho Writing và Speaking.
-
-  \item \textbf{Kiểm duyệt viên nội dung (Content Moderator):} Người duy trì chất lượng kho đề. Kiểm duyệt viên thêm, sửa, ẩn đề theo cấu trúc Quyển, Test, Part, Câu hỏi, và nhập hàng loạt đề từ tệp CSV/JSON. Họ tạo bộ đề Forecast theo quý, phát sinh audio câu hỏi, duyệt hoặc từ chối đề do học viên đề xuất (kèm lý do), và xử lý báo cáo đề sai hoặc trùng lặp.
-
-  \item \textbf{Quản trị viên hệ thống (Platform Administrator):} Người quản lý vận hành và kinh doanh. Quản trị viên tìm kiếm và xem chi tiết người dùng, khóa hoặc mở khóa tài khoản, đổi vai trò, cộng quota thủ công (mọi thao tác đều ghi nhật ký kèm lý do). Họ cấu hình gói dịch vụ, giá và hạn mức sử dụng từng tính năng, và theo dõi thống kê doanh thu, người dùng hoạt động cùng chi phí vận hành AI.
-
-  \item \textbf{Tác nhân hệ thống (System Actors):}
-  \begin{itemize}
-    \item \textbf{Wispace Speaking Scoring Model:} mô hình AI chấm điểm Speaking do Wispace tự huấn luyện, chạy trên GPU nội bộ.
-    \item \textbf{Giám khảo AI:} dịch vụ chuyển văn bản thành giọng nói (Text-to-Speech) dùng để đọc câu hỏi.
-    \item \textbf{Google OAuth} và \textbf{Gmail SMTP:} xác thực tài khoản và gửi mã OTP.
-    \item \textbf{Cổng thanh toán PayOS:} thanh toán gói dịch vụ.
-    \item \textbf{Tracking-System:} thu thập dữ liệu hành vi người dùng.
-    \item \textbf{Hệ quản trị cơ sở dữ liệu PostgreSQL} và \textbf{kho lưu trữ đối tượng (Object Storage):} lưu dữ liệu nghiệp vụ và audio.
-  \end{itemize}
+\item \textbf{Khách:} xem kho đề, đăng ký, đăng nhập và khôi phục mật khẩu.
+\item \textbf{Học viên:} luyện tập, thi thử, xem kết quả, quản lý hồ sơ và mua gói dịch vụ.
+\item \textbf{Kiểm duyệt viên:} quản lý kho đề, duyệt đề cộng đồng và xử lý báo cáo nội dung.
+\item \textbf{Quản trị viên:} quản lý người dùng, gói, hạn mức và thống kê vận hành.
 \end{itemize}
+Hệ thống tích hợp Scoring Model, TTS, Google OAuth, email, PayOS và Tracking-System. PostgreSQL và S3 lưu dữ liệu nghiệp vụ và audio.
 
 \subsubsection{Yêu cầu chức năng}
 Các yêu cầu chức năng của hệ thống được phân rã chi tiết theo từng nhóm người dùng thông qua các bảng dưới đây.
@@ -56,7 +28,7 @@ Các yêu cầu chức năng của hệ thống được phân rã chi tiết th
 \caption{Yêu cầu chức năng của Khách (chưa đăng nhập)}
 \label{wispace:tab:func_guest}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\
 \hline
@@ -76,7 +48,7 @@ Xem danh sách đề & Xem danh sách đề thi Cambridge và Forecast (chỉ hi
 \caption{Yêu cầu chức năng của Học viên}
 \label{wispace:tab:func_student}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\
 \hline
@@ -106,7 +78,7 @@ Mua gói dịch vụ & Chọn gói Self-practice (1, 3, 6 hoặc 12 tháng), dù
 \caption{Yêu cầu chức năng của Moderator}
 \label{wispace:tab:func_moderator}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\
 \hline
@@ -124,7 +96,7 @@ Xử lý báo cáo đề & Xem các báo cáo đề sai, trùng hoặc vi phạm
 \caption{Yêu cầu chức năng của Quản trị viên hệ thống}
 \label{wispace:tab:func_admin}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\
 \hline
@@ -141,109 +113,65 @@ Xem thống kê & Xem doanh thu, số người dùng hoạt động, số bài S
 \newpage
 
 \subsubsection{Yêu cầu phi chức năng}
+Các yêu cầu dưới đây xác định chất lượng phục vụ, khả năng bảo vệ dữ liệu và tính ổn định của Wispace Speaking. Các giá trị định lượng là mục tiêu kiểm thử khi hiện thực hệ thống.
+
 \begin{itemize}
-    \item \textbf{Hiệu năng và Thời gian đáp ứng:}
-    \begin{itemize}
-        \item Kết quả chấm 1 câu luyện tập ($\le$ 60 giây audio) trả về trong tối đa 15 giây.
-        \item Báo cáo thi thử full test ($\sim$12 phút audio) sẵn sàng trong tối đa 3 phút sau khi kết thúc.
-        \item Giám khảo AI phát câu hỏi tiếp theo trong tối đa 2 giây sau khi học viên ngừng nói.
-        \item Trang đề thi tải trong tối đa 2 giây với kho 2.000 đề; phân trang phía server.
-        \item Hệ thống chịu được 200 phiên thi thử đồng thời.
-    \end{itemize}
+\item \textbf{Hiệu năng và khả năng chịu tải:} kết quả chấm một câu có audio không quá 60 giây được trả trong tối đa 15 giây; báo cáo thi thử khoảng 12 phút audio sẵn sàng trong tối đa 3 phút sau khi kết thúc. Câu hỏi tiếp theo được phát trong tối đa 2 giây và trang kho 2.000 đề tải trong tối đa 2 giây. Hệ thống hướng đến 1.000--10.000 người dùng đồng thời; tác vụ chấm nền không cản trở thao tác ghi âm hoặc chuyển câu.
 
-    \item \textbf{Xử lý âm thanh:}
-    \begin{itemize}
-        \item Ghi âm định dạng WebM/Opus 16 kHz mono; Safari dùng MP4/AAC.
-        \item Upload audio theo từng đoạn 5--10 giây trong lúc nói; mất mạng dưới 60 giây không mất dữ liệu.
-        \item Cảnh báo khi mic quá nhỏ, bị rè, ồn nền cao hoặc im lặng quá 80\% đoạn ghi.
-    \end{itemize}
+\item \textbf{Chất lượng chấm điểm:} ít nhất 80\% bài trong bộ mẫu chuẩn có band lệch không quá 0.5 so với giám khảo; WER không quá 15\% đối với giọng người Việt. Transcript giữ nguyên lỗi của người nói để phục vụ đánh giá. Kết quả thể hiện bốn tiêu chí FC, LR, GRA, P, phiên bản mô hình và thông báo ``Điểm tham khảo do AI chấm''; bài không đủ dữ liệu phải được phân biệt với bài đã chấm đầy đủ.
 
-    \item \textbf{Độ chính xác:}
-    \begin{itemize}
-        \item Band AI lệch không quá 0.5 so với giám khảo thật ở ít nhất 80\% bài trong bộ mẫu chuẩn.
-        \item Tỷ lệ lỗi nhận dạng giọng nói (WER) không quá 15\% với giọng người Việt; transcript giữ nguyên lỗi của người nói.
-        \item Mọi kết quả ghi rõ "Điểm tham khảo do AI chấm".
-    \end{itemize}
+\item \textbf{Thu âm và truyền dữ liệu:} hỗ trợ WebM/Opus và MP4/AAC trên Safari, chuẩn hóa về 16 kHz mono khi xử lý. Audio được tải theo đoạn 5--10 giây; gián đoạn mạng dưới 60 giây không làm mất phần ghi âm. Hệ thống cảnh báo mic nhỏ, rè, ồn hoặc im lặng quá 80\% đoạn ghi; các đoạn được xác nhận đầy đủ trước khi nộp bài.
 
-    \item \textbf{Bảo mật:}
-    \begin{itemize}
-        \item Mật khẩu lưu dạng hash; toàn bộ giao tiếp qua HTTPS.
-        \item Audio lưu kho riêng tư, mã hóa; chỉ truy cập qua link ký tạm thời hết hạn sau 10 phút.
-        \item Mọi API kiểm tra quyền sở hữu, người dùng không xem được bài hoặc audio của người khác.
-        \item Khóa đăng nhập 15 phút sau 5 lần sai; giới hạn 30 phiên ghi âm/giờ/người.
-        \item Lọc nội dung đề do học viên thêm để chống mã độc và chống chèn lệnh vào giám khảo AI.
-    \end{itemize}
+\item \textbf{Bảo mật và phân quyền:} mật khẩu được băm, giao tiếp sử dụng HTTPS và các API kiểm tra vai trò, quyền sở hữu bài làm. Audio được mã hóa, lưu riêng tư và chỉ truy cập bằng liên kết ký có thời hạn tối đa 10 phút. Khóa đăng nhập 15 phút sau 5 lần sai; giới hạn 30 phiên ghi âm/giờ/người. Nội dung đề tự thêm được kiểm tra để loại bỏ mã độc và dữ liệu gây can thiệp vào chỉ dẫn AI.
 
-    \item \textbf{Quyền riêng tư:}
-    \begin{itemize}
-        \item Xin đồng ý xử lý giọng nói khi dùng lần đầu, theo quy định bảo vệ dữ liệu cá nhân hiện hành.
-        \item Tự xóa audio sau 180 ngày (giữ transcript và điểm); không dùng audio để huấn luyện AI nếu người dùng chưa đồng ý.
-    \end{itemize}
+\item \textbf{Quyền riêng tư và vòng đời dữ liệu:} học viên xác nhận đồng ý xử lý giọng nói khi sử dụng lần đầu. Audio được xóa sau 180 ngày nhưng giữ transcript và điểm theo chính sách; người dùng có thể yêu cầu xóa audio hoặc tài khoản. Sự đồng ý dùng dữ liệu để huấn luyện được quản lý riêng, không mặc định đi kèm việc sử dụng chức năng chấm điểm.
 
-    \item \textbf{Tính sẵn sàng:}
-    \begin{itemize}
-        \item Thời gian hoạt động tối thiểu 99.5\%/tháng.
-        \item Scoring Model lỗi thì bài vẫn được lưu, tự chấm lại tối đa 3 lần và hoàn quota nếu vẫn lỗi.
-        \item Model chấm quá tải hoặc lỗi thì bài được xếp hàng chấm lại, không mất bài; TTS có nhà cung cấp dự phòng.
-    \end{itemize}
+\item \textbf{Tính sẵn sàng và khôi phục:} mục tiêu hoạt động tối thiểu 99.5\%/tháng. Bài đã nộp vẫn được giữ khi dịch vụ AI gián đoạn; mỗi công việc có tối đa ba lần thực thi tự động, gồm lần đầu và hai lần thử lại. Thất bại cuối cùng được hoàn hạn mức theo nghiệp vụ, không hoàn hoặc trừ lặp khi gửi lại yêu cầu. Phiên thi có thể khôi phục từ trạng thái đã lưu; TTS có phương án dự phòng.
 
-    \item \textbf{Khả năng sử dụng:}
-    \begin{itemize}
-        \item Chạy trên Chrome, Edge, Safari bản mới; giao diện responsive cho điện thoại, phòng thi khuyến nghị máy tính + tai nghe.
-        \item Giao diện tiếng Việt và tiếng Anh; phím Space để bắt đầu / dừng ghi âm.
-    \end{itemize}
+\item \textbf{Khả năng sử dụng và tương thích:} hỗ trợ Chrome, Edge, Safari, giao diện responsive tiếng Việt/Anh và phím Space để bắt đầu hoặc dừng ghi âm. Trạng thái ghi âm, tải lên và chấm bài được hiển thị rõ; lỗi cần có thông báo và hướng xử lý phù hợp. Phòng thi thử khuyến nghị máy tính và tai nghe, có bước kiểm tra thiết bị trước khi bắt đầu.
 
-    \item \textbf{Chi phí và vận hành:}
-    \begin{itemize}
-        \item Ghi nhận chi phí AI/STT/TTS theo người dùng và theo bài; cảnh báo khi vượt ngưỡng ngày.
-        \item Audio câu hỏi của đề cố định được tạo một lần và dùng lại.
-        \item Mỗi phiên có mã truy vết xuyên suốt để điều tra lỗi.
-    \end{itemize}
+\item \textbf{Bảo trì và giám sát:} kết quả gắn với phiên bản mô hình để truy vết và so sánh chất lượng. Hệ thống ghi mã truy vết theo phiên, thời gian xử lý và chi phí AI/STT/TTS theo người dùng, bài làm; cảnh báo khi vượt ngưỡng ngày. Audio câu hỏi cố định được tạo một lần và tái sử dụng. Nhật ký quản trị ghi người thực hiện, thời điểm và lý do thay đổi.
 \end{itemize}
 
 \subsubsection{Yêu cầu dữ liệu}
 \label{wispace:subsubsec:wispace_data_requirements}
+Dữ liệu Wispace cần mô tả được toàn bộ quá trình từ lựa chọn đề, ghi âm, nộp bài đến chấm điểm và theo dõi tiến bộ. Các nhóm dữ liệu chính gồm:
 
-Dựa trên mục tiêu nghiệp vụ của module Speaking trên nền tảng Wispace, hệ thống cần tiếp nhận, tổ chức và quản lý thông tin ở mức quan niệm nhằm đáp ứng đồng thời ba trụ cột: luyện tập và thi thử kỹ năng nói có ghi âm, chấm điểm tự động bằng mô hình AI do Wispace tự huấn luyện, và quản lý kho đề cùng gói dịch vụ dùng chung với Writing. Các nhóm dữ liệu cốt lõi của hệ thống bao gồm:
- 
 \begin{itemize}
-    \item \textbf{Dữ liệu danh tính và phân quyền người dùng:} Lưu trữ thông tin tài khoản (email, mật khẩu dạng băm, liên kết Google, trạng thái Active / bị khóa / chờ xóa), vai trò của từng người dùng (Học viên, Moderator, Admin; vai trò Teacher / Academic QA đã ngừng hoạt động nhưng vẫn được giữ chỗ trong mô hình dữ liệu), mã OTP xác thực, refresh token và Security Stamp phục vụ đăng xuất và thu hồi phiên. Kèm theo là hồ sơ cá nhân của học viên (tên, avatar, band mục tiêu, ngày thi dự kiến, giọng giám khảo ưa thích), mã giới thiệu và bản ghi đồng ý xử lý giọng nói.
- 
-    \item \textbf{Dữ liệu gói dịch vụ, định ngạch (Quota) và thanh toán:} Quản lý gói Self-practice dùng chung cho Writing và Speaking (thời hạn 1/3/6/12 tháng, giá, ngày hết hạn), quyền lợi cấu hình theo từng tính năng (\texttt{speaking\_eval}, \texttt{speaking\_mock\_exam}, \texttt{error\_detail}, \texttt{progress\_tracking}, \texttt{roadmap}\ldots), hạn mức dùng hằng ngày tính riêng cho từng tính năng (số phút audio được chấm, số lượt thi thử, số đề tự thêm), các bản ghi điều chỉnh quota thủ công của Admin, và đơn thanh toán qua PayOS.
- 
-    \item \textbf{Dữ liệu kho đề Speaking:} Tổng hợp đề Cambridge IELTS (cấu trúc Quyển $\rightarrow$ Test $\rightarrow$ Part $\rightarrow$ Câu hỏi), bộ Forecast theo quý kèm thời gian hiệu lực, đề do học viên tự thêm (Part 1, cue card Part 2, Part 3) ở chế độ riêng tư hoặc đề xuất công khai. Đi kèm là chủ đề, thẻ phân loại, trạng thái kiểm duyệt (chờ duyệt, đã duyệt, từ chối kèm lý do, gộp trùng), báo cáo đề sai / trùng / vi phạm, và audio câu hỏi do TTS sinh sẵn cho ba giọng (Anh-Anh, Anh-Mỹ, Úc) để dùng lại.
- 
-    \item \textbf{Dữ liệu phiên luyện tập, phiên thi thử và audio:} Ghi nhận mỗi phiên (luyện tập hoặc thi thử), từng câu trả lời và trạng thái xử lý (đang tải lên, xếp hàng, đang chấm, hoàn tất, thất bại), tiến trình phòng thi (Part hiện tại, mốc thời gian chuẩn bị và nói) để khôi phục sau khi tải lại trang. Audio câu trả lời được tải lên theo từng đoạn 5--10 giây, lưu ở kho đối tượng riêng tư, mã hóa, kèm thông tin chất lượng thu (âm lượng, độ ồn, tỷ lệ im lặng) và mã truy vết xuyên suốt phiên.
- 
-    \item \textbf{Dữ liệu kết quả đánh giá của AI:} Lưu band tổng và band bốn tiêu chí FC, LR, GRA, P (thang 0--9, bước 0.5), lý do, điểm mạnh và điểm cần cải thiện cho từng tiêu chí. Dữ liệu còn gồm transcript nguyên văn kèm mốc thời gian từng từ, lỗi ngữ pháp / từ vựng / phát âm theo từ hoặc âm vị, chỉ số trôi chảy (số từ mỗi phút, số lần ngập ngừng, từ đệm), câu trả lời mẫu band 7+ do LLM sinh và phiên bản mô hình đã chấm (\texttt{modelVersion}). Mọi kết quả được gắn nhãn ``Điểm tham khảo do AI chấm''.
- 
-    \item \textbf{Dữ liệu tiến bộ và lộ trình cá nhân hóa:} Gồm lịch sử bài làm, chuỗi band theo thời gian, danh sách lỗi lặp lại (từ phát âm sai, cấu trúc ngữ pháp, từ đệm), các lượt luyện lại cùng câu hỏi để so sánh, lỗi được đưa vào Adaptive Roadmap (khi lặp từ 3 lần trong 14 ngày), và liên kết chia sẻ kết quả công khai (chỉ gồm điểm và nhận xét, có thể thu hồi).
- 
-    \item \textbf{Dữ liệu chất lượng và huấn luyện mô hình chấm:} Bao gồm bộ mẫu chuẩn do giám khảo thật gán nhãn, tập kiểm tra cố định không dùng để huấn luyện, audio của những người dùng đã đồng ý cho phép huấn luyện, kết quả chạy song song (shadow) giữa phiên bản mô hình mới và cũ trên tối thiểu 5\% lượt, cùng phân bố band theo tuần để phát hiện mô hình bị trôi.
- 
-    \item \textbf{Dữ liệu kiểm toán, giám sát và chi phí vận hành:} Ghi nhật ký thao tác quản trị (người thực hiện, thời điểm, giá trị trước/sau, lý do), nhật ký truy cập audio của người dùng qua mã ticket hỗ trợ, sự kiện Tracking, độ trễ chấm và tải GPU, cùng chi phí AI / STT / TTS theo người dùng và theo bài để cảnh báo khi vượt ngưỡng ngày và phục vụ thống kê doanh thu, chi phí cho Admin.
+\item \textbf{Tài khoản, hồ sơ và phiên truy cập:} email, mật khẩu băm, liên kết Google, vai trò, trạng thái tài khoản, OTP và phiên xác thực. Hồ sơ học viên gồm tên, ảnh đại diện, band mục tiêu, ngày thi dự kiến và giọng đọc câu hỏi. Các thay đổi mật khẩu, đăng xuất và khóa tài khoản phải liên kết được với trạng thái phiên.
+
+\item \textbf{Gói dịch vụ, hạn mức và thanh toán:} gói Self-practice 1/3/6/12 tháng dùng chung Writing/Speaking, thời hạn và quyền lợi từng tính năng. Lưu lượng sử dụng, khoản giữ, trừ và hoàn hạn mức phải gắn với bài làm hoặc phiên thi cụ thể. Giao dịch PayOS lưu mã đơn, số tiền và trạng thái xác nhận để tránh kích hoạt quyền lợi nhiều lần.
+
+\item \textbf{Kho đề và kiểm duyệt nội dung:} nguồn Cambridge/Forecast/đề cá nhân, Test, Part, câu hỏi, chủ đề, cue card và audio câu hỏi. Dữ liệu đề có tác giả, phiên bản, phạm vi công khai và trạng thái kiểm duyệt; đề xuất cộng đồng kèm quyết định duyệt, lý do từ chối hoặc báo cáo vi phạm. Câu hỏi dùng trong phiên thi cần được bảo toàn khi kho đề thay đổi.
+
+\item \textbf{Phiên luyện tập, thi thử và audio:} học viên, đề đã chọn, thời điểm bắt đầu/kết thúc, thời hạn từng phần, câu trả lời và trạng thái phiên. Metadata audio gồm định danh tệp, vị trí lưu trên S3, định dạng, thời lượng, kích thước, checksum và thứ tự các đoạn. Dữ liệu thể hiện được đoạn nào đã tải, đã xác minh hoặc còn thiếu để tiếp tục khi kết nối gián đoạn.
+
+\item \textbf{Công việc chấm và kết quả:} mã bài nộp, trạng thái chấm, lịch sử thực thi, lỗi xử lý và phiên bản mô hình. Kết quả gồm transcript có mốc thời gian, band tổng, điểm FC/LR/GRA/P, nhận xét, lỗi phát âm/ngữ pháp/từ vựng và chỉ số trôi chảy. Bài được chấm lại phải giữ liên kết với lần trước, không ghi đè mất lịch sử.
+
+\item \textbf{Tiến bộ và lộ trình cá nhân:} lịch sử bài luyện/thi thử, diễn biến điểm, lỗi lặp và mục tiêu cải thiện. Các thống kê cần truy về bài làm và khoảng thời gian tổng hợp. Liên kết chia sẻ chỉ cung cấp phạm vi điểm/nhận xét được cho phép, không mặc định công khai audio và có thể thu hồi.
+
+\item \textbf{Quyền riêng tư và vận hành:} bản ghi đồng ý xử lý giọng nói, sự đồng ý huấn luyện, yêu cầu xóa và trạng thái thực hiện. Nhật ký quản trị lưu người thao tác, thời điểm, giá trị thay đổi và lý do; dữ liệu vận hành lưu độ trễ, lỗi và chi phí dịch vụ để đối soát.
 \end{itemize}
 
-Về mặt tính chất, dữ liệu của hệ thống phải bảo đảm: tính toàn vẹn và nhất quán giữa quota, gói dịch vụ và các lượt chấm (kể cả hoàn quota khi chấm lỗi); tính riêng tư cao đối với audio giọng nói (lưu mã hóa, chỉ truy cập qua liên kết ký tạm thời hết hạn sau 10 phút, người dùng chỉ xem được dữ liệu của chính mình); tính tuân thủ vòng đời dữ liệu (tự xóa audio sau 180 ngày nhưng giữ transcript và điểm, tài khoản xóa có thời gian chờ 30 ngày, chỉ dùng audio huấn luyện khi có sự đồng ý); tính truy vết của kết quả AI (mỗi kết quả gắn \texttt{modelVersion} để so sánh và quay về phiên bản cũ); tính bất biến của nhật ký quản trị; và sự phân tách rạch ròi giữa kết quả dự đoán của mô hình với nhãn chuẩn do giám khảo thật gán, để không làm nhiễm dữ liệu huấn luyện và kiểm thử.
+Dữ liệu cần nhất quán giữa trạng thái bài làm, kết quả chấm và hạn mức; mỗi học viên chỉ truy cập dữ liệu thuộc quyền của mình. Metadata phải khớp với tệp thực tế trên S3. Audio tuân theo thời hạn lưu trữ; yêu cầu xóa tài khoản có thời gian chờ 30 ngày. Dự đoán AI và nhãn chuẩn của giám khảo được phân biệt để phục vụ đánh giá và cải thiện mô hình.
 
 \subsection{Hệ thống cung cấp API và quản trị hệ thống - AIHub}
 \label{subsec:aihub_system_spec}
 
 \subsubsection{Mô tả tổng quan về hệ thống}
-Hệ thống AIHub (AIHub Platform) là nền tảng quản trị API AI doanh nghiệp (Enterprise AI API Marketplace), Cổng điều khiển lập trình viên (Developer Portal) và Động cơ thực thi dịch vụ AI chuyên biệt (AI Service Runtime). Hệ thống đóng vai trò là một cổng thông minh (Intelligent API Gateway) kết nối các dịch vụ AI vi mô chuyên sâu (như bộ sinh bài tập viết IELTS, mô hình đánh giá bài luận, phân tích rủi ro hợp đồng pháp lý, và nhận dạng OCR hóa đơn tài chính) với các hệ thống khách hàng hạ tầng (tiêu biểu như hệ sinh thái WISPACE, các tổ chức giáo dục và lập trình viên bên ngoài).
+AIHub cung cấp và quản lý API mô hình cho các tổ chức B2B. Developer Portal hỗ trợ quản lý khóa, kiểm thử dịch vụ, theo dõi hạn mức và nhật ký. Gateway xác thực, kiểm soát quyền và điều phối yêu cầu đến dịch vụ AI.
 
-Bên cạnh năng lực cổng điều phối API thông thường, AIHub tích hợp phân hệ \textbf{Academic Lab} hoạt động theo cơ chế con người tham gia vòng lặp kiểm định (Human-in-the-Loop AI Quality Review Workbench). Phân hệ này cho phép các chuyên viên học thuật kiểm duyệt, tinh chỉnh, đánh giá theo thang điểm chất lượng từ 1 đến 10, chấp thuận hoặc từ chối các nội dung bài học do mô hình AI tạo ra. Quy trình khép kín này cung cấp nguồn dữ liệu chuẩn vàng phục vụ công tác huấn luyện tinh chỉnh có giám sát (Supervised Fine-Tuning - SFT) và tối ưu hóa sở thích (Direct Preference Optimization - DPO) cho các thế hệ mô hình ngôn ngữ lớn (LLM) kế tiếp.
+Academic Lab là công cụ nội bộ để sinh, hiệu đính, chấm chất lượng và thẩm định mẫu học thuật. Bản gốc AI, bản hiệu đính và phản hồi được lưu làm dữ liệu phục vụ SFT/DPO. Wispace Speaking có đường tích hợp mô hình riêng, không phụ thuộc cổng B2B của AIHub.
 
 \subsubsection{Các nhóm người dùng và chức năng}
-Hệ thống xác định 5 nhóm tác nhân người dùng (User Personas) và các tác nhân hệ thống tích hợp bên ngoài:
 \begin{itemize}
-    \item \textbf{Lập trình viên / Đối tác tích hợp (External Developer / Partner):} Lập trình viên tích hợp dịch vụ AI vào ứng dụng khách (như WISPACE Web/App), khởi tạo và quản lý mã định danh API Key, giám sát độ trễ, lưu lượng sử dụng, hạn mức quota và kiểm thử trực tiếp các endpoint thông qua công cụ cURL Sandbox tương tác.
-    \item \textbf{Chuyên viên học thuật (Academic Specialist):} Chuyên gia ngôn ngữ thực hiện truy vấn ngân hàng dẫn chứng lỗi viết thực tế của học viên, kích hoạt sinh bài tập vi mô, đánh giá kết quả AI thô, chỉnh sửa câu chữ, chấm điểm chất lượng (1--10), phê duyệt hoặc từ chối kèm lý do chuyên môn nhằm chuẩn hóa tập dữ liệu mẫu.
-    \item \textbf{Kỹ sư AI (AI Engineer):} Quản trị và tinh chỉnh các mẫu prompt (Prompt Templates), cấu hình chiến lược dự phòng mô hình AI (Model Fallback Strategy), phân tích các mẫu bị từ chối và trích xuất dữ liệu phục vụ huấn luyện mô hình chuyên biệt.
-    \item \textbf{Quản trị viên tổ chức (Organization Administrator):} Đại diện tổ chức quản lý thành viên nội bộ, quản trị cặp khóa chứng thực chung (\textit{Client ID / Secret Key}), kiểm soát hạn mức định ngạch tháng và cấu hình gói dịch vụ thuê bao (Free Sandbox, Pro, Enterprise).
-    \item \textbf{Quản trị viên hệ thống (Platform Administrator):} Giám sát chỉ số vận hành toàn hệ thống, theo dõi lưu lượng mạng toàn cầu, quản lý vòng đời đặc tả dịch vụ đa miền (\textit{Universal Specs Catalog}) và phê duyệt tổ chức khách hàng mới.
-    \item \textbf{Tác nhân hệ thống bên ngoài (External System Actors):} Dịch vụ WISPACE AI Micro-Engine API, Google Gemini API, OpenAI API, WISPACE Reference API và Hệ quản trị cơ sở dữ liệu PostgreSQL.
+\item \textbf{Đối tác tích hợp:} quản lý khóa, kiểm thử API và tra cứu usage của tổ chức.
+\item \textbf{Chuyên viên học thuật:} tra cứu dẫn chứng, sinh mẫu, hiệu đính và thẩm định nội dung.
+\item \textbf{Kỹ sư AI:} quản lý Prompt, cấu hình mô hình, phân tích lỗi và xuất dữ liệu.
+\item \textbf{Quản trị viên tổ chức:} quản lý thành viên, khóa và hạn mức trong tổ chức.
+\item \textbf{Quản trị viên nền tảng:} quản lý danh mục dịch vụ, gói, giám sát và kiểm toán.
 \end{itemize}
+Các dịch vụ tích hợp gồm mô hình AI, nhà cung cấp LLM và API dẫn chứng Wispace được cấp quyền.
 
 \subsubsection{Yêu cầu chức năng}
 Các yêu cầu chức năng của hệ thống được phân rã chi tiết theo từng nhóm người dùng thông qua các bảng dưới đây.
@@ -253,11 +181,11 @@ Các yêu cầu chức năng của hệ thống được phân rã chi tiết th
 \caption{Danh sách các chức năng của Lập trình viên / Đối tác tích hợp}
 \label{aihub:tab:func_developer}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\ \hline
 Đăng nhập \& Xác thực & Lập trình viên đăng nhập thông qua phiên Web/JWT hoặc sử dụng mã khóa \textit{x-client-id} và \textit{x-secret-key} khi gọi trực tiếp qua giao diện API. \\ \hline
-Quản lý khóa API (Credentials) & Tạo mới, liệt kê danh sách, tái tạo (rotate) và vô hiệu hóa (revoke) cặp mã định danh \textit{ClientId} và bí mật \textit{SecretKeyHash}. \\ \hline
+Quản lý khóa API (Credentials) & Tạo mới, liệt kê danh sách, tái tạo (rotate) và vô hiệu hóa (revoke) cặp mã định danh \textit{ClientId} và bí mật \textit{SecretKey}. \\ \hline
 Kiểm thử cURL Sandbox & Lựa chọn đặc tả dịch vụ trong danh mục Universal Specs, tùy biến tham số đầu vào và thực thi kiểm thử trực tiếp trên giao diện để kiểm tra tính hợp lệ của lược đồ JSON trả về. \\ \hline
 Gọi API sinh bài tập vi mô & Tích hợp gọi endpoint \texttt{/create-micro-exercise} hoặc \texttt{/ai/v1/create-micro-exercise} với các tham số mã lỗi (28 mã lỗi IELTS), dạng bài và nhận cấu trúc bài tập hoàn chỉnh. \\ \hline
 Tra cứu hạn mức \& Nhật ký sử dụng & Theo dõi lượng định ngạch tiêu thụ theo tháng (Monthly Quota), giới hạn tần suất yêu cầu trên phút (RPM) và lịch sử gọi API chi tiết (thời gian, mã trạng thái, số token tiêu thụ). \\ \hline
@@ -269,7 +197,7 @@ Tra cứu hạn mức \& Nhật ký sử dụng & Theo dõi lượng định ng�
 \caption{Danh sách các chức năng của Chuyên viên học thuật (Academic Lab)}
 \label{aihub:tab:func_academic}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\ \hline
 Truy vấn ngân hàng lỗi thực tế & Tra cứu ngữ cảnh lỗi viết thực tế của học viên từ cơ sở dữ liệu hoặc hệ thống WISPACE theo Task (1 hoặc 2), tiêu chí đánh giá (TR, CC, LR, GRA) và chủ đề bài học. \\ \hline
@@ -287,7 +215,7 @@ Quản lý kho dữ liệu mẫu & Xem danh sách kiểm kê toàn bộ các m�
 \caption{Danh sách các chức năng của Kỹ sư AI}
 \label{aihub:tab:func_ai_engineer}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\ \hline
 Cấu hình mẫu Prompt & Quản lý nội dung hướng dẫn hệ thống, cấu trúc ràng buộc định dạng JSON cho từng loại mã lỗi và từng dạng câu hỏi (trắc nghiệm, điền từ, viết ngắn). \\ \hline
@@ -302,7 +230,7 @@ Theo dõi phân tích lỗi mô hình & Phân tích tần suất các mã lỗi 
 \caption{Danh sách các chức năng của Quản trị viên (Tổ chức \& Nền tảng)}
 \label{aihub:tab:func_admin}
 \small
-\begin{tabular}{|p{4.2cm}|p{11.3cm}|}
+\begin{tabular}{|p{4.2cm}|p{\dimexpr\linewidth-4.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}
 \hline
 \textbf{Chức năng} & \textbf{Mô tả} \\ \hline
 Quản lý thành viên tổ chức & Tiếp nhận, cấp quyền, điều chỉnh vai trò thành viên (OWNER, ADMIN, MEMBER) trong phạm vi tổ chức thuê bao. \\ \hline
@@ -315,54 +243,45 @@ Kiểm toán hệ thống (Audit Logs) & Tra cứu tập trung nhật ký truy v
 \newpage
 
 \subsubsection{Yêu cầu phi chức năng}
+Các yêu cầu tập trung vào chất lượng cổng B2B, an toàn dữ liệu tổ chức và khả năng kiểm soát đầu ra AI. Các chỉ tiêu thời gian của tác vụ sinh nội dung không được áp dụng mặc định cho tác vụ chấm audio.
+
 \begin{itemize}
-    \item \textbf{Hiệu năng và Thời gian đáp ứng:}
-    \begin{itemize}
-        \item Thời gian xử lý tại tầng Gateway (Gateway Routing Overhead) không vượt quá 50ms cho các tác vụ trung gian (xác thực, kiểm tra định ngạch, ghi log).
-        \item Yêu cầu sinh bài tập vi mô có dẫn chứng hoàn tất và trả về kết quả trong thời gian dưới 2.5 giây khi sử dụng mô hình AI chính, và dưới 1.5 giây đối với động cơ ngoại tuyến dự phòng.
-        \item Thời gian phản hồi kiểm thử giả lập trên cURL Sandbox duy trì trong khoảng 300--800ms.
-        \item Hệ thống đáp ứng tối thiểu 1.000 yêu cầu đồng thời mà không làm suy giảm hiệu năng định tuyến.
-    \end{itemize}
-    \item \textbf{Bảo mật và Kiểm soát truy cập:}
-    \begin{itemize}
-        \item Khóa bí mật API (\textit{Secret Key}) chỉ được hiển thị một lần duy nhất lúc tạo mới; hệ thống chỉ lưu trữ mã băm một chiều sử dụng thuật toán Bcrypt với hệ số salt chuẩn an toàn.
-        \item Các khóa API áp dụng tiền tố nhận diện rõ ràng (\texttt{aihub\_live\_}, \texttt{aihub\_test\_}) nhằm phục vụ cơ chế rà soát lộ lọt tự động (Secret Scanning).
-        \item Áp dụng chính sách kiểm soát truy cập dựa trên vai trò (RBAC) nghiêm ngặt; phân tách ranh giới rõ ràng giữa phiên làm việc người dùng (Cookie/Session) và mã khóa ứng dụng máy (\textit{Gateway API Key}).
-        \item Toàn bộ dữ liệu đầu vào tại các biên HTTP đều được xác thực cấu trúc và kiểu dữ liệu thông qua thư viện Zod; bảo vệ hệ thống khỏi các cuộc tấn công tràn bộ nhớ bằng cách giới hạn kích thước gói tin yêu cầu tối đa 2MB.
-        \item Phòng chống tấn công chèn lệnh vào Prompt (Prompt Injection Defense): Dữ liệu bài viết và câu trích dẫn của học viên được cô lập chặt chẽ trong các trường thuộc tính JSON chuyên biệt trước khi gửi tới mô hình LLM.
-    \end{itemize}
-    \item \textbf{Tính sẵn sàng và Khả năng chịu lỗi:}
-    \begin{itemize}
-        \item Cam kết thời gian hoạt động định mức (Service Uptime) đạt tối thiểu 99.9\% mỗi tháng.
-        \item Cơ chế suy giảm chất lượng linh hoạt (Graceful Degradation): Khi mô hình vi dịch vụ AI chính gặp lỗi mạng hoặc quá tải, hệ thống tự động chuyển tiếp yêu cầu sang Google Gemini 1.5, tiếp tục chuyển sang OpenAI GPT-4o, và cuối cùng kích hoạt Động cơ Ngoại tuyến (Deterministic Engine) để luôn trả về dữ liệu đúng định dạng hợp đồng mà không làm sập ứng dụng khách.
-        \item Tiến trình ứng dụng Backend hoạt động hoàn toàn không trạng thái (Stateless Runtime), cho phép mở rộng quy mô theo chiều ngang (Horizontal Scaling) qua cụm chứa Docker hoặc công cụ quản lý tiến trình PM2 Cluster.
-    \end{itemize}
-    \item \textbf{Khả năng mở rộng và Duy trì:}
-    \begin{itemize}
-        \item Cấu trúc Lục giác phân tách hoàn toàn giữa Domain Entities, Application Use Cases, và Infrastructure Adapters, cho phép thay thế nhà cung cấp AI hoặc hệ cơ sở dữ liệu mà không cần chỉnh sửa logic nghiệp vụ sư phạm.
-    \end{itemize}
+\item \textbf{Hiệu năng và khả năng mở rộng:} chi phí xử lý tại Gateway không quá 50 ms. Sinh bài tập có dẫn chứng hoàn tất dưới 2.5 giây với mô hình chính, dưới 1.5 giây với động cơ xác định; Sandbox mô phỏng phản hồi trong 300--800 ms. Cổng B2B hướng đến tối thiểu 1.000 yêu cầu đồng thời; tác vụ dài có trạng thái để đối tác theo dõi mà không giữ kết nối đến khi hoàn tất.
+
+\item \textbf{Xác thực và bảo vệ khóa:} bí mật API được sinh ngẫu nhiên, chỉ hiển thị một lần và lưu bằng Bcrypt; khóa có tiền tố phân biệt môi trường. Phiên Portal và credentials ứng dụng được quản lý riêng. Khóa đã thu hồi không được tiếp tục sử dụng; dữ liệu bí mật không xuất hiện trong log, phản hồi công khai hoặc bộ dữ liệu huấn luyện.
+
+\item \textbf{Phân quyền và cô lập tổ chức:} RBAC giới hạn thao tác theo vai trò và tổ chức. Đối tác chỉ xem khóa, yêu cầu, hạn mức và usage của tổ chức mình; Academic Lab được cấp quyền nội bộ riêng. Hệ thống kiểm soát giới hạn tốc độ và hạn mức để một tổ chức không chiếm dụng toàn bộ năng lực dịch vụ.
+
+\item \textbf{Tính toàn vẹn giao dịch:} yêu cầu gửi lại phải được nhận diện để tránh tạo công việc hoặc tính hạn mức trùng. Mức sử dụng cần liên kết với kết quả thực thi; khoản giữ hạn mức phải được chốt hoặc giải phóng theo trạng thái cuối. Chi phí suy luận phát sinh được phân biệt với số lượng hạn mức tính cho khách hàng để phục vụ đối soát.
+
+\item \textbf{Chất lượng và tính nhất quán đầu ra:} dữ liệu vào/ra được kiểm tra theo schema của dịch vụ; request giới hạn 2 MB. Nội dung học viên được tách khỏi chỉ dẫn Prompt. Mô hình dự phòng phải tuân theo cùng hợp đồng, phản hồi ghi được mô hình thực tế sử dụng; khi không có kết quả hợp lệ, hệ thống trả lỗi có kiểm soát thay vì báo thành công với nội dung thiếu.
+
+\item \textbf{Tính sẵn sàng và chịu lỗi:} mục tiêu hoạt động tối thiểu 99.9\%/tháng. Các dịch vụ sinh nội dung có chuỗi dự phòng và thời hạn xử lý theo cấu hình. Sự cố một nhà cung cấp không làm mất yêu cầu đã ghi nhận; công cụ giám sát phân biệt trạng thái bình thường, suy giảm và không sẵn sàng. Dịch vụ chấm Speaking chỉ sử dụng mô hình chấm phù hợp, không thay bằng LLM sinh nội dung.
+
+\item \textbf{Bảo trì và truy vết:} nghiệp vụ được tách khỏi adapter nhà cung cấp; phiên bản Prompt, mô hình và đặc tả được quản lý để tái hiện kết quả. Nhật ký ghi tổ chức, dịch vụ, mã yêu cầu, thời gian, trạng thái và mức tiêu thụ. API hỗ trợ mở rộng theo chiều ngang, cấu hình thay đổi được kiểm tra và ghi nhận người thực hiện.
 \end{itemize}
 
 \subsubsection{Yêu cầu dữ liệu}
 \label{aihub:subsubsec:aihub_data_requirements}
-
-Dựa trên mục tiêu nghiệp vụ của nền tảng AIHub, hệ thống cần tiếp nhận, tổ chức và quản lý thông tin ở mức quan niệm nhằm đáp ứng đồng thời ba trụ cột: kiểm soát cổng API an toàn, cung cấp ngữ cảnh sinh bài tập sư phạm và duy trì vòng lặp chuẩn hóa dữ liệu huấn luyện AI. Các nhóm dữ liệu cốt lõi của hệ thống bao gồm:
+AIHub cần liên kết được danh tính tổ chức, dịch vụ khai thác, kết quả thực thi và mức sử dụng, đồng thời quản lý riêng dữ liệu Academic Lab. Các nhóm dữ liệu gồm:
 
 \begin{itemize}
-    \item \textbf{Dữ liệu danh tính và phân quyền người dùng:} Lưu trữ thông tin định danh cá nhân, cấu trúc tổ chức doanh nghiệp và vai trò của từng thành viên (như Lập trình viên, Chuyên viên học thuật, Quản trị viên). Đi kèm với đó là các thông tin ủy quyền máy-với-máy (thông tin định danh và chuỗi chứng thực bí mật của API Key) phục vụ việc nhận diện đối tác tích hợp qua cổng Gateway.
-    
-    \item \textbf{Dữ liệu chính sách dịch vụ và định ngạch (Quota):} Quản lý thông tin về các gói thuê bao dịch vụ, các quy định về hạn ngạch gọi API tối đa trong chu kỳ tháng và trần tần suất truy cập cho phép theo thời gian thực (RPM) nhằm bảo vệ hạ tầng tính toán của hệ thống.
+\item \textbf{Tài khoản, tổ chức và thành viên:} thông tin người dùng Portal, tổ chức, lời mời, vai trò OWNER/ADMIN/MEMBER, quyền nội bộ và trạng thái thành viên. Dữ liệu cho phép xác định ai được quản lý khóa, xem usage hoặc thực hiện thao tác học thuật; thay đổi quyền và chuyển quyền sở hữu được ghi nhận.
 
-    \item \textbf{Dữ liệu kiểm toán và giám sát giao dịch:} Ghi nhận dấu vết hoạt động của toàn bộ các yêu cầu truyền qua cổng API Gateway theo cơ chế bất biến. Dữ liệu này bao gồm thông số về độ trễ xử lý, mã trạng thái HTTP, khối lượng tài nguyên tính toán tiêu thụ (token của mô hình ngôn ngữ lớn) và địa chỉ nguồn để phục vụ đối soát, phân tích lưu lượng và tính cước doanh nghiệp.
+\item \textbf{Credentials và quyền khai thác dịch vụ:} clientId, mã băm bí mật, môi trường, tổ chức sở hữu, phạm vi quyền, thời điểm tạo và trạng thái thu hồi. Lịch sử tạo/xoay vòng/thu hồi phục vụ kiểm toán; không lưu lại bí mật gốc để cung cấp cho người dùng sau này.
 
-    \item \textbf{Dữ liệu ngữ cảnh sư phạm và bài thi IELTS:} Tổng hợp các chủ đề bài thi viết (Task 1 và Task 2), ngân hàng câu hỏi, biểu đồ mô tả và trích dẫn các câu văn mắc lỗi thực tế của học viên kèm phân tích nguyên nhân từ giáo viên. Nguồn dữ liệu này đóng vai trò là tri thức ngữ cảnh nền tảng (Grounding Context) để mô hình AI sinh bài tập sát với năng lực người học.
+\item \textbf{Danh mục API, gói và hạn mức:} mã dịch vụ, mô tả, phiên bản, schema yêu cầu/phản hồi, hình thức xử lý và đơn vị tính mức sử dụng. Gói xác định dịch vụ được phép dùng, hạn mức tháng, RPM và cấu hình riêng của tổ chức. Model route lưu mô hình, phiên bản và thứ tự dự phòng được phép cho từng dịch vụ.
 
-    \item \textbf{Dữ liệu thẩm định chất lượng và dữ liệu huấn luyện AI:} Quản lý quy trình con người tham gia đánh giá (Human-in-the-Loop). Hệ thống cần bảo toàn song song hai trạng thái: nội dung gốc do mô hình AI tự động sinh ra và phiên bản đã qua chỉnh sửa, hoàn thiện bởi chuyên viên ngôn ngữ. Đồng thời, lưu trữ các chỉ số đánh giá chất lượng (thang điểm 1--10), trạng thái phê duyệt và phản hồi lý do từ chối để cấu trúc thành tập dữ liệu chuẩn vàng phục vụ cải tiến, tinh chỉnh mô hình học máy (SFT/DPO).
+\item \textbf{Yêu cầu API, usage và kiểm toán:} mã yêu cầu, tổ chức, credentials, dịch vụ, khóa chống trùng, thời điểm, trạng thái và kết quả hoặc lỗi. Usage lưu latency, mô hình thực tế, token hoặc thời lượng audio theo loại dịch vụ, cùng thông tin giữ/chốt/hoàn hạn mức. Nhật ký quản trị gắn người thực hiện và nội dung thay đổi để truy vết, giải quyết sai lệch.
 
-    \item \textbf{Dữ liệu danh mục đặc tả dịch vụ AI (API Specifications):} Lưu trữ hợp đồng giao tiếp chuẩn hóa của các dịch vụ AI đa miền, bao gồm tài liệu mô tả endpoint, tham số đầu vào và lược đồ cấu trúc dữ liệu phản hồi (Schemas) phục vụ công tác kiểm thử giả lập trên Sandbox.
+\item \textbf{Ngữ cảnh và cấu hình học thuật:} đề Writing Task 1/2, tiêu chí TR/CC/LR/GRA, bộ 28 mã lỗi, chủ đề, trích dẫn và nhận xét chuyên môn. Prompt có phiên bản, biến đầu vào, schema và ví dụ mẫu; dẫn chứng cần xác định được nguồn và phạm vi sử dụng.
+
+\item \textbf{Mẫu và lịch sử thẩm định:} giữ đồng thời rawAiOutput, finalOutput, phiên bản Prompt/mô hình và thông tin thẩm định. Điểm chất lượng là số nguyên 1--10; mẫu có trạng thái DRAFT, ACCEPTED hoặc REJECTED. Quyết định từ chối kèm lý do; lưu nháp và quyết định duyệt được phân biệt, có phiên bản để nhận diện xung đột chỉnh sửa.
+
+\item \textbf{Bộ dữ liệu xuất:} định dạng SFT/DPO, bộ lọc, danh sách mẫu, phiên bản, người xuất, thời điểm, số mẫu và tệp kết quả. SFT liên kết Prompt với bản hiệu đính đạt tiêu chí; DPO giữ cặp đầu ra được chọn và bị từ chối cho cùng Prompt. Tệp xuất loại bỏ thông tin định danh cá nhân, có checksum và được lưu trong vùng nội bộ có kiểm soát truy cập.
 \end{itemize}
 
-Về mặt tính chất, dữ liệu của hệ thống phải bảo đảm: tính toàn vẹn và nhất quán cao; tính bất biến đối với nhật ký kiểm toán giao dịch; tính an toàn tuyệt đối cho các thông tin chứng thực bí mật; và sự phân tách rạch ròi giữa kết quả dự đoán của máy móc với nội dung đã được con người kiểm chứng.
+Dữ liệu B2B được phân tách theo tổ chức, còn dữ liệu học thuật theo quyền nội bộ. Bản gốc AI không bị thay bằng bản hiệu đính; dự đoán của mô hình được phân biệt với nội dung đã thẩm định. Mỗi giao dịch, quyết định duyệt và lần xuất dữ liệu cần truy vết được nguồn gốc, trong khi các bí mật xác thực và dữ liệu cá nhân không thuộc nội dung xuất huấn luyện.
 
 \subsection*{Kết chương}
 Chương này đã xác định phạm vi nghiệp vụ, các tác nhân và các nhóm yêu cầu của AIHub và Wispace Speaking. Các nội dung này làm cơ sở cho đặc tả use-case và phân tích luồng hoạt động ở chương tiếp theo.

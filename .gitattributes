@@ -1,0 +1,13 @@
+# Shell scripts must retain Unix line endings when checked out on Windows.
+*.sh text eol=lf
+# PowerShell build script is ASCII and works with either PS 5.1 or PowerShell 7.
+*.ps1 text eol=crlf
+# TeX and tooling sources use the same UTF-8 text on both platforms.
+*.tex text eol=lf
+*.bib text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
+latexmkrc text eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary

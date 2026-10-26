@@ -16,3 +16,4 @@ main.synctex(busy)
 .build-aihub/
 Images/Sequence/Wispace/source/
 Images/Sequence/AIHub/source/
+.build/

@@ -14,6 +14,6 @@ main.toc
 main.synctex(busy)
 .build-wispace/
 .build-aihub/
-Images/Sequence/Wispace/source/
-Images/Sequence/AIHub/source/
 .build/
+tools/
+Diagrams/

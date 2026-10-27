@@ -104,7 +104,9 @@ Mỗi công việc có tối đa ba lần thực thi tự động, gồm lần �
 
 Hợp đồng giữa Assessment và FastAPI gồm mã yêu cầu suy luận, tham chiếu audio đã xác minh, ngữ cảnh câu hỏi, phiên bản mô hình và rubric. Phản hồi gồm transcript có mốc thời gian, điểm FC/LR/GRA/P, band tổng, lỗi và nhận xét. Assessment kiểm tra định danh, miền điểm và tính đầy đủ trước khi công nhận kết quả.
 
-FastAPI nạp mô hình khi khởi động, thực hiện tiền xử lý, suy luận và kiểm định đầu ra. Số yêu cầu đồng thời được giới hạn theo năng lực GPU; .NET Worker và RabbitMQ điều phối công việc nền. Scoring Model chịu trách nhiệm chấm Speaking; LLM sinh nội dung chỉ hỗ trợ giải thích hoặc câu trả lời mẫu.
+FastAPI nạp mô hình khi khởi động, thực hiện tiền xử lý, suy luận và kiểm định đầu ra. Số yêu cầu đồng thời được giới hạn theo năng lực GPU; .NET Worker và RabbitMQ điều phối công việc nền. Pipeline chấm Speaking kết hợp mô hình phát âm chuyên biệt với LLM đánh giá các tiêu chí còn lại, sử dụng transcript, ngữ cảnh câu hỏi và đặc trưng âm học hỗ trợ.
+
+Trong thiết kế pipeline AI, M5 Acoustic xử lý âm học và cung cấp transcript; M6 Linguistic đánh giá từ vựng, ngữ pháp và bằng chứng mạch lạc. M7 Fusion điều phối hai nhánh, kết hợp Fluency âm học với Coherence ngôn ngữ, hiệu chuẩn điểm và chuẩn hóa phản hồi bốn tiêu chí cùng band tổng. Assessment Worker gọi lớp điều phối qua FastAPI; các bước M5/M6/M7 nằm bên trong ranh giới AI Inference.
 
 Báo cáo thi thử liên kết kết quả theo câu, Part và phiên bản mô hình. Điểm toàn bài được tổng hợp theo hợp đồng đánh giá của Scoring Model; bài kết thúc sớm chỉ hiển thị kết quả tương ứng với phần dữ liệu đã có.
 
@@ -287,7 +289,7 @@ Wispace và AIHub có danh tính, hạn mức, dữ liệu và lịch phát hàn
 
 Frontend & React: giao diện Wispace và AIHub độc lập. \\ \hline
 
-Backend & ASP.NET Core, EF Core và Npgsql: API, nghiệp vụ và truy cập dữ liệu. \\ \hline
+Backend & ASP.NET Core, EF Core và Npgsql: API, nghiệp vụ, ánh xạ và truy cập dữ liệu. Flyway quản lý thay đổi schema bằng các file SQL có phiên bản, chạy riêng ở bước triển khai. \\ \hline
 
 Dữ liệu & PostgreSQL lưu nghiệp vụ; S3 lưu audio; kho đối tượng lưu tệp xuất nội bộ. \\ \hline
 

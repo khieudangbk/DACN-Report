@@ -45,7 +45,7 @@ Semantic search thường bao gồm các bước như xử lý truy vấn, sinh 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\textwidth]{Images/Kienthucnentang/Semantic-Search.png}
-    \caption{Pipeline semantic search bao gồm các bước xử lý truy vấn, sinh embedding, truy xuất vector và xếp hạng kết quả dựa trên ngữ nghĩa \parencite{geeksforgeeks_semantic_search}}
+    \caption[Pipeline semantic search bao gồm các bước xử lý truy vấn, sinh embedding, truy xuất vector và xếp hạng kết quả dựa trên ngữ nghĩa]{Pipeline semantic search bao gồm các bước xử lý truy vấn, sinh embedding, truy xuất vector và xếp hạng kết quả dựa trên ngữ nghĩa \parencite{geeksforgeeks_semantic_search}}
     \label{fig:semantic_search_pipeline}
 \end{figure}
 
@@ -61,7 +61,7 @@ Multimodal Search là phương pháp tìm kiếm sử dụng nhiều loại dữ
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{Images/Kienthucnentang/Framework_of_Multimodal_Search.jpg}
-    \caption{Framework của hệ thống multimodal search kết hợp truy vấn văn bản và hình ảnh nhằm cải thiện semantic retrieval trong E-commerce \parencite{ipullrank_mum_search}}
+    \caption[Framework của hệ thống multimodal search kết hợp truy vấn văn bản và hình ảnh nhằm cải thiện semantic retrieval trong E-commerce]{Framework của hệ thống multimodal search kết hợp truy vấn văn bản và hình ảnh nhằm cải thiện semantic retrieval trong E-commerce \parencite{ipullrank_mum_search}}
     \label{fig:framework_multimodal_search}
 \end{figure}
 
@@ -164,7 +164,7 @@ Semantic retrieval thường bao gồm các bước như query embedding, docume
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\textwidth]{Images/Kienthucnentang/semantic-retrieval.png}
-    \caption{Workflow của semantic retrieval QA system bao gồm các bước embedding, semantic matching và retrieval \parencite{semantic_retrieval_rg}}
+    \caption[Workflow của semantic retrieval QA system bao gồm các bước embedding, semantic matching và retrieval]{Workflow của semantic retrieval QA system bao gồm các bước embedding, semantic matching và retrieval \parencite{semantic_retrieval_rg}}
     \label{fig:semantic_retrieval_workflow}
 \end{figure}
 
@@ -265,7 +265,7 @@ Một đặc điểm quan trọng của semantic space là hiện tượng seman
 Tuy nhiên, khi số lượng vector tăng lên rất lớn, việc tìm kiếm nearest neighbors trong semantic space trở nên tốn kém về mặt tính toán. Vì vậy, các hệ thống hiện đại thường sử dụng vector database và ANN indexing nhằm tối ưu tốc độ retrieval.
 \subsubsection{Text Embedding}
 
-Text Embedding là kỹ thuật chuyển đổi văn bản thành vector số thực nhằm biểu diễn ngữ nghĩa của câu, đoạn văn hoặc tài liệu trong không gian vector \cite{bert_paper}. Đây là nền tảng quan trọng của nhiều hệ thống NLP hiện đại như semantic search, recommendation system, chatbot và RAG.
+Text Embedding là kỹ thuật chuyển đổi văn bản thành vector số thực nhằm biểu diễn ngữ nghĩa của câu, đoạn văn hoặc tài liệu trong không gian vector. Đây là nền tảng quan trọng của nhiều hệ thống NLP hiện đại như semantic search, recommendation system, chatbot và RAG.
 
 Khác với các phương pháp truyền thống như bag-of-words hoặc TF-IDF, text embedding cho phép mô hình học được semantic representation của ngôn ngữ tự nhiên. Nhờ đó, các câu hoặc cụm từ có ý nghĩa tương đồng sẽ được biểu diễn gần nhau trong semantic space.
 
@@ -276,7 +276,7 @@ Ví dụ, các truy vấn như ``running shoes'', ``sports sneakers'' và ``già
 Hiện nay, nhiều hệ thống semantic search sử dụng transformer-based embedding model như BERT hoặc Sentence-BERT nhằm cải thiện chất lượng semantic retrieval.
 \subsubsection{Image Embedding}
 
-Image Embedding là kỹ thuật chuyển đổi hình ảnh thành vector số thực nhằm biểu diễn đặc trưng trực quan và ngữ nghĩa của ảnh trong không gian vector \cite{clip_paper}. Đây là nền tảng quan trọng trong các hệ thống computer vision hiện đại như image retrieval, visual search và multimodal AI.
+Image Embedding là kỹ thuật chuyển đổi hình ảnh thành vector số thực nhằm biểu diễn đặc trưng trực quan và ngữ nghĩa của ảnh trong không gian vector. Đây là nền tảng quan trọng trong các hệ thống computer vision hiện đại như image retrieval, visual search và multimodal AI.
 
 Khác với các phương pháp xử lý ảnh truyền thống, image embedding sử dụng deep learning để tự động học đặc trưng của hình ảnh. Các hình ảnh có nội dung tương tự sẽ được biểu diễn bằng các vector nằm gần nhau trong semantic space.
 
@@ -287,7 +287,7 @@ Ví dụ, khi người dùng tải lên hình ảnh của một đôi giày th�
 Hiện nay, nhiều hệ thống AI hiện đại sử dụng các mô hình như CLIP, ViT hoặc CNN để xây dựng image embedding phục vụ visual search và multimodal retrieval.
 \subsubsection{Multimodal Embedding}
 
-Multimodal Embedding là kỹ thuật biểu diễn nhiều loại dữ liệu như văn bản và hình ảnh trong cùng một semantic space \cite{clip_paper}. Đây là nền tảng quan trọng của các hệ thống multimodal AI và cross-modal retrieval hiện đại.
+Multimodal Embedding là kỹ thuật biểu diễn nhiều loại dữ liệu như văn bản và hình ảnh trong cùng một semantic space. Đây là nền tảng quan trọng của các hệ thống multimodal AI và cross-modal retrieval hiện đại.
 
 Trong multimodal embedding, hệ thống sử dụng các encoder riêng cho text và image nhưng được huấn luyện để tạo ra embedding trong cùng không gian vector. Nhờ đó, dữ liệu có cùng ý nghĩa ngữ nghĩa sẽ được biểu diễn gần nhau dù thuộc các modality khác nhau.
 
@@ -375,7 +375,7 @@ Các thành phần chính của text-image retrieval gồm:
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\linewidth]{Images/Kienthucnentang/text-image-retrieval.png}
-    \caption{Bài toán Text-Image Retrieval với quá trình ánh xạ văn bản và hình ảnh vào cùng không gian ngữ nghĩa để thực hiện truy xuất liên modality \cite{moonlight2024visualizedretrieval}}
+    \caption[Bài toán Text-Image Retrieval với quá trình ánh xạ văn bản và hình ảnh vào cùng không gian ngữ nghĩa để thực hiện truy xuất liên modality]{Bài toán Text-Image Retrieval với quá trình ánh xạ văn bản và hình ảnh vào cùng không gian ngữ nghĩa để thực hiện truy xuất liên modality \cite{moonlight2024visualizedretrieval}}
     \label{fig:text-image-retrieval}
 \end{figure}
 
@@ -397,7 +397,7 @@ Trong các hệ thống E-commerce hiện đại, Computer Vision thường đư
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{Images/Kienthucnentang/visual-search-ecommerce.png}
-    \caption{Ứng dụng Computer Vision trong tìm kiếm sản phẩm bằng hình ảnh trong E-commerce \parencite{cleed2024visualsearch}}
+    \caption[Ứng dụng Computer Vision trong tìm kiếm sản phẩm bằng hình ảnh trong E-commerce]{Ứng dụng Computer Vision trong tìm kiếm sản phẩm bằng hình ảnh trong E-commerce \parencite{cleed2024visualsearch}}
     \label{fig:visual-search-ecommerce}
 \end{figure}
 Một thành phần quan trọng của Computer Vision là visual feature representation, trong đó hình ảnh được chuyển đổi thành vector đặc trưng để biểu diễn nội dung thị giác trong không gian nhiều chiều. Các vector này hỗ trợ việc đo độ tương đồng giữa các hình ảnh và phục vụ semantic retrieval trong hệ thống AI Shopping Assistant.
@@ -418,7 +418,7 @@ Các mô hình Object Detection hiện đại thường được chia thành hai
     \item \textbf{One-stage Detector}: dự đoán trực tiếp bounding box và nhãn đối tượng trong một lần xử lý, ví dụ như YOLO và SSD.
 \end{itemize}
 
-Trong đó, YOLO là một trong những mô hình Object Detection phổ biến nhờ khả năng xử lý thời gian thực và hiệu quả cao trong nhiều bài toán Computer Vision \parencite{redmon2016yolo}. Đối với E-commerce, Object Detection có thể được sử dụng để phát hiện sản phẩm trong ảnh, nhận diện nhiều sản phẩm xuất hiện cùng lúc, trích xuất vùng ảnh chứa sản phẩm chính và hỗ trợ tìm kiếm sản phẩm bằng hình ảnh. Ví dụ, khi người dùng tải lên một bức ảnh có chứa áo, giày hoặc túi xách, hệ thống có thể phát hiện từng đối tượng trong ảnh, cắt vùng liên quan và sử dụng đặc trưng thị giác của đối tượng đó để truy xuất các sản phẩm tương tự trong cơ sở dữ liệu.
+Trong đó, YOLO là một trong những mô hình Object Detection phổ biến nhờ khả năng xử lý thời gian thực và hiệu quả cao trong nhiều bài toán Computer Vision. Đối với E-commerce, Object Detection có thể được sử dụng để phát hiện sản phẩm trong ảnh, nhận diện nhiều sản phẩm xuất hiện cùng lúc, trích xuất vùng ảnh chứa sản phẩm chính và hỗ trợ tìm kiếm sản phẩm bằng hình ảnh. Ví dụ, khi người dùng tải lên một bức ảnh có chứa áo, giày hoặc túi xách, hệ thống có thể phát hiện từng đối tượng trong ảnh, cắt vùng liên quan và sử dụng đặc trưng thị giác của đối tượng đó để truy xuất các sản phẩm tương tự trong cơ sở dữ liệu.
 
 Như vậy, Computer Vision cung cấp nền tảng tổng quát để hệ thống hiểu dữ liệu hình ảnh, trong khi Object Detection đóng vai trò là một kỹ thuật cụ thể giúp nhận diện và định vị sản phẩm trong ảnh. Sự kết hợp này giúp cải thiện khả năng visual search, product retrieval và trải nghiệm mua sắm trực quan trong các hệ thống E-commerce hiện đại.
 \subsection{Vector Database và ANN Search}
@@ -460,7 +460,7 @@ Trong đó, Cosine Similarity là phương pháp được sử dụng phổ bi�
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\linewidth]{Images/Kienthucnentang/vector-similarity.png}
-    \caption{Vector Similarity trong semantic space với các vector embedding có ngữ nghĩa tương tự được phân bố gần nhau hơn trong không gian nhiều chiều \cite{qdrant2024vectorsimilarity}}
+    \caption[Vector Similarity trong semantic space với các vector embedding có ngữ nghĩa tương tự được phân bố gần nhau hơn trong không gian nhiều chiều]{Vector Similarity trong semantic space với các vector embedding có ngữ nghĩa tương tự được phân bố gần nhau hơn trong không gian nhiều chiều \cite{qdrant2024vectorsimilarity}}
     \label{fig:vector-similarity}
 \end{figure}
 
@@ -484,7 +484,7 @@ Các thuật toán ANN hiện đại như HNSW cho phép giảm đáng kể th�
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{Images/Kienthucnentang/ann-search-overview.png}
-    \caption{Cơ chế Approximate Nearest Neighbor Search với quá trình truy xuất vector gần đúng nhằm tăng tốc tìm kiếm trong không gian vector nhiều chiều \cite{analyticsvidhya2024ann}}
+    \caption[Cơ chế Approximate Nearest Neighbor Search với quá trình truy xuất vector gần đúng nhằm tăng tốc tìm kiếm trong không gian vector nhiều chiều]{Cơ chế Approximate Nearest Neighbor Search với quá trình truy xuất vector gần đúng nhằm tăng tốc tìm kiếm trong không gian vector nhiều chiều \cite{analyticsvidhya2024ann}}
     \label{fig:ann-search-overview}
 \end{figure}
 
@@ -509,7 +509,7 @@ Hiện nay, HNSW được sử dụng rộng rãi trong các vector database nh�
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\linewidth]{Images/Kienthucnentang/hnsw-overview.png}
-    \caption{Cấu trúc đồ thị phân tầng của thuật toán Hierarchical Navigable Small World (HNSW) trong Approximate Nearest Neighbor Search \cite{qdrant2024hnsw}}
+    \caption[Cấu trúc đồ thị phân tầng của thuật toán Hierarchical Navigable Small World (HNSW) trong Approximate Nearest Neighbor Search]{Cấu trúc đồ thị phân tầng của thuật toán Hierarchical Navigable Small World (HNSW) trong Approximate Nearest Neighbor Search \cite{qdrant2024hnsw}}
     \label{fig:hnsw-overview}
 \end{figure}
 
@@ -700,7 +700,7 @@ RAG hiện được sử dụng rộng rãi trong nhiều hệ thống AI hiện
 
 \subsubsection{Kiến trúc RAG}
 
-Kiến trúc RAG thường bao gồm hai thành phần chính là retrieval module và generation module \parencite{lewis2020rag}.
+Kiến trúc RAG thường bao gồm hai thành phần chính là retrieval module và generation module.
 
 \begin{itemize}
     \item \textbf{Retrieval Module}: Thành phần chịu trách nhiệm truy xuất các tài liệu liên quan từ kho tri thức.
@@ -712,7 +712,7 @@ Trong quy trình hoạt động của RAG, truy vấn đầu vào trước tiên
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\textwidth]{Images/Kienthucnentang/RAG-architecture.png}
-    \caption{Minh họa kiến trúc Retrieval-Augmented Generation (RAG) \parencite{geeksforgeeks2026ragarchitecture}}
+    \caption[Minh họa kiến trúc Retrieval-Augmented Generation (RAG)]{Minh họa kiến trúc Retrieval-Augmented Generation (RAG) \parencite{geeksforgeeks2026ragarchitecture}}
     \label{fig:rag-architecture}
 \end{figure}
 Kiến trúc RAG giúp hệ thống kết hợp đồng thời:

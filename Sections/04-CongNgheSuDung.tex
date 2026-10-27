@@ -1,0 +1,142 @@
+%=========================
+% CHƯƠNG 4 - CÔNG NGHỆ SỬ DỤNG
+% Tệp được nạp sau chương Công nghệ liên quan trong main.tex.
+%=========================
+
+\section{Công nghệ sử dụng}
+\label{sec:technologies}
+
+Chương này trình bày các công nghệ được lựa chọn cho Wispace Speaking và AIHub. Wispace phục vụ luyện tập, thi thử và đánh giá IELTS Speaking; AIHub cung cấp dịch vụ AI qua API cho đối tác B2B và công cụ học thuật nội bộ. Hai hệ thống có frontend, backend và dữ liệu độc lập, cùng sử dụng React, ASP.NET Core, PostgreSQL và các dịch vụ AI bằng Python FastAPI. Nội dung tập trung vào vai trò và cơ sở lựa chọn công nghệ; cách tổ chức thành phần và luồng tích hợp được trình bày ở Chương 7.
+
+\subsection{Tiêu chí lựa chọn công nghệ}
+
+Việc lựa chọn công nghệ dựa trên bốn tiêu chí:
+\begin{itemize}
+    \item \textbf{Phù hợp nghiệp vụ:} hỗ trợ ghi âm, quản lý phiên thi, chấm Speaking và theo dõi tiến bộ của Wispace; quản lý tổ chức, khóa API, hạn mức và dữ liệu học thuật của AIHub.
+    \item \textbf{Phân tách loại tải:} tách xử lý HTTP và dữ liệu nghiệp vụ khỏi các tác vụ AI có thời gian thực thi dài, cho phép điều chỉnh tài nguyên API và suy luận riêng.
+    \item \textbf{Bảo vệ dữ liệu:} hỗ trợ giao dịch, kiểm soát truy cập và truy vết thay đổi đối với bài làm, điểm số, hạn mức và dữ liệu từng tổ chức.
+    \item \textbf{Khả năng tích hợp và vận hành:} có tài liệu rõ ràng, hệ sinh thái phù hợp, hỗ trợ kiểm thử và triển khai nhất quán giữa môi trường phát triển và máy chủ.
+\end{itemize}
+
+\subsection{Tổng hợp công nghệ}
+
+Bảng \ref{tech:tab:stack} tổng hợp các thành phần chính của thiết kế. Phiên bản cụ thể được cố định trong cấu hình dự án và môi trường triển khai, bảo đảm tương thích giữa runtime, thư viện truy cập dữ liệu và mô hình AI.
+
+\begingroup
+\small\setstretch{1.1}
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{\dimexpr.20\linewidth-2\tabcolsep-2\arrayrulewidth\relax}|>{\raggedright\arraybackslash}p{\dimexpr.27\linewidth-2\tabcolsep-\arrayrulewidth\relax}|>{\raggedright\arraybackslash}p{\dimexpr.53\linewidth-2\tabcolsep-\arrayrulewidth\relax}|}
+\caption{Công nghệ sử dụng cho Wispace và AIHub}\label{tech:tab:stack}\\\hline
+\textbf{Nhóm} & \textbf{Công nghệ} & \textbf{Vai trò} \\ \hline
+\endfirsthead
+\hline
+\textbf{Nhóm} & \textbf{Công nghệ} & \textbf{Vai trò} \\ \hline
+\endhead
+Giao diện & React & Giao diện học viên, quản trị Wispace; Portal B2B và Academic Lab của AIHub. \\ \hline
+Ghi âm web & MediaRecorder & Thu âm câu trả lời Speaking trên trình duyệt và cung cấp dữ liệu để tải lên. \\ \hline
+Backend & C\#, ASP.NET Core & API, xác thực, phân quyền và xử lý nghiệp vụ của từng hệ thống. \\ \hline
+Truy cập dữ liệu & EF Core, Npgsql & Ánh xạ entity, theo dõi thay đổi và truy vấn PostgreSQL. \\ \hline
+Migration & Flyway & Quản lý phiên bản cấu trúc database bằng các lệnh SQL viết thủ công. \\ \hline
+Dịch vụ AI & Python, FastAPI & Cung cấp API suy luận và kiểm tra hợp đồng dữ liệu đầu vào, đầu ra. \\ \hline
+Mô hình & Scoring Model; mô hình sinh nội dung qua adapter & Chấm Speaking bằng mô hình tự huấn luyện; cung cấp tác vụ AI và sinh mẫu học thuật theo cấu hình. \\ \hline
+Cơ sở dữ liệu & PostgreSQL & Lưu dữ liệu nghiệp vụ, trạng thái xử lý, điểm số và lịch sử sử dụng. \\ \hline
+Lưu trữ tệp & S3 & Lưu audio riêng tư của Wispace; kho đối tượng phục vụ tệp xuất nội bộ của AIHub. \\ \hline
+Bất đồng bộ & RabbitMQ,.NET Worker & Phân phối công việc nền, tiếp nhận sự kiện và điều phối xử lý. \\ \hline
+Bộ nhớ đệm & Redis & Cache nội dung, cấu hình và hỗ trợ giới hạn tốc độ truy cập. \\ \hline
+Triển khai & Docker, Docker Compose & Đóng gói dịch vụ; tổ chức môi trường phát triển và kiểm thử tích hợp. \\ \hline
+Phát triển & Git, GitHub; OpenAPI & Quản lý phiên bản mã nguồn và mô tả hợp đồng API. \\ \hline
+\end{longtable}
+\endgroup
+
+\subsection{Giao diện web và ghi âm}
+\subsubsection{React}
+
+React tổ chức giao diện thành các component, hỗ trợ cập nhật màn hình theo trạng thái và tái sử dụng thành phần. Cách tổ chức này phù hợp với các màn hình có nhiều trạng thái như đang ghi âm, đang tải audio, chờ chấm và hiển thị kết quả.
+
+Wispace sử dụng React cho kho đề, luyện tập, thi thử, lịch sử kết quả và quản trị. AIHub sử dụng một ứng dụng React riêng cho quản lý tổ chức, khóa API, theo dõi usage và thẩm định mẫu học thuật. Hai frontend gọi backend tương ứng, không dùng chung phiên đăng nhập hoặc suy ra quyền truy cập của nhau.
+
+\subsubsection{Ghi âm trên trình duyệt}
+
+MediaRecorder cung cấp khả năng ghi dữ liệu từ luồng media của trình duyệt \parencite{ch4_mediarecorder}. Trong Wispace, giao diện xin quyền micro, ghi câu trả lời và theo dõi trạng thái tải lên. Ứng dụng kiểm tra định dạng mà trình duyệt hỗ trợ; dịch vụ AI chuẩn hóa audio về định dạng đầu vào của Scoring Model.
+
+Audio được tải trực tiếp lên S3 bằng quyền truy cập có thời hạn do backend cấp. Trình duyệt không giữ khóa truy cập kho lưu trữ. Trạng thái hoàn tất bài nộp và thời hạn phiên thi được backend xác nhận, thay vì chỉ dựa vào bộ đếm hoặc thông báo thành công trên giao diện.
+
+\subsection{Backend và truy cập dữ liệu}
+\subsubsection{ASP.NET Core}
+
+ASP.NET Core là nền tảng xây dựng ứng dụng web đa nền tảng trong hệ sinh thái.NET, có các cơ chế phục vụ API, dependency injection và middleware. C\# hỗ trợ tổ chức mô hình miền, hợp đồng dữ liệu và các lớp xử lý nghiệp vụ theo kiểu dữ liệu rõ ràng.
+
+Wispace tổ chức backend thành các dịch vụ Core, Learning \& Exam, Assessment và Progress \& Reporting. Việc tách dịch vụ cho phép mở rộng luồng tiếp nhận bài làm và chấm điểm theo nhu cầu riêng. AIHub sử dụng backend ASP.NET Core độc lập theo modular monolith, phân chia các module Access, Gateway, Catalog, Usage và Academic Lab. Cách tổ chức này giữ nghiệp vụ quản lý B2B thống nhất trong khi dịch vụ suy luận vẫn có thể triển khai riêng.
+
+Xác thực người dùng được kết hợp với phân quyền tại API và đối tượng dữ liệu. Đối với AIHub, thông tin xác thực của đối tác phải gắn với tổ chức, dịch vụ được cấp quyền và hạn mức sử dụng. Khóa bí mật B2B được dùng tại máy chủ của đối tác, không nhúng trong ứng dụng React.
+
+\subsubsection{Entity Framework Core và Npgsql}
+
+Entity Framework Core ánh xạ các entity C\# với bảng và hỗ trợ truy vấn, cập nhật dữ liệu; DbContext theo dõi thay đổi của các entity được quản lý. Npgsql cung cấp tích hợp EF Core với PostgreSQL \parencite{ch7_npgsql}. Cấu hình ánh xạ mô tả cấu trúc bảng đã được quản lý bằng migration, không tự tạo bảng khi ứng dụng khởi động.
+
+Giao dịch dữ liệu được giới hạn trong database sở hữu nghiệp vụ. Những thay đổi liên quan nhiều dịch vụ được phối hợp bằng API và sự kiện. Cách sử dụng này tránh giữ giao dịch cơ sở dữ liệu trong suốt thời gian tải audio hoặc gọi mô hình AI.
+
+\subsubsection{Flyway và SQL migration}
+
+Flyway quản lý thứ tự và lịch sử thay đổi cấu trúc database bằng các file SQL có phiên bản \parencite{ch4_flyway}. Các lệnh tạo bảng, khóa, ràng buộc và chỉ mục được viết thủ công, chẳng hạn trong file \texttt{V1\_\_create\_users.sql}. Flyway chạy qua CLI hoặc container ở bước triển khai, độc lập với backend.NET. EF Core phụ trách ánh xạ và truy cập dữ liệu, không quản lý migration hoặc tự sinh bảng. Sau mỗi thay đổi schema, cấu hình ánh xạ được cập nhật để khớp với database.
+
+Mỗi dịch vụ Wispace có bộ SQL migration và lịch sử Flyway riêng; AIHub có bộ migration độc lập. Migration được chạy ở bước triển khai có kiểm soát, trước khi phiên bản ứng dụng tương ứng phục vụ yêu cầu. Các bản sao API không tự chạy migration khi khởi động. File migration đã áp dụng được giữ nguyên; thay đổi tiếp theo được bổ sung bằng một phiên bản mới.
+
+\subsection{Dịch vụ AI và mô hình}
+\subsubsection{Python FastAPI}
+
+FastAPI hỗ trợ xây dựng API Python với khai báo kiểu dữ liệu, kiểm tra dữ liệu bằng Pydantic và mô tả API theo OpenAPI. Python phù hợp để tích hợp mã tiền xử lý và suy luận của mô hình, trong khi.NET tiếp tục quản lý nghiệp vụ, quyền truy cập và dữ liệu bền vững.
+
+Trong Wispace, Assessment Worker gọi trực tiếp FastAPI để xử lý audio và thực thi Scoring Model. Đầu ra được kiểm tra trước khi lưu điểm và nhận xét. Đối với AIHub, backend định tuyến yêu cầu đến dịch vụ mô hình hoặc nhà cung cấp theo adapter và cấu hình. Hai đường tích hợp này độc lập: Wispace không phải đi qua API B2B của AIHub để chấm Speaking.
+
+Các tác vụ suy luận dài được điều phối bằng worker và hàng đợi. Khả năng lập trình bất đồng bộ của API không thay thế việc giới hạn số lượt suy luận, quản lý tài nguyên GPU và kiểm soát thời gian xử lý.
+
+\subsubsection{Scoring Model và mô hình sinh nội dung}
+
+Scoring Model của Wispace được thiết kế theo pipeline M5--M6--M7. M5 Acoustic phân tích audio và ước lượng Pronunciation, Fluency; M6 Linguistic đánh giá Lexical Resource, Grammatical Range and Accuracy cùng bằng chứng Coherence từ transcript và ngữ cảnh câu hỏi. M7 Fusion tổng hợp và hiệu chuẩn các nhánh để trả bốn điểm tiêu chí, band tổng và nhận xét thống nhất. Mỗi kết quả gắn với phiên bản mô hình, rubric và metadata chất lượng; transcript chưa xác minh được xử lý theo mức độ tin cậy của dữ liệu. Chất lượng chấm và cơ chế hiệu chuẩn được đánh giá bằng dữ liệu người chấm.
+
+AIHub quản lý danh mục dịch vụ, model route và thông tin sử dụng. Academic Lab sử dụng mô hình sinh nội dung để tạo mẫu, sau đó chuyên viên hiệu đính và thẩm định trước khi xuất dữ liệu. Bản gốc, phiên bản chỉnh sửa và quyết định review được lưu để truy vết. Dữ liệu Writing phục vụ SFT/DPO được tách khỏi dữ liệu đánh giá Speaking, không mặc định được dùng làm nhãn chuẩn cho Scoring Model.
+
+\subsection{Cơ sở dữ liệu và lưu trữ}
+\subsubsection{PostgreSQL}
+
+PostgreSQL được lựa chọn làm cơ sở dữ liệu quan hệ cho cả hai hệ thống. Cơ chế giao dịch hỗ trợ cập nhật một nhóm thay đổi theo tính chất toàn bộ hoặc không thay đổi. Đây là cơ sở để thiết kế các thao tác cần tính nhất quán như giữ hạn mức, chốt kết quả và ghi nhận thanh toán.
+
+Wispace phân tách dữ liệu theo dịch vụ: tài khoản và kho đề tại Core; phiên học và metadata audio tại Learning; job và kết quả tại Assessment; dữ liệu tổng hợp tại Reporting. AIHub có database riêng cho tổ chức, credentials, dịch vụ, usage và mẫu học thuật. Liên kết xuyên dịch vụ Wispace là tham chiếu logic, không tạo khóa ngoại giữa các database.
+
+Dữ liệu có cấu trúc được tổ chức bằng bảng và ràng buộc quan hệ. Kiểu \texttt{jsonb} hỗ trợ lưu một số cấu trúc linh hoạt như đầu ra mô hình hoặc metadata \parencite{ch4_postgresql_json}. Các thuộc tính cần tra cứu, đối soát hoặc kiểm soát tính duy nhất vẫn được thiết kế thành cột rõ ràng.
+
+\subsubsection{S3}
+
+S3 được dùng để lưu audio, tách nội dung tệp khỏi cơ sở dữ liệu và đường truyền API nghiệp vụ. PostgreSQL lưu object key, kích thước, checksum và trạng thái xác minh. Thiết kế này giúp backend quản lý quyền và metadata trong khi việc truyền tệp diễn ra trực tiếp với kho lưu trữ.
+
+Audio cá nhân nằm trong vùng lưu trữ riêng tư, được truy cập bằng URL có thời hạn. Việc xóa bản ghi, kiểm tra tệp tải lên và sử dụng audio cho huấn luyện tuân theo quyền sở hữu và chính sách dữ liệu của Wispace. Tệp xuất nội bộ của AIHub được quản lý riêng theo quyền của Academic Lab.
+
+\subsubsection{Redis}
+
+Redis cung cấp cấu trúc dữ liệu trong bộ nhớ, được sử dụng cho các dữ liệu cần truy cập nhanh. Wispace dùng cache cho nội dung đề và cấu hình thường đọc; AIHub dùng cache cấu hình dịch vụ và hỗ trợ giới hạn tốc độ theo tổ chức hoặc khóa API.
+
+Dữ liệu cache có thời hạn và cơ chế cập nhật khi nguồn thay đổi. Điểm số, sổ hạn mức và trạng thái nghiệp vụ có thẩm quyền vẫn được lưu trong PostgreSQL, tránh phụ thuộc vào dữ liệu tạm khi Redis khởi động lại hoặc cache hết hạn.
+
+\subsection{Hàng đợi và xử lý nền}
+\subsubsection{RabbitMQ và .NET Worker}
+
+RabbitMQ được lựa chọn để chuyển công việc nền và sự kiện giữa các thành phần. Publisher confirm xác nhận broker tiếp nhận thông điệp; consumer acknowledgement xác nhận phía nhận đã xử lý thông điệp theo quy ước của ứng dụng..NET Worker tiếp nhận công việc, gọi dịch vụ cần thiết và cập nhật trạng thái xử lý.
+
+Wispace sử dụng hàng đợi để tách việc nộp bài khỏi thời gian suy luận và phân phối công việc đến các worker chấm. AIHub sử dụng xử lý nền cho tác vụ AI dài và xuất dữ liệu. Các nhóm công việc và sự kiện có hàng đợi riêng; audio và tệp xuất được lưu trong kho đối tượng, thông điệp chỉ mang định danh và tham chiếu cần thiết.
+
+Outbox lưu thông điệp chờ phát cùng giao dịch nghiệp vụ; consumer sử dụng định danh thông điệp để chống xử lý trùng. Lỗi tạm thời được thử lại có giới hạn, còn lỗi kết thúc được ghi nhận để đối soát. Chi tiết trạng thái và luồng xử lý được trình bày ở Chương 7.
+
+\subsubsection{Cơ sở lựa chọn RabbitMQ thay vì Kafka}
+
+Luồng chấm Speaking cần phân phối các công việc độc lập, có thời gian xử lý không đồng đều, đến nhóm worker có năng lực giới hạn. Thiết kế lựa chọn RabbitMQ để tập trung vào quản lý hàng đợi, xác nhận xử lý và điều phối công việc. Số người dùng đồng thời không trực tiếp quyết định lựa chọn broker; cần xem xét số bài nộp, thời gian chấm và độ trễ hàng đợi.
+
+Kafka cung cấp mô hình lưu luồng sự kiện theo topic, hỗ trợ retention và đọc lại dữ liệu bằng offset. Mô hình này phù hợp khi nhiều nhóm xử lý cần khai thác cùng lịch sử sự kiện hoặc thực hiện phân tích luồng. Phạm vi hiện tại của Wispace và AIHub ưu tiên điều phối tác vụ và thông báo thay đổi nghiệp vụ; dữ liệu gốc được quản lý trong PostgreSQL. Vì vậy, RabbitMQ được chọn cho thiết kế này; Kafka có thể được đánh giá khi phát sinh nhu cầu khai thác lịch sử sự kiện ở quy mô lớn.
+
+\subsection{Đóng gói, phát triển và kiểm thử}
+
+Docker đóng gói backend.NET, dịch vụ Python và các thành phần hạ tầng trong môi trường chạy được cấu hình rõ ràng. Docker Compose mô tả và khởi chạy ứng dụng nhiều container bằng một cấu hình thống nhất \parencite{ch4_docker_compose}; trong đề tài, công cụ này phục vụ phát triển và kiểm thử tích hợp.
+
+Git và GitHub quản lý phiên bản mã nguồn, thay đổi cấu hình và phối hợp phát triển. Dependency được cố định theo từng ứng dụng; cấu hình kết nối và bí mật được cấp qua môi trường triển khai. Mã nguồn và cấu hình công khai không chứa khóa API, mật khẩu database hoặc khóa truy cập S3.
+
+OpenAPI mô tả hợp đồng API của backend và FastAPI, phục vụ tích hợp và kiểm thử. Các kiểm tra tập trung vào phân quyền, bài nộp trùng, xử lý lại thông điệp, hạn mức và lỗi suy luận. Đánh giá tải cần đo riêng độ trễ API, tốc độ tải audio, độ dài hàng đợi và thời gian chấm; việc đóng gói thành công không thay thế kiểm thử các chỉ tiêu này.

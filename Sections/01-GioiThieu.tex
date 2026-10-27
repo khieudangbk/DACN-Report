@@ -6,65 +6,68 @@
 \section{Giới thiệu}
 
 \subsection{Động lực}
-\indent Trong bối cảnh thương mại điện tử phát triển mạnh mẽ, nhu cầu tìm kiếm và tư vấn sản phẩm trực tuyến ngày càng trở nên phức tạp và đa dạng. Người dùng không chỉ tìm kiếm bằng từ khóa đơn thuần mà còn có xu hướng mô tả nhu cầu bằng ngôn ngữ tự nhiên hoặc sử dụng hình ảnh thực tế. Tuy nhiên, các hệ thống tìm kiếm truyền thống còn nhiều hạn chế trong việc hiểu ngữ cảnh và xử lý dữ liệu đa phương thức, dẫn đến trải nghiệm người dùng chưa tối ưu.
+\indent Luyện tập IELTS Speaking đòi hỏi người học nhận được phản hồi về phát âm, độ trôi chảy, từ vựng và ngữ pháp, đồng thời theo dõi sự tiến bộ qua nhiều bài nói. Tuy nhiên, việc luyện tập cùng giáo viên phụ thuộc vào thời gian và điều kiện tiếp cận của mỗi học viên. Các công cụ đánh giá tự động có thể hỗ trợ luyện tập thường xuyên, nhưng kết quả còn chịu ảnh hưởng của chất lượng audio, nhận dạng tiếng nói và khả năng đánh giá của mô hình. Bên cạnh đó, điểm số riêng lẻ chưa đủ để xác định nội dung luyện tập phù hợp với từng người học.
 
-\indent Từ thực tiễn đó, đề tài \textit{``Xây dựng Trợ lý Mua sắm Đa phương tiện sử dụng RAG và Computer Vision''} được đề xuất nhằm nghiên cứu và phát triển một hệ thống trợ lý thông minh có khả năng hiểu ngôn ngữ tự nhiên và hình ảnh, hỗ trợ người dùng trong quá trình tìm kiếm và lựa chọn sản phẩm.
+\indent Từ nhu cầu đó, đề tài xây dựng hệ thống AI hỗ trợ chấm điểm và cá nhân hóa luyện tập kỹ năng Nói IELTS, kết hợp mô hình học sâu chuyên biệt cho phát âm với mô hình ngôn ngữ lớn để đánh giá các tiêu chí còn lại. Kết quả được tổng hợp thành hồ sơ năng lực theo thời gian, làm cơ sở đề xuất nội dung luyện tập theo điểm yếu và tiến độ. Hệ thống hướng đến tích hợp thử nghiệm vào nền tảng WISPACE và sử dụng AIHub để hỗ trợ cung cấp, quản lý dịch vụ AI qua API.
 
 \subsection{Mục tiêu}
-\indent Mục tiêu của đề tài là xây dựng một hệ thống trợ lý mua sắm đa phương tiện ứng dụng các công nghệ trí tuệ nhân tạo hiện đại, bao gồm RAG, LLM, Vector Database và Computer Vision. Hệ thống cần có khả năng:
+\indent Mục tiêu của đề tài là nghiên cứu và xây dựng hệ thống hỗ trợ đánh giá IELTS Speaking, cung cấp phản hồi và cá nhân hóa quá trình luyện tập. Trong giai đoạn Đồ án chuyên ngành, đề tài tập trung khảo sát, phân tích, thiết kế và hiện thực các chức năng, giải pháp được lựa chọn. Các mục tiêu chính gồm:
 \begin{itemize}
-    \item Hiểu và xử lý truy vấn ngôn ngữ tự nhiên của người dùng.
-    \item Tìm kiếm sản phẩm dựa trên mô tả văn bản và hình ảnh.
-    \item Tích hợp giao diện Web thân thiện, dễ sử dụng.
+    \item Kết hợp mô hình đánh giá phát âm với LLM và bằng chứng âm học để hỗ trợ chấm bốn tiêu chí: Pronunciation, Fluency \& Coherence, Lexical Resource và Grammatical Range \& Accuracy.
+    \item Cung cấp điểm, nhận xét và dẫn chứng; lưu lịch sử để hình thành hồ sơ năng lực và đề xuất luyện tập cá nhân hóa.
+    \item Xây dựng API và các chức năng cần thiết cho việc tích hợp vào Wispace Speaking; quản lý dịch vụ AI và dữ liệu học thuật thông qua AIHub.
+    \item Hiện thực, kiểm thử các chức năng và so sánh các giải pháp trong phạm vi giai đoạn 1; đánh giá kết quả và trình bày rõ những giới hạn còn tồn tại.
 \end{itemize}
+
 \subsection{Phạm vi}
 
-\indent Đề tài tập trung nghiên cứu và xây dựng hệ thống trợ lý mua sắm đa phương tiện ứng dụng trong lĩnh vực thương mại điện tử. Hệ thống hỗ trợ người dùng tìm kiếm và gợi ý sản phẩm thông qua văn bản và hình ảnh, kết hợp các công nghệ Trí tuệ nhân tạo như LLM, RAG, Vector Database và Computer Vision.
+\indent Đề tài tập trung vào bài toán chấm điểm và cá nhân hóa luyện tập IELTS Speaking. Wispace Speaking cung cấp môi trường luyện tập, thi thử và theo dõi kết quả; AIHub là hệ thống độc lập phục vụ quản lý API mô hình cho đối tác B2B và công cụ học thuật nội bộ. Phạm vi báo cáo tương ứng với giai đoạn 1, làm cơ sở hoàn thiện hệ thống trong giai đoạn tiếp theo.
 
 \begin{itemize}
     \item \textbf{Trong phạm vi:}
     \begin{itemize}
-        \item Xây dựng hệ thống tìm kiếm sản phẩm bằng văn bản và hình ảnh.
-        \item Xây dựng cơ chế tìm kiếm ngữ nghĩa dựa trên Vector Database.
-         \item Xây dựng giao diện web hỗ trợ người dùng tương tác với hệ thống.
-         \item Thử nghiệm và đánh giá hệ thống trong môi trường mô phỏng.
+        \item Tìm hiểu yêu cầu nghiệp vụ, kiến thức nền tảng, bài báo và hệ thống liên quan; phân tích ưu điểm, hạn chế và khoảng trống cần giải quyết.
+        \item Phân tích, thiết kế kiến trúc, dữ liệu, pipeline chấm Speaking và cơ chế cá nhân hóa dựa trên lịch sử học tập.
+        \item Hiện thực và kiểm thử ít nhất $2n$ chức năng với $n$ là số thành viên; với nhóm ba thành viên, số chức năng tối thiểu là sáu. Hiện thực và đánh giá ít nhất hai giải pháp cho bài toán mục tiêu.
+        \item Xây dựng API, kiểm thử tích hợp và thực hiện thử nghiệm trên WISPACE theo điều kiện dữ liệu, quyền truy cập và môi trường được cấp.
+        \item Đánh giá phần đã hiện thực, phân biệt mục tiêu thiết kế với kết quả thực nghiệm và xác định hướng hoàn thiện ở giai đoạn 2.
     \end{itemize}
 
     \item \textbf{Ngoài phạm vi:}
     \begin{itemize}
-        \item Chức năng thanh toán trực tuyến.
-        \item Quản lý vận chuyển, logistics và chuỗi cung ứng.
-        \item Quản lý kho hàng quy mô lớn và xử lý đơn hàng thực tế.
-        \item Triển khai hệ thống ở quy mô thương mại với hạ tầng phân tán lớn.
+        \item Cấp chứng nhận hoặc thay thế kết quả thi IELTS chính thức.
+        \item Chấm toàn bộ bốn kỹ năng IELTS; dữ liệu Writing trong AIHub chỉ phục vụ nhóm chức năng học thuật liên quan.
+        \item Khẳng định hiệu quả cải thiện dài hạn hoặc khả năng vận hành tải lớn khi chưa có thử nghiệm tương ứng.
+        \item Hoàn thiện toàn bộ chức năng và triển khai thương mại đầy đủ ngay trong giai đoạn 1.
     \end{itemize}
 
     \item \textbf{Giả định:}
     \begin{itemize}
-        \item Dữ liệu sản phẩm được thu thập và tiền xử lý trước khi đưa vào hệ thống.
-        \item Người dùng sử dụng hệ thống thông qua môi trường web có kết nối Internet ổn định.
-        \item Các mô hình AI và dịch vụ tích hợp hoạt động ổn định trong môi trường thử nghiệm.
-         \item Trang web Ecommerce đã có sẵn.
+        \item Người học sử dụng thiết bị có micro và trình duyệt hỗ trợ ghi âm, với kết nối Internet phù hợp để nộp bài.
+        \item Dữ liệu câu hỏi, audio và điểm đối chiếu được sử dụng trong phạm vi cho phép; việc khai thác dữ liệu cá nhân phục vụ huấn luyện có sự đồng ý tương ứng.
+        \item Nền tảng WISPACE cung cấp điều kiện tích hợp và thử nghiệm theo phạm vi được thống nhất.
+        \item Mô hình và dịch vụ AI được triển khai trong môi trường thực nghiệm; lỗi nhận dạng và sai lệch chấm điểm được kiểm tra, không mặc định đầu ra AI là chính xác.
     \end{itemize}
 \end{itemize}
+
 \subsection{Ý nghĩa của đề tài}
 \subsubsection{Ý nghĩa về mặt thực tiễn}
-\indent Đề tài góp phần nâng cao trải nghiệm người dùng trong thương mại điện tử thông qua việc cải thiện khả năng tìm kiếm và tư vấn sản phẩm. Hệ thống giúp giảm thời gian tìm kiếm, tăng độ chính xác trong việc gợi ý sản phẩm và hỗ trợ người dùng đưa ra quyết định mua sắm hiệu quả hơn.
+\indent Đề tài hướng đến hỗ trợ người học luyện nói thường xuyên, tiếp cận phản hồi và theo dõi tiến bộ trên cùng nền tảng. Hồ sơ năng lực giúp đề xuất nội dung phù hợp với điểm yếu và mục tiêu của từng học viên. Việc đóng gói thành API tạo điều kiện tích hợp vào Wispace và quản lý cung cấp dịch vụ thông qua AIHub.
+
 \subsubsection{Ý nghĩa về mặt khoa học}
-\indent Đề tài ứng dụng và kết hợp nhiều công nghệ hiện đại như RAG, LLM, Vector Database và Computer Vision trong một hệ thống thống nhất. Qua đó, góp phần nghiên cứu và phát triển các phương pháp xử lý dữ liệu đa phương thức và hệ thống truy xuất thông tin thông minh.
+\indent Đề tài nghiên cứu việc kết hợp mô hình âm học với LLM để đánh giá Speaking và sử dụng kết quả cho cá nhân hóa luyện tập. Quá trình đối chiếu các giải pháp giúp phân tích ảnh hưởng của transcript ASR, đặc trưng âm học và phương pháp tổng hợp điểm. Kết quả được trình bày cùng điều kiện đánh giá, giới hạn dữ liệu và phạm vi kết luận, bảo đảm minh bạch khi sử dụng AI.
 
 \subsection{Cấu trúc báo cáo}
 
 \indent Báo cáo được tổ chức thành các chương chính như sau:
-
 \begin{itemize}
-    \item Chương 1: Giới thiệu tổng quan về đề tài, động lực, mục tiêu, phạm vi nghiên cứu và ý nghĩa của đề tài.
-    \item Chương 2: Trình bày các kiến thức nền tảng phục vụ cho việc xây dựng hệ thống.
-    \item Chương 3: Tổng hợp và phân tích các công trình liên quan làm cơ sở tham khảo cho đề tài.
-    \item Chương 4: Giới thiệu các công nghệ sử dụng trong quá trình thiết kế và triển khai hệ thống.
-    \item Chương 5: Khai thác yêu cầu của hệ thống, bao gồm yêu cầu chức năng, phi chức năng và dữ liệu.
-    \item Chương 6: Phân tích hệ thống thông qua quy trình nghiệp vụ, ca sử dụng và luồng dữ liệu logic.
-    \item Chương 7: Trình bày thiết kế hệ thống ở các khía cạnh kiến trúc và thành phần chức năng.
-    \item Chương 8: Mô tả quá trình cài đặt hệ thống và các thành phần đã được hiện thực.
-    \item Chương 9: Đánh giá hệ thống. 
-    \item Chương 10: Tổng kết kết quả đạt được, hạn chế và hướng phát triển.
+    \item Chương 1: Giới thiệu động lực, mục tiêu, phạm vi và ý nghĩa của đề tài.
+    \item Chương 2: Trình bày kiến thức nền tảng về IELTS Speaking, xử lý tiếng nói, đánh giá tự động và dữ liệu phục vụ AI.
+    \item Chương 3: Khảo sát công trình, hệ thống và công nghệ liên quan; phân tích ưu điểm, hạn chế và cơ sở đề xuất giải pháp.
+    \item Chương 4: Giới thiệu công nghệ được lựa chọn và vai trò trong Wispace, AIHub.
+    \item Chương 5: Khai thác yêu cầu chức năng, phi chức năng và dữ liệu của hai hệ thống.
+    \item Chương 6: Phân tích tác nhân, ca sử dụng, luồng hoạt động và luồng dữ liệu.
+    \item Chương 7: Trình bày thiết kế kiến trúc, dữ liệu và tích hợp các thành phần AI.
+    \item Chương 8: Mô tả phần cài đặt, hiện thực và kiểm thử trong phạm vi giai đoạn 1.
+    \item Các chương cuối: Đánh giá kết quả đạt được, tổng kết hạn chế và đề xuất hướng hoàn thiện ở giai đoạn tiếp theo.
 \end{itemize}
